@@ -1,0 +1,35 @@
+# Changes here will be overwritten by Copier
+SelectCitation:
+- AddCitationFile_flag
+- AddCFFConvert_flag
+SelectCodeQualityFeatures:
+- AddLocalTests_flag
+- SelectGitHubActions_flag
+- AddLinting_flag
+- AddSonarCloud_flag
+SelectCommunityFeatures:
+- AddCodeConduct_flag
+- AddContributing_flag
+SelectDocumentationFeatures:
+- AddLocalDocumentation_flag
+- AddOnlineDocumentation_flag
+- AddDevDoc_flag
+- AddGitHubActionDocumentation_flag
+SelectGitHubActions:
+- AddGitHubActionBuild_flag
+SelectPublishReleaseFeatures:
+- SelectCitation_flag
+- AddZenodo_flag
+_commit: 0.6.1
+_src_path: https://github.com/nlesc/python-template.git
+code_of_conduct_email: rdurnik@gmail.com
+copyright_holder: Robin Durník
+email: rdurnik@gmail.com
+full_name: Robin Durník
+github_organization: rdurnik
+keywords: AOP, toxicology, data mining, ai, machine learning, data analysis
+license: MIT
+package_name: aoptk
+package_short_description: Tools to support data mining for the development of (q)AOPs
+template_profile: recommended
+version: 0.1.0
