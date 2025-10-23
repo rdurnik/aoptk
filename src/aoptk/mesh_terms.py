@@ -14,9 +14,8 @@ class MeshTerms(NormalizeChemical):
         pass
 
     def normalize_chemical(self, chemical = ''):
-        mesh_term_database = self.get_database_for_normalization()
-        clean_mesh_term_database = self.clean_database_for_normalization(mesh_term_database)
-        for _, row in clean_mesh_term_database.iterrows():
+        mesh_term_database = self.get_clean_mesh_term_database()
+        for _, row in mesh_term_database.iterrows():
             heading = row.loc['heading']
             if heading == chemical:
                 return chemical
@@ -25,6 +24,11 @@ class MeshTerms(NormalizeChemical):
             if chemical in terms:
                 return heading
         return chemical
+    
+    def get_clean_mesh_term_database(self):
+        mesh_term_database = self.get_database_for_normalization()
+        clean_mesh_term_database = self.clean_database_for_normalization(mesh_term_database)
+        return clean_mesh_term_database
 
 # This is a preliminary version of the database. We need to get database with all the MeSH terms.
     def get_database_for_normalization(self, mesh_term_database_path = '/home/rdurnik/aoptk/databases/tox21_tggates_mesh_terms.xlsx'):
