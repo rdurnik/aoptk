@@ -10,16 +10,14 @@ import pandas as pd
 
 
 class PubChemSynonyms(NormalizeChemical):
-    def __init__(self):
-        pass
+    def __init__(self, synonyms: pd.DataFrame):
+        self._synonyms = synonyms
 
-    def normalize_chemical(self, chemical = ''):
-        pubchem_synonyms_database = self.get_database_for_normalization()
-        clean_pubchem_synonyms_database = self.clean_database_for_normalization(pubchem_synonyms_database)
-        for _, row in clean_pubchem_synonyms_database.iterrows():
+    def normalize_chemical(self, chemical):
+        for _, row in self._synonyms.iterrows():
             heading = row.loc['heading']
             if heading == chemical:
-                return chemical
+                return heading
             synonyms = row.loc['synonyms']
             terms = [t.strip() for t in str(synonyms).split(';') if t.strip()]
             if chemical in terms:
