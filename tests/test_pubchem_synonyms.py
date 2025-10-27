@@ -18,8 +18,8 @@ def test_normalize_chemical_not_empty():
 
 @pytest.fixture
 def synonyms()->pd.DataFrame:
-  content = {'heading': ['acetaminophen', 'thioacetamide'], 'synonyms': [['paracetamol', 'acamol'], []}
-  df =pd.DataFrame(content)
+  content = {'heading': ['acetaminophen', 'thioacetamide'], 'synonyms': [['paracetamol', 'acamol'], ['thiacetamid', 'thioacetamid']]}
+  df = pd.DataFrame(content)
   return df
 
 # For purposes of testing, we need to have a smaller database of PubChem, otherwise the test will take too long.
