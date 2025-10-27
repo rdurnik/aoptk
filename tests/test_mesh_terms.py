@@ -14,15 +14,12 @@ def test_normalize_chemical_not_empty():
     actual = MeshTerms(pd.DataFrame()).normalize_chemical('')
     assert actual is not None
 
-# Probably should have written some tests here for the database?
-
 @pytest.fixture
 def mesh_terms()->pd.DataFrame:
   content = {'heading': ['acetaminophen', 'thioacetamide'], 'mesh_terms': [['paracetamol', 'acamol'], ['thiacetamid', 'thioacetamid']]}
   df = pd.DataFrame(content)
   return df
 
-# For purposes of testing, we need to have a smaller database of PubChem, otherwise the test will take too long.
 @pytest.mark.parametrize(("chemical", "expected"), [
     ("acetaminophen", "acetaminophen"),
     ("paracetamol", "acetaminophen"),
@@ -32,6 +29,8 @@ def mesh_terms()->pd.DataFrame:
 ])
 def test_normalize_chemical_multiple_chemicals(chemical, expected, mesh_terms):
     assert MeshTerms(mesh_terms).normalize_chemical(chemical) == expected
+
+
 
 
 

@@ -14,15 +14,12 @@ def test_normalize_chemical_not_empty():
     actual = PubChemSynonyms(pd.DataFrame()).normalize_chemical('')
     assert actual is not None
 
-# Probably should have written some tests here for the database?
-
 @pytest.fixture
 def synonyms()->pd.DataFrame:
   content = {'heading': ['acetaminophen', 'thioacetamide'], 'synonyms': [['paracetamol', 'acamol'], ['thiacetamid', 'thioacetamid']]}
   df = pd.DataFrame(content)
   return df
 
-# For purposes of testing, we need to have a smaller database of PubChem, otherwise the test will take too long.
 @pytest.mark.parametrize(("chemical", "expected"), [
     ("acetaminophen", "acetaminophen"),
     ("paracetamol", "acetaminophen"),
