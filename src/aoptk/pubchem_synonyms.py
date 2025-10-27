@@ -12,8 +12,7 @@ class PubChemSynonyms(NormalizeChemical):
             if heading == chemical:
                 return heading
             synonyms = row.loc['synonyms']
-            terms = [t.strip() for t in str(synonyms).split(';') if t.strip()]
-            if chemical in terms:
+            if chemical in synonyms:
                 return heading
         return chemical
 
