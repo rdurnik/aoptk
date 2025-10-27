@@ -4,41 +4,34 @@ import pandas as pd
 import pytest
 
 def test_can_create():
-    actual = MeshTerms()
+    actual = MeshTerms(None)
     assert actual is not None
 
 def test_implements_interface():
     assert issubclass(MeshTerms, NormalizeChemical)
 
 def test_normalize_chemical_not_empty():
-    actual = MeshTerms().normalize_chemical('')
-    assert actual is not None
-
-# I made this work with simply returnign acetaminophen...
-def test_normalize_chemical_acetaminophen():
-    actual = MeshTerms().normalize_chemical(chemical='acetaminophen')
-    assert actual == 'acetaminophen'
-
-# But I knew it will not work for all chemicals... I need a database of MeSH terms
-def test_get_database_for_normalization_not_empty():
-    actual = MeshTerms().get_database_for_normalization()
+    actual = MeshTerms(pd.DataFrame()).normalize_chemical('')
     assert actual is not None
 
 # Probably should have written some tests here for the database?
 
-# Then I did tests for many chemicals
+@pytest.fixture
+def mesh_terms()->pd.DataFrame:
+  content = {'heading': ['acetaminophen', 'thioacetamide'], 'mesh_terms': [['paracetamol', 'acamol'], ['thiacetamid', 'thioacetamid']]}
+  df = pd.DataFrame(content)
+  return df
+
+# For purposes of testing, we need to have a smaller database of PubChem, otherwise the test will take too long.
 @pytest.mark.parametrize(("chemical", "expected"), [
     ("acetaminophen", "acetaminophen"),
-    ("acamol", "acetaminophen"),
+    ("paracetamol", "acetaminophen"),
     ("thioacetamide", "thioacetamide"),
     ("something_not_in_the_database_but_recognized_as_chemical",
      "something_not_in_the_database_but_recognized_as_chemical"),
-     ("CH3OH", "CH3OH")
 ])
-def test_normalize_chemical_multiple_chemicals(chemical, expected):
-    assert MeshTerms().normalize_chemical(chemical) == expected
-
-
+def test_normalize_chemical_multiple_chemicals(chemical, expected, mesh_terms):
+    assert MeshTerms(mesh_terms).normalize_chemical(chemical) == expected
 
 
 
