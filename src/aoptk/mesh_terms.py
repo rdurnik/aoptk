@@ -3,25 +3,19 @@ import pandas as pd
 
 
 class MeshTerms(NormalizeChemical):
-    def __init__(self):
-        pass
+    def __init__(self, mesh_terms: pd.DataFrame):
+        self._mesh_terms = mesh_terms
 
-    def normalize_chemical(self, chemical = ''):
-        mesh_term_database = self.get_clean_mesh_term_database()
-        for _, row in mesh_term_database.iterrows():
+    def normalize_chemical(self, chemical):
+        for _, row in self._mesh_terms.iterrows():
             heading = row.loc['heading']
             if heading == chemical:
-                return chemical
+                return heading
             entry_terms = row.loc['entry_terms']
             terms = [t.strip() for t in str(entry_terms).split(';') if t.strip()]
             if chemical in terms:
                 return heading
         return chemical
-    
-    def get_clean_mesh_term_database(self):
-        mesh_term_database = self.get_database_for_normalization()
-        clean_mesh_term_database = self.clean_database_for_normalization(mesh_term_database)
-        return clean_mesh_term_database
 
 # This is a preliminary version of the database. We need to get database with all the MeSH terms.
     def get_database_for_normalization(self, mesh_term_database_path = '/home/rdurnik/aoptk/databases/tox21_tggates_mesh_terms.xlsx'):

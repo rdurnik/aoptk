@@ -1,11 +1,4 @@
-# This is probably bad, but what else would work?
-try:
-    from .normalize_chemical import NormalizeChemical
-except (ImportError, SystemError):
-    import os
-    import sys
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from normalize_chemical import NormalizeChemical
+from aoptk.normalize_chemical import NormalizeChemical
 import pandas as pd
 
 
