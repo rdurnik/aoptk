@@ -2,8 +2,6 @@ from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
 import pandas as pd
 import xml.etree.ElementTree as ET
 
-pd.set_option('display.max_colwidth', None)
-
 class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
     def __init__(self, database_path: str):
         self._database_path = database_path
