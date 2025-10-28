@@ -1,7 +1,3 @@
-import os
-import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -31,5 +27,3 @@ class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
             rows.append([heading, terms])
         
         return pd.DataFrame(rows, columns=['heading', 'mesh_terms'])
-
-print(ProvideMeshTermDataframeFromXML('/home/rdurnik/aoptk/tests/test_mesh_terms_database.xml').provide_normalization_dataframe())
