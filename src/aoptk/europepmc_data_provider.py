@@ -14,19 +14,24 @@ class GetEuropePMCPublicationData(GetPublicationData):
     def get_publication_data(self):
         id_list = self.get_id_list()
         for id in id_list:
-            if id.startswith("PMC"): # All PMC IDs start with PMC. It seems that only publications with PMC ID are in the Europe PMC open access subset.
+            if self.is_europepmc_id(id): # All PMC IDs start with PMC. It seems that only publications with PMC ID are in the Europe PMC open access subset.
                 try:
                     self.get_europepmc_pdf(id)
                 except Exception as e:
-                    self.get_abstract_text_from_json(id) # If PDF is not available, at least get the abstract?
+                    self.get_europepmc_json(id) # If PDF is not available, at least get the abstract?
                     continue
             else: # If the PDF is not available in Europe PMC, it could still be accessible via PubMed (small fraction of papers, most likely).
                 try:
                     self.get_pubmed_pdf(id)
                 except Exception as e:
-                    self.get_abstract_text_from_json(id) # If PDF is not available, at least get the abstract?
+                    self.get_europepmc_json(id) # If PDF is not available, at least get the abstract?
                     continue
         return '' # ???
+    
+    def is_europepmc_id(self, id):
+        if id.startswith("PMC"):
+            return True
+        return False
     
     def get_id_list(self):
         page_size = 1000
@@ -82,7 +87,7 @@ class GetEuropePMCPublicationData(GetPublicationData):
         pdf_url = src.url or ''
         return pdf_url
     
-    def get_abstract_text_from_json(self, id):
+    def get_europepmc_json(self, id):
         page_size = 1000
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
@@ -96,8 +101,8 @@ class GetEuropePMCPublicationData(GetPublicationData):
             }
             response = requests.get(url, params=params)
             response.raise_for_status()
-            data_europepmc = response.json()
-            results = data_europepmc.get("resultList", {}).get("result", [])
+            json = response.json() # Only return JSON and do the parsing in a different module?
+            results = json.get("resultList", {}).get("result", [])
             for record in results:
                 abstract = record.get("abstractText", "")
             return abstract
