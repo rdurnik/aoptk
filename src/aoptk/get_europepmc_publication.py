@@ -4,7 +4,7 @@ import requests
 from metapub import FindIt
 import os
 
-# Add a way to remove review articles: Simply add TITLE_ABS:(query). Probably by having two types of get_id_list?
+# To remove review articles and only search for the search term in the abstract: 'ABSTRACT:(' + self.query + ') NOT PUB_TYPE:"Review"' ... Two different get_id_list?
 # What if the user only wants to search through abstracts? PDF is not needed in that case.
 
 class GetEuropePMCPublication(GetPublication):
