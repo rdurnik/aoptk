@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-class GetPublicationData(ABC):
+class GetPublication(ABC):
     @abstractmethod
-    def get_publication_data(self):
+    def get_publication(self):
         pass
