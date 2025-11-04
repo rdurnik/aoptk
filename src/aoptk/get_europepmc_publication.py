@@ -22,7 +22,7 @@ class GetEuropePMCPublication(GetPublication):
                     continue
             else: # If the PDF is not available in Europe PMC, it could still be accessible via PubMed (small fraction of papers, most likely).
                 try:
-                    self.get_pubmed_pdf(id)
+                    self.get_pubmed_pdf(id) # This should not be in this module? It is PubMed related...
                 except Exception as e:
                     self.get_europepmc_json(id) # If PDF is not available, at least get the abstract?
                     continue
