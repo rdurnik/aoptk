@@ -4,8 +4,7 @@ import requests
 from metapub import FindIt
 import os
 
-# To remove review articles and only search for the search term in the abstract: 'ABSTRACT:(' + self.query + ') NOT PUB_TYPE:"Review"' ... Two different get_id_list?
-# What if the user only wants to search through abstracts? PDF is not needed in that case.
+# What if the user only wants to search through abstracts? PDF is not needed in that case (unless they want to input PDFs). Abstract from JSON will be more reliable.
 
 class GetEuropePMCPublication(GetPublication):
     def __init__(self, query: str):
