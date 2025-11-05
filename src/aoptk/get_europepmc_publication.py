@@ -61,6 +61,13 @@ class GetEuropePMCPublication(GetPublication):
             cursor_mark = data_europepmc["nextCursorMark"]
         return id_list
     
+    def modify_query(self, query_for_abstracts_only=False, remove_reviews=False): # In Clean Code it is said not to use boolean arguments, but what is the alternative here?
+        if query_for_abstracts_only:
+            self._query = 'ABSTRACT:(' + self._query + ')'
+        if remove_reviews:
+            self._query += ' NOT PUB_TYPE:"Review"'
+        return self
+    
     def get_europepmc_pdf(self, id):
         response = requests.get(f'https://europepmc.org/backend/ptpmcrender.fcgi?accid={id}&blobtype=pdf', stream=True)
         response.raise_for_status()
