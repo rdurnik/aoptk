@@ -53,6 +53,12 @@ def test_extract_full_text_no_abstract_keywords_introduction_specification():
     expected = 'Natural chiral hydrophobic cavities are important for many biological functions, e.g., for recognition as parts of transport proteins or for substrate-specific transformations as parts of enzymes. To understand and mimic these natural systems and their (supra)molecular mechanisms of action, the development of their artificial counterparts (e.g., cages, macrocycles) from chiral molecules is desirable. Easing such efforts, nature readily offers convenient chiral building blocks (terpenoids, amino acids, or carbohydrates) which can be utilized. Intermolecular-interaction-mediated self- assembly together with metal coordination are essential natural processes to construct such higher- order structures and can easily be adapted in the development of artificial systems. The discovery of supramolecular coordination cages (SCCs) via coordination-driven self-assembly by Saalfrank et al.[1] led to the rapid development of a large group of metallo-cycles and metallo-cages mainly using rigid and symmetric bis/tris-pyridyl coordinating ligands and tetravalent square-planar Pd2+. [2] The edge- directed self-assembly of different bis-pyridyl ligands resulted in the formation of SCCs and macrocycles with the general formula PdnL2n, e.g., Pd2L4, Pd3L6, Pd4L8, Pd6L12, Pd12L24, Pd24L48, Pd30L60, or Pd48L96– the largest SCC described so far.[3] Whereas tris-pyridyl ligands led to Pd3nL4n SCCs, with only four types so far, i.e., Pd3L4, [4–6] Pd9L12 (only one),[7] Pd18L24[8] (one) via edge- directed self-assembly, and the most common Pd6L8 [9] via face-directed self-assembly.'
     assert actual == expected
 
+def test_extract_abbreviations():
+    actual = ParsePDF('/home/rdurnik/aoptk/tests/test_pdfs/test_abbreviation.pdf').extract_abbreviations()
+    actual = [list(actual.items())[0], list(actual.items())[1], list(actual.items())[-1]]
+    expected = [('AASLD', 'American Association for the Study of Liver Diseases'), ('ACC', 'acetyl-CoA carboxylase'), ('VLDL', 'very-low-density lipoprotein')]
+    assert actual == expected
+
 # Test to see if the PDF opens correctly?
 
     

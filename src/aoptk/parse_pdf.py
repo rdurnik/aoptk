@@ -27,7 +27,6 @@ class ParsePDF(GetPublication):
                 if match:
                     abstract = match.group().strip()
                     return abstract
-        return None
     
     def parse_full_text(self):
         self.text_to_parse = self.extract_text_to_parse()
@@ -48,8 +47,7 @@ class ParsePDF(GetPublication):
                 if match:
                     match_end = match.end() + self.text_to_parse.index(match.group(0))
                     full_text = self.text_to_parse[match_end:].strip()
-                    return full_text
-        return None       
+                    return full_text     
             
     def extract_abstract_match_abstract_specified(self):
         pattern_abstract_written = r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
@@ -88,4 +86,18 @@ class ParsePDF(GetPublication):
                 text_to_parse += "\n".join([" ".join(block[4].split()) for block in blocks if block[4].strip()])
         return text_to_parse
     
-
+    def extract_abbreviations(self):
+        self.text_to_parse = self.extract_text_to_parse()
+        pattern_abbreviations = r"(?i)Abbreviations[:\s]+(.*?)\."
+        match = re.search(pattern_abbreviations, self.text_to_parse, re.DOTALL)
+        abbreviations_dict = {}
+        if match:
+            abbreviation_text = match.group(1)
+            abbreviation_text_without_new_lines = re.sub(r"\n+", " ", abbreviation_text)
+            entries = re.split(r";\s*", abbreviation_text_without_new_lines.strip())
+            for entry in entries:
+                m = re.match(r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)", entry.strip())
+                if m:
+                    key, value = m.groups()
+                    abbreviations_dict[key.strip()] = value.strip()
+        return abbreviations_dict
