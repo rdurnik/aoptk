@@ -87,4 +87,6 @@ class ParsePDF(GetPublication):
                 blocks = page.get_text("blocks")
                 text_to_parse += "\n".join([" ".join(block[4].split()) for block in blocks if block[4].strip()])
         return text_to_parse
+    
+print(ParsePDF('/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_no_abstract_introduction_keywords_specification.pdf').parse_full_text())
 
