@@ -1,7 +1,8 @@
-from aoptk.normalize_chemical import NormalizeChemical
-from aoptk.mesh_terms import MeshTerms
 import pandas as pd
 import pytest
+from aoptk.mesh_terms import MeshTerms
+from aoptk.normalize_chemical import NormalizeChemical
+
 
 def test_can_create():
     actual = MeshTerms(None)
@@ -11,12 +12,12 @@ def test_implements_interface():
     assert issubclass(MeshTerms, NormalizeChemical)
 
 def test_normalize_chemical_not_empty():
-    actual = MeshTerms(pd.DataFrame()).normalize_chemical('')
+    actual = MeshTerms(pd.DataFrame()).normalize_chemical("")
     assert actual is not None
 
 @pytest.fixture
 def mesh_terms()->pd.DataFrame:
-  content = {'heading': ['acetaminophen', 'thioacetamide'], 'mesh_terms': [['paracetamol', 'acamol'], ['thiacetamid', 'thioacetamid']]}
+  content = {"heading": ["acetaminophen", "thioacetamide"], "mesh_terms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]]}
   df = pd.DataFrame(content)
   return df
 
@@ -36,7 +37,7 @@ def test_normalize_chemical_multiple_chemicals(chemical, expected, mesh_terms):
 
 
 
-    
+
 
 
 

@@ -1,5 +1,5 @@
-from aoptk.normalize_chemical import NormalizeChemical
 import pandas as pd
+from aoptk.normalize_chemical import NormalizeChemical
 
 
 class PubChemSynonyms(NormalizeChemical):
@@ -8,10 +8,10 @@ class PubChemSynonyms(NormalizeChemical):
 
     def normalize_chemical(self, chemical):
         for _, row in self._synonyms.iterrows():
-            heading = row.loc['heading']
+            heading = row.loc["heading"]
             if heading == chemical:
                 return heading
-            synonyms = row.loc['synonyms']
+            synonyms = row.loc["synonyms"]
             if chemical in synonyms:
                 return heading
         return chemical

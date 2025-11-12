@@ -1,5 +1,5 @@
-from aoptk.normalize_chemical import NormalizeChemical
 import pandas as pd
+from aoptk.normalize_chemical import NormalizeChemical
 
 
 class MeshTerms(NormalizeChemical):
@@ -8,10 +8,10 @@ class MeshTerms(NormalizeChemical):
 
     def normalize_chemical(self, chemical):
         for _, row in self._mesh_terms.iterrows():
-            heading = row.loc['heading']
+            heading = row.loc["heading"]
             if heading == chemical:
                 return heading
-            mesh_terms = row.loc['mesh_terms']
+            mesh_terms = row.loc["mesh_terms"]
             if chemical in mesh_terms:
                 return heading
         return chemical
@@ -20,4 +20,3 @@ class MeshTerms(NormalizeChemical):
 
 
 
-    
