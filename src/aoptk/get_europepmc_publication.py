@@ -1,8 +1,7 @@
-from aoptk.get_publication import GetPublication
-import pandas as pd
+import os
 import requests
 from metapub import FindIt
-import os
+from aoptk.get_publication import GetPublication
 
 # What if the user only wants to search through abstracts? PDF is not needed in that case (unless they want to input PDFs). Abstract from JSON will be more reliable.
 
@@ -16,22 +15,22 @@ class GetEuropePMCPublication(GetPublication):
             if self.is_europepmc_id(id): # All PMC IDs start with PMC. It seems that only publications with PMC ID are in the Europe PMC open access subset.
                 try:
                     self.get_europepmc_pdf(id)
-                except Exception as e:
+                except Exception:
                     self.get_europepmc_json(id) # If PDF is not available, at least get the abstract?
                     continue
             else: # If the PDF is not available in Europe PMC, it could still be accessible via PubMed (small fraction of papers, most likely).
                 try:
                     self.get_pubmed_pdf(id) # This should not be in this module? It is PubMed related...
-                except Exception as e:
+                except Exception:
                     self.get_europepmc_json(id) # If PDF is not available, at least get the abstract?
                     continue
-        return '' # ???
-    
+        return "" # ???
+
     def is_europepmc_id(self, id):
         if id.startswith("PMC"):
             return True
         return False
-    
+
     def get_id_list(self):
         page_size = 1000
         cursor_mark = "*"
@@ -43,56 +42,54 @@ class GetEuropePMCPublication(GetPublication):
                 "format": "json",
                 "pageSize": page_size,
                 "cursorMark": cursor_mark,
-                "resultType": "idlist"
+                "resultType": "idlist",
             }
             response = requests.get(url, params=params)
             response.raise_for_status()
             data_europepmc = response.json()
             results = data_europepmc.get("resultList", {}).get("result", [])
-            
+
             for result in results:
                 publication_id = result.get("pmcid") or result.get("pmid") or result.get("id")
                 if publication_id:
                     id_list.append(publication_id)
-            
+
             if len(results) < page_size or not data_europepmc.get("nextCursorMark") or data_europepmc["nextCursorMark"] == cursor_mark:
                 break
             cursor_mark = data_europepmc["nextCursorMark"]
         return id_list
-    
+
     def modify_query(self, query_for_abstracts_only=False, remove_reviews=False): # In Clean Code it is said not to use boolean arguments, but what is the alternative here?
         if query_for_abstracts_only:
-            self._query = 'ABSTRACT:(' + self._query + ')'
+            self._query = "ABSTRACT:(" + self._query + ")"
         if remove_reviews:
             self._query += ' NOT PUB_TYPE:"Review"'
         return self
-    
+
     def get_europepmc_pdf(self, id):
-        response = requests.get(f'https://europepmc.org/backend/ptpmcrender.fcgi?accid={id}&blobtype=pdf', stream=True)
+        response = requests.get(f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={id}&blobtype=pdf", stream=True)
         response.raise_for_status()
-        filename = f'{id}.pdf'
-        os.makedirs('tests/pdf_storage', exist_ok=True)
-        filepath = os.path.join('tests/pdf_storage', filename)
-        with open(filepath, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+        filename = f"{id}.pdf"
+        os.makedirs("tests/pdf_storage", exist_ok=True)
+        filepath = os.path.join("tests/pdf_storage", filename)
+        with open(filepath, "wb") as f:
+            f.writelines(response.iter_content(chunk_size=8192))
 
     def get_pubmed_pdf(self, id):
         pdf_url = self.get_pubmed_pdf_url(id)
         response = requests.get(pdf_url, stream=True)
         response.raise_for_status()
-        filename = f'{id}.pdf'
-        os.makedirs('tests/pdf_storage', exist_ok=True)
-        filepath = os.path.join('tests/pdf_storage', filename)
-        with open(filepath, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+        filename = f"{id}.pdf"
+        os.makedirs("tests/pdf_storage", exist_ok=True)
+        filepath = os.path.join("tests/pdf_storage", filename)
+        with open(filepath, "wb") as f:
+            f.writelines(response.iter_content(chunk_size=8192))
 
     def get_pubmed_pdf_url(self, id):
         src = FindIt(id, retry_errors=True)
-        pdf_url = src.url or ''
+        pdf_url = src.url or ""
         return pdf_url
-    
+
     def get_europepmc_json(self, id):
         page_size = 1000
         cursor_mark = "*"
@@ -103,7 +100,7 @@ class GetEuropePMCPublication(GetPublication):
                 "format": "json",
                 "pageSize": page_size,
                 "cursorMark": cursor_mark,
-                "resultType": "core"
+                "resultType": "core",
             }
             response = requests.get(url, params=params)
             response.raise_for_status()
