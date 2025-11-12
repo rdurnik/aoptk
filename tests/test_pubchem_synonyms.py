@@ -18,8 +18,7 @@ def test_normalize_chemical_not_empty():
 @pytest.fixture
 def synonyms()->pd.DataFrame:
   content = {"heading": ["acetaminophen", "thioacetamide"], "synonyms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]]}
-  df = pd.DataFrame(content)
-  return df
+  return pd.DataFrame(content)
 
 @pytest.mark.parametrize(("chemical", "expected"), [
     ("acetaminophen", "acetaminophen"),
