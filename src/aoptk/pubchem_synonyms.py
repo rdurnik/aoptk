@@ -6,7 +6,7 @@ class PubChemSynonyms(NormalizeChemical):
     def __init__(self, synonyms: pd.DataFrame):
         self._synonyms = synonyms
 
-    def normalize_chemical(self, chemical):
+    def normalize_chemical(self, chemical: str) -> str:
         for _, row in self._synonyms.iterrows():
             heading = row.loc["heading"]
             if heading == chemical:

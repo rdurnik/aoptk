@@ -17,7 +17,10 @@ def test_normalize_chemical_not_empty():
 
 @pytest.fixture
 def synonyms()->pd.DataFrame:
-  content = {"heading": ["acetaminophen", "thioacetamide"], "synonyms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]]}
+  content = {
+    "heading": ["acetaminophen", "thioacetamide"],
+    "synonyms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]],
+  }
   return pd.DataFrame(content)
 
 @pytest.mark.parametrize(("chemical", "expected"), [
@@ -27,7 +30,7 @@ def synonyms()->pd.DataFrame:
     ("something_not_in_the_database_but_recognized_as_chemical",
      "something_not_in_the_database_but_recognized_as_chemical"),
 ])
-def test_normalize_chemical_multiple_chemicals(chemical, expected, synonyms):
+def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, synonyms: pd.DataFrame):
     assert PubChemSynonyms(synonyms).normalize_chemical(chemical) == expected
 
 

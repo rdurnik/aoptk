@@ -17,7 +17,10 @@ def test_normalize_chemical_not_empty():
 
 @pytest.fixture
 def mesh_terms()->pd.DataFrame:
-  content = {"heading": ["acetaminophen", "thioacetamide"], "mesh_terms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]]}
+  content = {
+      "heading": ["acetaminophen", "thioacetamide"],
+      "mesh_terms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]],
+    }
   return pd.DataFrame(content)
 
 @pytest.mark.parametrize(("chemical", "expected"), [
@@ -27,7 +30,7 @@ def mesh_terms()->pd.DataFrame:
     ("something_not_in_the_database_but_recognized_as_chemical",
      "something_not_in_the_database_but_recognized_as_chemical"),
 ])
-def test_normalize_chemical_multiple_chemicals(chemical, expected, mesh_terms):
+def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, mesh_terms: pd.DataFrame):
     assert MeshTerms(mesh_terms).normalize_chemical(chemical) == expected
 
 

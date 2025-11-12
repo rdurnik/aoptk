@@ -6,7 +6,7 @@ class MeshTerms(NormalizeChemical):
     def __init__(self, mesh_terms: pd.DataFrame):
         self._mesh_terms = mesh_terms
 
-    def normalize_chemical(self, chemical):
+    def normalize_chemical(self, chemical: str) -> str:
         for _, row in self._mesh_terms.iterrows():
             heading = row.loc["heading"]
             if heading == chemical:

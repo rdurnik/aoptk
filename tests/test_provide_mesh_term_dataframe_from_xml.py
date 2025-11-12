@@ -27,7 +27,10 @@ def test_extract_heading(provider: ProvideMeshTermDataframeFromXML):
 def test_extract_mesh_terms(provider: ProvideMeshTermDataframeFromXML):
     actual = provider.provide_normalization_dataframe()
     result = actual[actual["heading"] == "calcimycin"]["mesh_terms"].iloc[0]
-    assert result == ["4-benzoxazolecarboxylic acid, 5-(methylamino)-2-((3,9,11-trimethyl-8-(1-methyl-2-oxo-2-(1h-pyrrol-2-yl)ethyl)-1,7-dioxaspiro(5.5)undec-2-yl)methyl)-, (6s-(6alpha(2s*,3s*),8beta(r*),9beta,11alpha))-", "a-23187", "a 23187", "antibiotic a23187", "a23187, antibiotic", "a23187"]
+    expected = [
+        "4-benzoxazolecarboxylic acid, 5-(methylamino)-2-((3,9,11-trimethyl-8-(1-methyl-2-oxo-2-(1h-pyrrol-2-yl)ethyl)-1,7-dioxaspiro(5.5)undec-2-yl)methyl)-, (6s-(6alpha(2s*,3s*),8beta(r*),9beta,11alpha))-",
+        "a-23187", "a 23187", "antibiotic a23187", "a23187, antibiotic", "a23187"]
+    assert result == expected
 
 
 
