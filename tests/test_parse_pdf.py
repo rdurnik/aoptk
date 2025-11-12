@@ -1,5 +1,8 @@
 from aoptk.get_publication import GetPublication
 from aoptk.parse_pdf import ParsePDF
+import os
+import shutil
+
 
 def test_can_create():
     actual = ParsePDF(str)
@@ -57,6 +60,24 @@ def test_extract_abbreviations():
     actual = ParsePDF('/home/rdurnik/aoptk/tests/test_pdfs/test_abbreviation.pdf').extract_abbreviations()
     actual = [list(actual.items())[0], list(actual.items())[1], list(actual.items())[-1]]
     expected = [('AASLD', 'American Association for the Study of Liver Diseases'), ('ACC', 'acetyl-CoA carboxylase'), ('VLDL', 'very-low-density lipoprotein')]
+    assert actual == expected
+
+def test_extract_figures():
+    actual = ParsePDF('/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf').extract_figures()
+    folder = '/home/rdurnik/aoptk/tests/figure_storage'
+    assert os.path.isdir(folder)
+    folder_size = sum(
+        os.path.getsize(os.path.join(root, f))
+        for root, _, files in os.walk(folder)
+        for f in files
+    )
+    assert folder_size == 2500066 
+    shutil.rmtree(folder, ignore_errors=True)
+
+def test_extract_figure_description():
+    actual = ParsePDF('/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf').extract_figure_descriptions()
+    actual = actual[-1:]
+    expected = ['Figure 5. Toxicological studies of the SCCs. a) Concentration-response\nof HepG2 spheroid viability (ATP content) after 8 days of exposure to\nPd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically\nsigniﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of\nspheroid viability to palladium content measured in spheroids. ρ\nrepresents Spearman’s rank correlation coeﬃcient with a P value.']
     assert actual == expected
 
 # Test to see if the PDF opens correctly?

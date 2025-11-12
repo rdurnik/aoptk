@@ -1,6 +1,7 @@
 from aoptk.get_publication import GetPublication
 import pymupdf
 import re
+from pathlib import Path
 
 class ParsePDF(GetPublication):
     def __init__(self, pdf: str):
@@ -68,7 +69,7 @@ class ParsePDF(GetPublication):
         parts = text.split('\n', newlines_to_remove_from_start)
         if len(parts) > newlines_to_remove_from_start:
             match = re.match(r"(.*)", parts[newlines_to_remove_from_start], re.DOTALL)
-        return match
+            return match
 
     def extract_first_large_paragraph(self, large_paragraph_word_count = 100):
         paragraphs = self.text_to_parse.split('\n')
@@ -101,3 +102,43 @@ class ParsePDF(GetPublication):
                     key, value = m.groups()
                     abbreviations_dict[key.strip()] = value.strip()
         return abbreviations_dict
+    
+    def extract_figures(self, output_dir='/home/rdurnik/aoptk/tests/figure_storage'):
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        pdf_document = pymupdf.open(self.pdf)
+        image_count = 0
+        for page_num in range(0, len(pdf_document)):
+            page = pdf_document[page_num]
+            image_list = page.get_images()         
+            for img_index, img in enumerate(image_list):
+                xref = img[0]
+                base_image = pdf_document.extract_image(xref)
+                image_bytes = base_image["image"]
+                image_ext = base_image["ext"]
+                image_filename = output_dir / f"page{page_num + 1}_figure{img_index + 1}.{image_ext}"
+                with open(image_filename, "wb") as img_file:
+                    img_file.write(image_bytes)
+                image_count += 1
+        pdf_document.close()
+
+    def extract_figure_descriptions(self, output_dir='/home/rdurnik/aoptk/tests/figure_storage'):
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        pdf_document = pymupdf.open(self.pdf)
+        caption_number = 0
+        figure_descriptions = []
+        for page_num in range(len(pdf_document)):
+            page = pdf_document[page_num]
+            blocks = page.get_text("blocks")
+            page_text = "\n".join([block[4] for block in blocks if block[6] == 0])
+            figure_description_pattern = r"(?mi)^\s*Figure\s+\d+\.\s*(?:[^\n]*(?:\n(?!\s*\n)[^\n]*)*)"
+            caption_match = re.search(figure_description_pattern, page_text, re.IGNORECASE)
+            if caption_match:
+                caption_number += 1
+                caption = caption_match.group(0).strip()
+                figure_descriptions.append(caption)
+            else:
+                continue
+        pdf_document.close()
+        return figure_descriptions
