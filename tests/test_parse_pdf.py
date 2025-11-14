@@ -1,6 +1,6 @@
 import os
 import shutil
-from aoptk.get_publication import GetPublication
+from aoptk.get_publication import GetPublications
 from aoptk.parse_pdf import ParsePDF
 
 
@@ -9,10 +9,10 @@ def test_can_create():
     assert actual is not None
 
 def test_implements_interface():
-    assert issubclass(ParsePDF, GetPublication)
+    assert issubclass(ParsePDF, GetPublications)
 
 def test_get_publication_data_not_empty():
-    actual = ParsePDF("").get_publication()
+    actual = ParsePDF("").publications()
     assert actual is not None
 
 def test_extract_abstract_with_abstract_specified():

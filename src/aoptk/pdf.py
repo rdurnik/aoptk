@@ -1,7 +1,7 @@
 
 class PDF:
-    def __init__(self, pdf: str):
-        self.pdf = pdf
+    def __init__(self, path: str):
+        self.path = path
 
     def __str__(self) -> str:
-        return self.pdf
+        return self.path

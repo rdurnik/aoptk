@@ -2,7 +2,7 @@ import os
 import shutil
 import pytest
 from aoptk.get_europepmc_publication import GetEuropePMCPublication
-from aoptk.get_publication import GetPublication
+from aoptk.get_publication import GetPublications
 
 
 def test_can_create():
@@ -10,10 +10,10 @@ def test_can_create():
     assert actual is not None
 
 def test_implements_interface():
-    assert issubclass(GetEuropePMCPublication, GetPublication)
+    assert issubclass(GetEuropePMCPublication, GetPublications)
 
 def test_get_publication_data_not_empty():
-    actual = GetEuropePMCPublication("").get_publication()
+    actual = GetEuropePMCPublication("").publications()
     assert actual is not None
 
 @pytest.mark.parametrize(("query", "expected"), [
@@ -34,7 +34,7 @@ def test_ids_not_to_return(query, expected, query_for_abstracts_only, remove_rev
     assert actual == expected
 
 def test_open_access_europepmc_pdf_file_exists():
-    actual = GetEuropePMCPublication("PMC8614944").get_publication()
+    actual = GetEuropePMCPublication("PMC8614944").publications()
     filepath = os.path.join("tests/pdf_storage", "PMC8614944.pdf")
     assert os.path.exists(filepath)
     assert os.path.isfile(filepath)
@@ -42,7 +42,7 @@ def test_open_access_europepmc_pdf_file_exists():
     shutil.rmtree("tests/pdf_storage", ignore_errors=True)
 
 def test_metapub_pdf_file_exists():
-    actual = GetEuropePMCPublication("41107038").get_publication()
+    actual = GetEuropePMCPublication("41107038").publications()
     filepath = os.path.join("tests/pdf_storage", "41107038.pdf")
     assert os.path.exists(filepath)
     assert os.path.isfile(filepath)

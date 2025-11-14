@@ -1,15 +1,15 @@
 import os
 import requests
 from metapub import FindIt
-from aoptk.get_publication import GetPublication
+from aoptk.get_publication import GetPublications
 
 # What if the user only wants to search through abstracts? PDF is not needed in that case (unless they want to input PDFs). Abstract from JSON will be more reliable.
 
-class GetEuropePMCPublication(GetPublication):
+class GetEuropePMCPublication(GetPublications):
     def __init__(self, query: str):
         self._query = query
 
-    def get_publication(self):
+    def publications(self):
         id_list = self.get_id_list()
         for id in id_list:
             if self.is_europepmc_id(id): # All PMC IDs start with PMC. It seems that only publications with PMC ID are in the Europe PMC open access subset.
