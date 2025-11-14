@@ -3,12 +3,14 @@ from dataclasses import field
 from typing import Dict
 from typing import Optional
 
+from aoptk.abstract import Abstract
+
 
 @dataclass
 class Publication:
     id: str # In the final output, user will need a list of IDs based on which the result was concluded (e.g., liver fibrosis is caused by thioacetamide based on publications 1, 2, 3...).
     # If user provides their own PDFs, the ID could simply be the filename.
-    abstract: str
+    abstract: Abstract
     full_text: str
     abbreviations: Optional[Dict[str, str]] = field(default_factory=dict)
     tables: Optional[str] = None
