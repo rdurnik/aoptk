@@ -1,8 +1,10 @@
 from abc import ABC
 from abc import abstractmethod
 
+from aoptk.pdf import PDF
+
 
 class GetPDF(ABC):
     @abstractmethod
-    def get_pdf(self):
+    def pdfs(self) -> list[PDF]:
         pass
