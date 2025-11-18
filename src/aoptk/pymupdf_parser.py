@@ -3,16 +3,16 @@ from pathlib import Path
 import pymupdf
 from aoptk import pdf
 from aoptk.abstract import Abstract
-from aoptk.get_publication import GetPublications
 from aoptk.pdf import PDF
 from aoptk.publication import Publication
+from aoptk.pdf_parser import ParsePDF
 
 
-class ParsePDF(GetPublications):
+class PymupdfParser(ParsePDF):
     def __init__(self, pdfs: list[PDF]):
         self.pdfs = pdfs
 
-    def publications(self) -> list[Publication]:
+    def get_publications(self) -> list[Publication]:
         pubs = []
         for pdf in self.pdfs:
             pub = self._parse_pdf(pdf)
@@ -30,7 +30,6 @@ class ParsePDF(GetPublications):
             abstract = match.group(1).strip()
             return abstract
         if match := self.extract_abstract_match_abstract_not_specified(text):
-            # This is not working perfectly.
             match = self.remove_title_authors(match)
             abstract = match.group(1).strip()
             return abstract
@@ -39,24 +38,20 @@ class ParsePDF(GetPublications):
             return abstract
         return None
 
-    def parse_full_text(self, text: str):
-        match = self.extract_abstract_match_abstract_specified()
-        if match:
+    def parse_full_text(self, text: str) -> str:
+        if match := self.extract_abstract_match_abstract_specified(text):
             match_end = match.end()
             full_text = text[match_end:].strip()
             return full_text
-        if not match:
-            match = self.extract_abstract_match_abstract_not_specified()
-            if match:
-                match = self.remove_title_authors(match)
-                match_end = match.end() + text.index(match.group(0))
-                full_text = text[match_end:].strip()
-                return full_text
-            match = self.extract_first_large_paragraph()
-            if match:
-                match_end = match.end() + text.index(match.group(0))
-                full_text = text[match_end:].strip()
-                return full_text
+        if match := self.extract_abstract_match_abstract_not_specified(text):
+            match = self.remove_title_authors(match)
+            match_end = match.end() + text.index(match.group(0))
+            full_text = text[match_end:].strip()
+            return full_text
+        if match := self.extract_first_large_paragraph(text):
+            match_end = match.end() + text.index(match.group(0))
+            full_text = text[match_end:].strip()
+            return full_text
 
     def extract_abstract_match_abstract_specified(self, text: str):
         pattern_abstract_written = r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
@@ -72,6 +67,7 @@ class ParsePDF(GetPublications):
             return match
         return None
 
+    # This is not working perfectly.
     def remove_title_authors(self, match, newlines_to_remove_from_start = 2):
         text = match.group(1)
         parts = text.split("\n", newlines_to_remove_from_start)
