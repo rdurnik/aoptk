@@ -4,6 +4,7 @@ from aoptk.normalize_chemical import NormalizeChemical
 
 class PubChemSynonyms(NormalizeChemical):
     """Class for normalizing chemical names using PubChem synonyms."""
+
     def __init__(self, synonyms: pd.DataFrame):
         self._synonyms = synonyms
 

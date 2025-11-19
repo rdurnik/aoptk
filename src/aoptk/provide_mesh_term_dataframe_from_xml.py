@@ -5,6 +5,7 @@ from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
 
 class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
     """Class to provide MeSH term normalization dataframe from XML."""
+
     def __init__(self, database_path: str):
         self._database_path = database_path
 

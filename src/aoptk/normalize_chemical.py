@@ -5,9 +5,7 @@ from aoptk.chemical import Chemical
 
 class NormalizeChemical(ABC):
     """Abstract base class for chemical name normalization."""
+
     @abstractmethod
     def normalize_chemical(self) -> Chemical:
         """Normalize a chemical name."""
-
-
-

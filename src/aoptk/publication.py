@@ -6,6 +6,7 @@ from aoptk.id import ID
 @dataclass
 class Publication:
     """Data structure representing a publication."""
+
     id: ID
     abstract: Abstract
     full_text: str
