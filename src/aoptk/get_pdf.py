@@ -2,7 +2,9 @@ from abc import ABC
 from abc import abstractmethod
 from aoptk.pdf import PDF
 
+
 class GetPDF(ABC):
+    """Abstract base class for retrieving PDF data."""
     @abstractmethod
     def pdfs(self) -> list[PDF]:
-        pass
+        """Return a list of PDF paths."""

@@ -1,5 +1,6 @@
 
 class PDF:
+    """Data structure representing a PDF file."""
     def __init__(self, path: str):
         self.path = path
 
