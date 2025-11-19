@@ -36,13 +36,4 @@ class DOI(ID):
 
     def __str__(self) -> str:
         return f"DOI: {self.id_str}"
-    
-class TEST(ID):
-    """Digital Object Identifier."""
-
-    def __init__(self, id_str: str):
-        super().__init__(id_str)
-
-    def __str__(self) -> str:
-        return f"TEST: {self.id_str}"
 
