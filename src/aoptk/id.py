@@ -36,4 +36,3 @@ class DOI(ID):
 
     def __str__(self) -> str:
         return f"DOI: {self.id_str}"
-
