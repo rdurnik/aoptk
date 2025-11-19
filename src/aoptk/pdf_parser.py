@@ -9,7 +9,3 @@ class ParsePDF(ABC, GetPublication):
     @abstractmethod
     def get_publication(self) -> Publication:
         """Return a Publication object parsed from the PDF."""
-
-    @abstractmethod
-    def _parse_pdf(self, pdf) -> str:
-        """Internal method to parse the PDF file."""
