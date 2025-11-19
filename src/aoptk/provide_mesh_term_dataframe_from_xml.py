@@ -4,10 +4,12 @@ from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
 
 
 class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
+    """Class to provide MeSH term normalization dataframe from XML."""
     def __init__(self, database_path: str):
         self._database_path = database_path
 
-    def provide_normalization_dataframe(self):
+    def provide_normalization_dataframe(self) -> pd.DataFrame:
+        """Parse the XML file and create a DataFrame for MeSH term normalization."""
         tree = ET.parse(self._database_path)
         root = tree.getroot()
         name_space = {"name_space": "http://www.nlm.nih.gov/mesh"}

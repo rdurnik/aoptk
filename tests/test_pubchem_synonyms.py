@@ -5,18 +5,22 @@ from aoptk.pubchem_synonyms import PubChemSynonyms
 
 
 def test_can_create():
+    """Test that PubChemSynonyms can be instantiated."""
     actual = PubChemSynonyms(None)
     assert actual is not None
 
 def test_implements_interface():
+    """Test that PubChemSynonyms implements NormalizeChemical interface."""
     assert issubclass(PubChemSynonyms, NormalizeChemical)
 
 def test_normalize_chemical_not_empty():
+    """Test that normalize_chemical method returns a non-empty result."""
     actual = PubChemSynonyms(pd.DataFrame()).normalize_chemical("")
     assert actual is not None
 
 @pytest.fixture
 def synonyms()->pd.DataFrame:
+  """Fixture providing a PubChem synonyms DataFrame."""
   content = {
     "heading": ["acetaminophen", "thioacetamide"],
     "synonyms": [["paracetamol", "acamol"], ["thiacetamid", "thioacetamid"]],
@@ -31,6 +35,7 @@ def synonyms()->pd.DataFrame:
      "something_not_in_the_database_but_recognized_as_chemical"),
 ])
 def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, synonyms: pd.DataFrame):
+    """Test normalize_chemical method with multiple chemicals."""
     assert PubChemSynonyms(synonyms).normalize_chemical(chemical) == expected
 
 

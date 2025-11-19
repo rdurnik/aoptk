@@ -1,4 +1,5 @@
 class Chemical:
+    """Data structure representing a chemical."""
     def __init__(self, chemical_name: str):
         self.chemical_name = chemical_name
 
