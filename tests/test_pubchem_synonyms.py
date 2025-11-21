@@ -48,5 +48,4 @@ def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, syn
     """Test normalize_chemical method with multiple chemicals."""
     sut = PubChemSynonyms(synonyms)
     actual = sut.normalize_chemical(Chemical(chemical))
-    expected = Chemical(expected)
     assert actual == expected
