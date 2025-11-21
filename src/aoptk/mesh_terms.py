@@ -18,4 +18,4 @@ class MeshTerms(NormalizeChemical):
             mesh_terms = row.loc["mesh_terms"]
             if chemical in mesh_terms:
                 return Chemical(chemical_name=heading)
-        return Chemical(chemical_name=chemical)
+        return chemical
