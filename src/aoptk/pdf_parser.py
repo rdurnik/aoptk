@@ -5,6 +5,7 @@ from aoptk.publication import Publication
 
 class ParsePDF(GetPublication):
     """Abstract base class for parsing PDF files."""
+
     @abstractmethod
     def get_publication(self) -> Publication:
         """Return a Publication object parsed from the PDF."""

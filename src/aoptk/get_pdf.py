@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 class GetPDF(ABC):
     """Abstract base class for retrieving PDF data."""
+
     @abstractmethod
     def pdfs(self) -> list[PDF]:
         """Return a list of PDF paths."""
