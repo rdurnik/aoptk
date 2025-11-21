@@ -24,9 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "pandas",
-    "spacy",
-    "scispacy",
-    "en-ner-bc5cdr-md"
+    "scispacy"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
