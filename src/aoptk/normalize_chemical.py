@@ -9,3 +9,4 @@ class NormalizeChemical(ABC):
     @abstractmethod
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Normalize a chemical name."""
+        ...

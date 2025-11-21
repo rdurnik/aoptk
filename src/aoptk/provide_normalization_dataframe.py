@@ -9,3 +9,4 @@ class ProvideNormalizationDataframe(ABC):
     @abstractmethod
     def provide_normalization_dataframe(self) -> pd.DataFrame:
         """Provide a normalization dataframe."""
+        ...

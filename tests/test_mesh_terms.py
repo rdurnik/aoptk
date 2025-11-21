@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from aoptk.chemical import Chemical
 from aoptk.mesh_terms import MeshTerms
 from aoptk.normalize_chemical import NormalizeChemical
 
@@ -45,4 +46,4 @@ def mesh_terms():
 )
 def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, mesh_terms: pd.DataFrame):
     """Test normalize_chemical method with multiple chemicals."""
-    assert MeshTerms(mesh_terms).normalize_chemical(chemical).chemical_name == expected
+    assert MeshTerms(mesh_terms).normalize_chemical(Chemical(chemical)) == expected

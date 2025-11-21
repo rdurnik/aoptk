@@ -9,3 +9,4 @@ class GetPublication(ABC):
     @abstractmethod
     def get_publication(self) -> Publication:
         """Return publication data."""
+        ...

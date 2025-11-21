@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from aoptk.chemical import Chemical
 from aoptk.normalize_chemical import NormalizeChemical
 from aoptk.pubchem_synonyms import PubChemSynonyms
 
@@ -45,4 +46,7 @@ def synonyms() -> pd.DataFrame:
 )
 def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, synonyms: pd.DataFrame):
     """Test normalize_chemical method with multiple chemicals."""
-    assert PubChemSynonyms(synonyms).normalize_chemical(chemical).chemical_name == expected
+    sut = PubChemSynonyms(synonyms)
+    actual = sut.normalize_chemical(Chemical(chemical))
+    expected = Chemical(expected)
+    assert actual == expected
