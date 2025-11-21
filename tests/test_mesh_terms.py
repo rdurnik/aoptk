@@ -45,4 +45,4 @@ def mesh_terms():
 )
 def test_normalize_chemical_multiple_chemicals(chemical: str, expected: str, mesh_terms: pd.DataFrame):
     """Test normalize_chemical method with multiple chemicals."""
-    assert MeshTerms(mesh_terms).normalize_chemical(chemical) == expected
+    assert MeshTerms(mesh_terms).normalize_chemical(chemical).chemical_name == expected
