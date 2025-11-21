@@ -1,16 +1,16 @@
-from aoptk.find_chemical import FindChemical
-from aoptk.chemical import Chemical
+from __future__ import annotations
 import spacy
-import scispacy
+from aoptk.chemical import Chemical
+from aoptk.find_chemical import FindChemical
+
 
 class ScispacyFindChemical(FindChemical):
-    def __init__(self, model: str = 'en_ner_bc5cdr_md'):
-        self.model = model
-        self.nlp = spacy.load(self.model)
+    """Find chemicals in text using SciSpacy."""
+
+    model = "en_ner_bc5cdr_md"
+    nlp = spacy.load(model)
 
     def find_chemical(self, sentence: str) -> list[Chemical]:
+        """Find chemicals in the given sentence."""
         doc = self.nlp(sentence)
-        for ent in doc.ents:
-            if ent.label_ == "CHEMICAL":
-                return [Chemical(chemical_name=ent.text.lower())]
-        return [Chemical(chemical_name="")]
+        return [Chemical(name=ent.text.lower()) for ent in doc.ents if ent.label_ == "CHEMICAL"]
