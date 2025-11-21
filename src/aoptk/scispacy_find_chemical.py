@@ -14,9 +14,10 @@ class ScispacyFindChemical(FindChemical):
             chem_list.append(chem)
         return chem_list
 
-    def scispacy_find_chemical(self, model = 'en_ner_bc5cdr_md') -> Chemical:
-        model = spacy.load(model)
-        doc = model(self._text)
+    def scispacy_find_chemical(self, sentence: str, model: str = 'en_ner_bc5cdr_md') -> Chemical:
+        nlp = spacy.load(model)
+        doc = nlp(sentence)
         for ent in doc.ents:
             if ent.label_ == "CHEMICAL":
                 return Chemical(chemical_name=ent.text.lower())
+        return Chemical(chemical_name="")

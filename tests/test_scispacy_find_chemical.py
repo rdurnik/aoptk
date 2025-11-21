@@ -15,5 +15,5 @@ def test_find_chemical_not_empty():
 def test_find_chemical_one_sentence():
     sentence = ["Thioacetamide was studied for its effect on liver cells."]
     expected = "thioacetamide"
-    actual = ScispacyFindChemical(sentence).scispacy_find_chemical()
+    actual = ScispacyFindChemical(sentence).find_chemical()
     assert actual.chemical_name == expected
