@@ -5,5 +5,5 @@ from aoptk.chemical import Chemical
 
 class FindChemical(ABC):
     @abstractmethod
-    def find_chemical(self) -> Chemical:
+    def find_chemical(self, sentence: str) -> list[Chemical]:
         pass
