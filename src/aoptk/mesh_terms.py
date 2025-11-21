@@ -13,6 +13,6 @@ class MeshTerms(NormalizeChemical):
         """Normalize a chemical name using MeSH terms."""
         for _, row in self._mesh_terms.iterrows():
             heading = row.loc["heading"]
-            if heading == chemical.name or chemical in row.loc["mesh_terms"]:
-                return Chemical(heading)            
+            if heading == chemical.name or chemical.name in row.loc["mesh_terms"]:
+                return Chemical(heading)
         return chemical
