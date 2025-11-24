@@ -3,7 +3,7 @@ from aoptk.utils import is_europepmc_id
 
 
 @pytest.mark.parametrize(
-    ("id", "expected"),
+    ("publication_id", "expected"),
     [
         ("123456", False),
         ("PMC123456", True),
