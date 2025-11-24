@@ -53,7 +53,3 @@ def test_metapub_pdf_file_exists():
     assert os.path.isfile(filepath)
     assert os.path.getsize(filepath) > 0
     shutil.rmtree("tests/pdf_storage", ignore_errors=True)
-
-
-
-# Tests for when Europe PMC / PubMed is not available. Tests for internet connection issues.

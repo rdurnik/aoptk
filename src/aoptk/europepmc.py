@@ -6,7 +6,6 @@ from aoptk.get_pdf import GetPDF
 from aoptk.pdf import PDF
 from aoptk.utils import get_pubmed_pdf_url, is_europepmc_id
 
-# What if the user only wants to search through abstracts? PDF is not needed in that case (unless they want to input PDFs). Abstract from JSON will be more reliable.
 
 class EuropePMC(GetPDF):
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
@@ -46,9 +45,10 @@ class EuropePMC(GetPDF):
                 if publication_id:
                     id_list.append(publication_id)
 
-            if len(results) < page_size or not data_europepmc.get("nextCursorMark") or data_europepmc["nextCursorMark"] == cursor_mark:
+            next_cursor = data_europepmc.get("nextCursorMark")
+            if not next_cursor or next_cursor == cursor_mark:
                 break
-            cursor_mark = data_europepmc["nextCursorMark"]
+            cursor_mark = next_cursor
         return id_list
 
     def remove_reviews(self):
@@ -70,30 +70,9 @@ class EuropePMC(GetPDF):
        
         return self.write(id, response)
 
-
     def write(self, id, response) -> PDF:
         filepath = os.path.join(self.storage, f"{id}.pdf")
         with open(filepath, "wb") as f:
-            f.writelines(response.iter_content(chunk_size=8192))
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
         return PDF(filepath)
-
-
-    # def get_abstract(self, id):
-    #     page_size = 1000
-    #     cursor_mark = "*"
-    #     url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-    #     while True:
-    #         params = {
-    #             "query": id, # One could also put a real query here (e.g., 'HepG2 thioacetamide'). But passing the ID of a publication will find the publication.
-    #             "format": "json",
-    #             "pageSize": page_size,
-    #             "cursorMark": cursor_mark,
-    #             "resultType": "core",
-    #         }
-    #         response = requests.get(url, params=params)
-    #         response.raise_for_status()
-    #         json = response.json() # Only return JSON and do the parsing in a different module?
-    #         results = json.get("resultList", {}).get("result", [])
-    #         for record in results:
-    #             abstract = record.get("abstractText", "")
-    #         return abstract
