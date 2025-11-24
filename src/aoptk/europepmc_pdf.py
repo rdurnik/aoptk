@@ -1,28 +1,27 @@
-import os
-from typing import Optional
-from urllib import response
+from __future__ import annotations
+from pathlib import Path
 import requests
 from aoptk.get_pdf import GetPDF
 from aoptk.pdf import PDF
-from aoptk.utils import get_pubmed_pdf_url, is_europepmc_id
+from aoptk.utils import get_pubmed_pdf_url
 
 
-class EuropePMC(GetPDF):
+class EuropePMCPDF(GetPDF):
+    """Class to get PDFs from EuropePMC based on a query."""
+
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
         self._query = query
         self.storage = storage
-        os.makedirs(self.storage, exist_ok=True)
+        Path(self.storage).mkdir(parents=True, exist_ok=True)
 
         self.id_list = self.get_id_list()
 
     def pdfs(self) -> list[PDF]:
-        pdf_list = []
-        for id in self.id_list:
-            pdf_list.append(self.get_pdf(id))
-        pdf_list = [pdf for pdf in pdf_list if pdf is not None]
-        return pdf_list
+        """Retrieve PDFs based on the query."""
+        return [pdf for pdf in (self.get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
 
     def get_id_list(self) -> list[str]:
+        """Get a list of publication IDs from EuropePMC based on the query."""
         page_size = 1000
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
@@ -35,7 +34,7 @@ class EuropePMC(GetPDF):
                 "cursorMark": cursor_mark,
                 "resultType": "idlist",
             }
-            response = requests.get(url, params=params)
+            response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
             data_europepmc = response.json()
             results = data_europepmc.get("resultList", {}).get("result", [])
@@ -51,28 +50,35 @@ class EuropePMC(GetPDF):
             cursor_mark = next_cursor
         return id_list
 
-    def remove_reviews(self):
+    def remove_reviews(self) -> str:
+        """Modify the query to exclude review articles."""
         self._query += ' NOT PUB_TYPE:"Review"'
         return self
 
-    def abstracts_only(self):
+    def abstracts_only(self) -> str:
+        """Modify the query to search in the text of abstracts only."""
         self._query = "ABSTRACT:(" + self._query + ")"
         return self
 
-    def get_pdf(self, id) -> Optional[PDF]:
-        response = requests.get(f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={id}&blobtype=pdf", stream=True)
+    def get_pdf(self, publication_id: str) -> PDF | None:
+        """Retrieve the PDF for a given publication ID."""
+        response = requests.get(
+            f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
+            stream=True,
+            timeout=10,
+        )
         if not response.ok:
-            pubmed_url = get_pubmed_pdf_url(id)
+            pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
-                response = requests.get(pubmed_url, stream=True)
+                response = requests.get(pubmed_url, stream=True, timeout=10)
                 if not response.ok:
                     return None
-       
-        return self.write(id, response)
 
-    def write(self, id, response) -> PDF:
-        filepath = os.path.join(self.storage, f"{id}.pdf")
-        with open(filepath, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+        return self.write(publication_id, response)
+
+    def write(self, publication_id: str, response: requests.Response) -> PDF:
+        """Write the PDF content to a file and return a PDF object."""
+        filepath = Path(self.storage) / f"{publication_id}.pdf"
+        with filepath.open("wb") as f:
+            f.writelines(response.iter_content(chunk_size=8192))
         return PDF(filepath)
