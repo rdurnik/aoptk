@@ -15,6 +15,7 @@ class EuropePMCAbstract(GetAbstract):
         page_size = 1000
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
+        all_abstracts: list[Abstract] = []
         while True:
             params = {
                 "query": self._query,
@@ -25,11 +26,13 @@ class EuropePMCAbstract(GetAbstract):
             }
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
-            json = response.json()
-            results = json.get("resultList", {}).get("result", [])
-            abstracts = []
+            json_data = response.json()
+            results = json_data.get("resultList", {}).get("result", [])
             for record in results:
                 abstract = record.get("abstractText", "")
-                abstracts.append(Abstract(abstract))
-            return abstracts
-        return []
+                all_abstracts.append(Abstract(abstract))
+            next_cursor = json_data.get("nextCursorMark")
+            if not results or not next_cursor or next_cursor == cursor_mark:
+                break
+            cursor_mark = next_cursor
+        return all_abstracts
