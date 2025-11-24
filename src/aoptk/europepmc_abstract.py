@@ -15,7 +15,7 @@ class EuropePMCAbstract(GetAbstract):
         page_size = 1000
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-        while True:
+        if True:
             params = {
                 "query": self._query,
                 "format": "json",
@@ -32,3 +32,4 @@ class EuropePMCAbstract(GetAbstract):
                 abstract = record.get("abstractText", "")
                 abstracts.append(Abstract(abstract))
             return abstracts
+        return []

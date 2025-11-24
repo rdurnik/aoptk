@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from aoptk.abstract import Abstract
 
+
 class GetAbstract(ABC):
     """Abstract base class for retrieving abstract data."""
 
