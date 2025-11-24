@@ -15,7 +15,7 @@ class EuropePMCAbstract(GetAbstract):
         page_size = 1000
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
-        if True:
+        while True:
             params = {
                 "query": self._query,
                 "format": "json",
