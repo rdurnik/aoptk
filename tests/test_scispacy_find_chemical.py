@@ -12,6 +12,7 @@ pytestmark = pytest.mark.skipif(
     reason="Skip in Github Actions to save energy consumption (large model download required).",
 )
 
+
 def test_can_create():
     """Can create ScispacyFindChemical instance."""
     actual = ScispacyFindChemical()
@@ -38,7 +39,7 @@ def test_find_chemical_not_empty():
             "Thioacetamide, carbon tetrachloride and ethanol were used to induce liver injury.",
             ["thioacetamide", "carbon tetrachloride", "ethanol"],
         ),
-        ('Thioacetamide causes cancer.', ['thioacetamide'])
+        ("Thioacetamide causes cancer.", ["thioacetamide"]),
     ],
 )
 def test_find_chemical_one_chemical(sentence: str, expected: list[str]):
