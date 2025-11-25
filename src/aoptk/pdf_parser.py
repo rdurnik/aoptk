@@ -7,5 +7,5 @@ class ParsePDF(GetPublication):
     """Abstract base class for parsing PDF files."""
 
     @abstractmethod
-    def get_publication(self) -> Publication:
+    def get_publications(self) -> list[Publication]:
         """Return a Publication object parsed from the PDF."""
