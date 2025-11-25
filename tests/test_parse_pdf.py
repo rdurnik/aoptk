@@ -76,9 +76,8 @@ def test_extract_id():
 
 #     shutil.rmtree(folder, ignore_errors=True)
 
-# def test_extract_figure_description():
-#     actual = PymupdfParser("/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf").extract_figure_descriptions()
-#     actual = actual[-1:]
-#     expected = ["Figure 5. Toxicological studies of the SCCs. a) Concentration-response\nof HepG2 spheroid viability (ATP content) after 8 days of exposure to\nPd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically\nsigniﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of\nspheroid viability to palladium content measured in spheroids. ρ\nrepresents Spearman’s rank correlation coeﬃcient with a P value."]
-#     assert actual == expected
+def test_extract_figure_description():
+    actual = PymupdfParser([PDF("/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf")]).get_publications()[0].figure_descriptions[-1:]
+    expected = ["Figure 5. Toxicological studies of the SCCs. a) Concentration-response of HepG2 spheroid viability (ATP content) after 8 days of exposure to Pd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically signiﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of spheroid viability to palladium content measured in spheroids. ρ represents Spearman’s rank correlation coeﬃcient with a P value."]
+    assert actual == expected
 

@@ -1,7 +1,6 @@
 import re
 from pathlib import Path
 import pymupdf
-from aoptk import pdf
 from aoptk.abstract import Abstract
 from aoptk.pdf import PDF
 from aoptk.publication import Publication
@@ -26,7 +25,7 @@ class PymupdfParser(ParsePDF):
         full_text = self.parse_full_text(text)
         abbreviations = self.extract_abbreviations(text)
         figures = []
-        figure_descriptions = []
+        figure_descriptions = self.extract_figure_descriptions(text)
         tables = [] # TODO
         return Publication(id=id, abstract=abstract, full_text=full_text, abbreviations=abbreviations, figures=figures, figure_descriptions=figure_descriptions, tables=tables)
 
@@ -111,7 +110,6 @@ class PymupdfParser(ParsePDF):
         return abbreviations_dict
 
 
-# Maybe work on this later... 
     def extract_figures(self, output_dir="/home/rdurnik/aoptk/tests/figure_storage"):
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -132,23 +130,11 @@ class PymupdfParser(ParsePDF):
         pdf_document.close()
         # This should return a list of paths
 
-    def extract_figure_descriptions(self, output_dir="/home/rdurnik/aoptk/tests/figure_storage"):
-        output_dir = Path(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
-        pdf_document = pymupdf.open(self.pdf)
-        caption_number = 0
+    def extract_figure_descriptions(self, text: str):
         figure_descriptions = []
-        for page_num in range(len(pdf_document)):
-            page = pdf_document[page_num]
-            blocks = page.get_text("blocks")
-            page_text = "\n".join([block[4] for block in blocks if block[6] == 0])
-            figure_description_pattern = r"(?mi)^\s*Figure\s+\d+\.\s*(?:[^\n]*(?:\n(?!\s*\n)[^\n]*)*)"
-            caption_match = re.search(figure_description_pattern, page_text, re.IGNORECASE)
-            if caption_match:
-                caption_number += 1
-                caption = caption_match.group(0).strip()
-                figure_descriptions.append(caption)
-            else:
-                continue
-        pdf_document.close()
+        figure_description_pattern = r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
+        description_matches = re.finditer(figure_description_pattern, text, re.DOTALL | re.IGNORECASE)
+        for description_match in description_matches:
+            description = description_match.group(0).strip()
+            figure_descriptions.append(description)
         return figure_descriptions
