@@ -62,23 +62,23 @@ def test_extract_id():
     expected = "test_pdf_abstractcalledabstract.pdf"
     assert actual == expected
 
-# def test_extract_figures():
-#     actual = PymupdfParser([PDF("/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf")]).get_publications()[0].figures
-#     folder = "/home/rdurnik/aoptk/tests/figure_storage"
-#     assert os.path.isdir(folder)
-#     folder_size = sum(
-#         os.path.getsize(os.path.join(root, f))
-#         for root, _, files in os.walk(folder)
-#         for f in files
-#     )
-#     assert folder_size == 2500066
-#     assert len(actual) == 5
-
-#     shutil.rmtree(folder, ignore_errors=True)
-
 def test_extract_figure_description():
     actual = PymupdfParser([PDF("/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf")]).get_publications()[0].figure_descriptions
     expected = ["Figure 5. Toxicological studies of the SCCs. a) Concentration-response of HepG2 spheroid viability (ATP content) after 8 days of exposure to Pd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically signiﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of spheroid viability to palladium content measured in spheroids. ρ represents Spearman’s rank correlation coeﬃcient with a P value."]
     assert len(actual) == 5
     assert actual[-1:] == expected
+
+def test_extract_figures():
+    actual = PymupdfParser([PDF("/home/rdurnik/aoptk/tests/test_pdfs/test_pdf_abstractcalledabstract.pdf")]).get_publications()[0].figures
+    folder = "/home/rdurnik/aoptk/tests/figure_storage"
+    assert os.path.isdir(folder)
+    folder_size = sum(
+        os.path.getsize(os.path.join(root, f))
+        for root, _, files in os.walk(folder)
+        for f in files
+    )
+    assert folder_size == 2500066
+    shutil.rmtree(folder, ignore_errors=True)
+
+
 

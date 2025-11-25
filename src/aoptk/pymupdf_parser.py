@@ -24,7 +24,7 @@ class PymupdfParser(ParsePDF):
         abstract = self.parse_abstract(text)
         full_text = self.parse_full_text(text)
         abbreviations = self.extract_abbreviations(text)
-        figures = []
+        figures = self.extract_figures(pdf.path)
         figure_descriptions = self.extract_figure_descriptions(text)
         tables = [] # TODO
         return Publication(id=id, abstract=abstract, full_text=full_text, abbreviations=abbreviations, figures=figures, figure_descriptions=figure_descriptions, tables=tables)
@@ -109,11 +109,20 @@ class PymupdfParser(ParsePDF):
                     abbreviations_dict[key.strip()] = value.strip()
         return abbreviations_dict
 
+    def extract_figure_descriptions(self, text: str):
+        figure_descriptions = []
+        figure_description_pattern = r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
+        description_matches = re.finditer(figure_description_pattern, text, re.DOTALL | re.IGNORECASE)
+        for description_match in description_matches:
+            description = description_match.group(0).strip()
+            figure_descriptions.append(description)
+        return figure_descriptions
 
-    def extract_figures(self, output_dir="/home/rdurnik/aoptk/tests/figure_storage"):
+# TODO
+    def extract_figures(self, pdf_path: str, output_dir="/home/rdurnik/aoptk/tests/figure_storage"):
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        pdf_document = pymupdf.open(self.pdf)
+        pdf_document = pymupdf.open(pdf_path)
         image_count = 0
         for page_num in range(len(pdf_document)):
             page = pdf_document[page_num]
@@ -128,13 +137,8 @@ class PymupdfParser(ParsePDF):
                     img_file.write(image_bytes)
                 image_count += 1
         pdf_document.close()
-        # This should return a list of paths
+        image_paths = [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
+        return image_paths
 
-    def extract_figure_descriptions(self, text: str):
-        figure_descriptions = []
-        figure_description_pattern = r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
-        description_matches = re.finditer(figure_description_pattern, text, re.DOTALL | re.IGNORECASE)
-        for description_match in description_matches:
-            description = description_match.group(0).strip()
-            figure_descriptions.append(description)
-        return figure_descriptions
+
+
