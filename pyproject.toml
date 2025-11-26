@@ -25,7 +25,10 @@ classifiers = [
 dependencies = [
     "pandas",
     "pymupdf",
-    "metapub"
+    "metapub",
+    "requests",
+    "scispacy",
+    "spacy>=3.0.0",
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
@@ -59,6 +62,9 @@ publishing = [
     "build",
     "twine",
     "wheel",
+]
+models = [
+    "en-ner-bc5cdr-md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz",
 ]
 
 [project.urls]
