@@ -24,7 +24,8 @@ def test_get_publication_data_not_empty():
 def europepmc_pdf():
     pdf = EuropePMC('PMC12416454').get_pdf()
     return pdf
-    
+
+# PMC12416454 - abstractcalledabstract.pdf
 # PMC12181427 - abstractnotcalledabstractnointroduction.pdf
 # Self-made, not on EuropePMC - no_abstract_introduction_keywords_specification.pdf
 # PMC12231352 - abstractnotcalledabstract.pdf
