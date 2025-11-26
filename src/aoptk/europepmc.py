@@ -6,8 +6,10 @@ from aoptk.pdf import PDF
 from aoptk.utils import get_pubmed_pdf_url
 
 
-class EuropePMCPDF(GetPDF):
+class EuropePMC(GetPDF):
     """Class to get PDFs from EuropePMC based on a query."""
+    page_size = 1000
+    timeout = 10
 
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
         self._query = query
@@ -22,19 +24,19 @@ class EuropePMCPDF(GetPDF):
 
     def get_id_list(self) -> list[str]:
         """Get a list of publication IDs from EuropePMC based on the query."""
-        page_size = 1000
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
         id_list = []
+        
         while True:
             params = {
                 "query": self._query,
                 "format": "json",
-                "pageSize": page_size,
+                "pageSize": self.page_size,
                 "cursorMark": cursor_mark,
                 "resultType": "idlist",
             }
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=self.timeout)
             response.raise_for_status()
             data_europepmc = response.json()
             results = data_europepmc.get("resultList", {}).get("result", [])
@@ -50,12 +52,12 @@ class EuropePMCPDF(GetPDF):
             cursor_mark = next_cursor
         return id_list
 
-    def remove_reviews(self) -> str:
+    def remove_reviews(self) -> "EuropePMC":
         """Modify the query to exclude review articles."""
         self._query += ' NOT PUB_TYPE:"Review"'
         return self
 
-    def abstracts_only(self) -> str:
+    def abstracts_only(self) -> "EuropePMC":
         """Modify the query to search in the text of abstracts only."""
         self._query = "ABSTRACT:(" + self._query + ")"
         return self
@@ -65,12 +67,12 @@ class EuropePMCPDF(GetPDF):
         response = requests.get(
             f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
             stream=True,
-            timeout=10,
+            timeout=self.timeout,
         )
         if not response.ok:
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
-                response = requests.get(pubmed_url, stream=True, timeout=10)
+                response = requests.get(pubmed_url, stream=True, timeout=self.timeout)
                 if not response.ok:
                     return None
 

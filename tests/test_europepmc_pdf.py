@@ -2,24 +2,24 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 import pytest
-from aoptk.europepmc_pdf import EuropePMCPDF
+from aoptk.europepmc import EuropePMC
 from aoptk.get_pdf import GetPDF
 
 
 def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
-    actual = EuropePMCPDF("")
+    actual = EuropePMC("")
     assert actual is not None
 
 
 def test_implements_interface():
     """Test that EuropePMCPDF implements GetPDF interface."""
-    assert issubclass(EuropePMCPDF, GetPDF)
+    assert issubclass(EuropePMC, GetPDF)
 
 
 def test_get_publication_data_not_empty():
     """Test that pdfs() method returns non-empty list."""
-    actual = EuropePMCPDF("").pdfs()
+    actual = EuropePMC("").pdfs()
     assert actual is not None
 
 
@@ -34,7 +34,7 @@ def test_get_publication_data_not_empty():
 )
 def test_return_id_list(query: str, expected: list[str]):
     """Test that get_id_list() returns expected publication IDs."""
-    actual = EuropePMCPDF(query).get_id_list()
+    actual = EuropePMC(query).get_id_list()
     assert actual == expected
 
 
@@ -94,7 +94,7 @@ def test_return_id_list(query: str, expected: list[str]):
 )
 def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_only: bool, remove_reviews: bool):
     """Test that get_id_list() returns expected publication IDs with query modifications."""
-    sut = EuropePMCPDF(query)
+    sut = EuropePMC(query)
     if query_for_abstracts_only:
         sut = sut.abstracts_only()
     if remove_reviews:
@@ -105,7 +105,7 @@ def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_
 
 def test_open_access_europepmc_pdf_file_exists():
     """Test that an open access EuropePMC PDF can be retrieved and saved."""
-    EuropePMCPDF("PMC8614944").pdfs()
+    EuropePMC("PMC8614944").pdfs()
     filepath = Path("tests/pdf_storage") / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()
@@ -115,7 +115,7 @@ def test_open_access_europepmc_pdf_file_exists():
 
 def test_metapub_pdf_file_exists():
     """Test that a PDF retrieved via PubMed can be saved."""
-    EuropePMCPDF("41107038").pdfs()
+    EuropePMC("41107038").pdfs()
     filepath = Path("tests/pdf_storage") / "41107038.pdf"
     assert filepath.exists()
     assert filepath.is_file()
