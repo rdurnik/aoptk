@@ -24,6 +24,8 @@ classifiers = [
 ]
 dependencies = [
     "pandas",
+    "metapub",
+    "requests",
     "scispacy",
     "spacy>=3.0.0",
 ]
