@@ -57,28 +57,28 @@ class PymupdfParser(ParsePDF):
             full_text = text[match_end:].strip()
             return full_text
 
-    def extract_abstract_match_abstract_specified(self, text: str):
+    def extract_abstract_match_abstract_specified(self, text: str) -> str:
         pattern_abstract_written = r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
         match = re.search(pattern_abstract_written, text, re.DOTALL)
         if match:
             return match
         return None
 
-    def extract_abstract_match_abstract_not_specified(self, text: str):
+    def extract_abstract_match_abstract_not_specified(self, text: str) -> str:
         pattern_abstract_not_written = r"(?:^|\n)((?:(?!\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b).)*?)\s*(?=\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b)"
         match = re.search(pattern_abstract_not_written, text, re.DOTALL | re.IGNORECASE)
         if match:
             return match
         return None
 
-    def remove_title_authors(self, match, newlines_to_remove_from_start = 2):
+    def remove_title_authors(self, match: str, newlines_to_remove_from_start: int = 2) -> str:
         text = match.group(1)
         parts = text.split("\n", newlines_to_remove_from_start)
         if len(parts) > newlines_to_remove_from_start:
             match = re.match(r"(.*)", parts[newlines_to_remove_from_start], re.DOTALL)
             return match
 
-    def extract_first_large_paragraph(self, text: str, large_paragraph_word_count = 100):
+    def extract_first_large_paragraph(self, text: str, large_paragraph_word_count: int = 100) -> str:
         paragraphs = text.split("\n")
         large_paragraphs = [p for p in paragraphs if len(p.split()) > large_paragraph_word_count]
         if large_paragraphs:
@@ -86,7 +86,7 @@ class PymupdfParser(ParsePDF):
             return first_large_paragraph
         return None
 
-    def extract_text_to_parse(self, pdf: PDF):
+    def extract_text_to_parse(self, pdf: PDF) -> str:
         text_to_parse = ""
         with pymupdf.open(pdf.path) as doc:
             for page in doc:
@@ -94,7 +94,7 @@ class PymupdfParser(ParsePDF):
                 text_to_parse += "\n".join([" ".join(block[4].split()) for block in blocks if block[4].strip()])
         return text_to_parse
 
-    def extract_abbreviations(self, text: str):
+    def extract_abbreviations(self, text: str) -> dict[str, str]:
         pattern_abbreviations = r"(?i)Abbreviations[:\s]+(.*?)\."
         match = re.search(pattern_abbreviations, text, re.DOTALL)
         abbreviations_dict = {}
@@ -109,7 +109,7 @@ class PymupdfParser(ParsePDF):
                     abbreviations_dict[key.strip()] = value.strip()
         return abbreviations_dict
 
-    def extract_figure_descriptions(self, text: str):
+    def extract_figure_descriptions(self, text: str) -> list[str]:
         figure_descriptions = []
         figure_description_pattern = r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
         description_matches = re.finditer(figure_description_pattern, text, re.DOTALL | re.IGNORECASE)
@@ -118,7 +118,7 @@ class PymupdfParser(ParsePDF):
             figure_descriptions.append(description)
         return figure_descriptions
 
-    def extract_figures(self, pdf: PDF, output_dir="tests/figure_storage"):
+    def extract_figures(self, pdf: PDF, output_dir: str = "tests/figure_storage") -> list[str]:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         with pymupdf.open(pdf.path) as doc:
