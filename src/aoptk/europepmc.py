@@ -8,6 +8,7 @@ from aoptk.utils import get_pubmed_pdf_url
 
 class EuropePMC(GetPDF):
     """Class to get PDFs from EuropePMC based on a query."""
+
     page_size = 1000
     timeout = 10
 
@@ -27,7 +28,7 @@ class EuropePMC(GetPDF):
         cursor_mark = "*"
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
         id_list = []
-        
+
         while True:
             params = {
                 "query": self._query,
@@ -40,7 +41,7 @@ class EuropePMC(GetPDF):
             response = requests.get(url, params=params, timeout=self.timeout)
             response.raise_for_status()
             data_europepmc = response.json()
-            
+
             results = data_europepmc.get("resultList", {}).get("result", [])
 
             id_list.extend([_get_publication_id(result) for result in results])
@@ -49,17 +50,15 @@ class EuropePMC(GetPDF):
             if not next_cursor or next_cursor == cursor_mark:
                 break
             cursor_mark = next_cursor
-            
+
         return id_list
 
-
-
-    def remove_reviews(self) -> "EuropePMC":
+    def remove_reviews(self) -> EuropePMC:
         """Modify the query to exclude review articles."""
         self._query += ' NOT PUB_TYPE:"Review"'
         return self
 
-    def abstracts_only(self) -> "EuropePMC":
+    def abstracts_only(self) -> EuropePMC:
         """Modify the query to search in the text of abstracts only."""
         self._query = "ABSTRACT:(" + self._query + ")"
         return self
