@@ -24,7 +24,7 @@ class PymupdfParser(ParsePDF):
         abstract = self.parse_abstract(text)
         full_text = self.parse_full_text(text)
         abbreviations = self.extract_abbreviations(text)
-        figures = self.extract_figures(pdf.path)
+        figures = self.extract_figures(pdf)
         figure_descriptions = self.extract_figure_descriptions(text)
         tables = [] # TODO
         return Publication(id=id, abstract=abstract, full_text=full_text, abbreviations=abbreviations, figures=figures, figure_descriptions=figure_descriptions, tables=tables)
@@ -118,27 +118,27 @@ class PymupdfParser(ParsePDF):
             figure_descriptions.append(description)
         return figure_descriptions
 
-# TODO
-    def extract_figures(self, pdf_path: str, output_dir="/home/rdurnik/aoptk/tests/figure_storage"):
+    def extract_figures(self, pdf: PDF, output_dir="tests/figure_storage"):
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        pdf_document = pymupdf.open(pdf_path)
-        image_count = 0
-        for page_num in range(len(pdf_document)):
-            page = pdf_document[page_num]
-            image_list = page.get_images()
-            for img_index, img in enumerate(image_list):
-                xref = img[0]
-                base_image = pdf_document.extract_image(xref)
-                image_bytes = base_image["image"]
-                image_ext = base_image["ext"]
-                image_filename = output_dir / f"page{page_num + 1}_figure{img_index + 1}.{image_ext}"
-                with open(image_filename, "wb") as img_file:
-                    img_file.write(image_bytes)
-                image_count += 1
-        pdf_document.close()
-        image_paths = [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
-        return image_paths
+        with pymupdf.open(pdf.path) as doc:
+            figure_count = 0
+            for page in doc:
+                image_list = page.get_images()
+                for img_index, img in enumerate(image_list):
+                    xref = img[0]
+                    base_image = doc.extract_image(xref)
+                    image_bytes = base_image["image"]
+                    if len(image_bytes) > 10 * 1024:
+                        image_ext = base_image["ext"]
+                        image_filename = output_dir / f"figure{figure_count + 1}.{image_ext}"
+                        with open(image_filename, "wb") as img_file:
+                            img_file.write(image_bytes)
+                        figure_count += 1
+                    else:
+                        continue
+            image_paths = [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
+            return image_paths
 
 
 
