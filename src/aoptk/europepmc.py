@@ -36,21 +36,23 @@ class EuropePMC(GetPDF):
                 "cursorMark": cursor_mark,
                 "resultType": "idlist",
             }
+
             response = requests.get(url, params=params, timeout=self.timeout)
             response.raise_for_status()
             data_europepmc = response.json()
+            
             results = data_europepmc.get("resultList", {}).get("result", [])
 
-            for result in results:
-                publication_id = result.get("pmcid") or result.get("pmid") or result.get("id")
-                if publication_id:
-                    id_list.append(publication_id)
+            id_list.extend([_get_publication_id(result) for result in results])
 
             next_cursor = data_europepmc.get("nextCursorMark")
             if not next_cursor or next_cursor == cursor_mark:
                 break
             cursor_mark = next_cursor
+            
         return id_list
+
+
 
     def remove_reviews(self) -> "EuropePMC":
         """Modify the query to exclude review articles."""
@@ -84,3 +86,7 @@ class EuropePMC(GetPDF):
         with filepath.open("wb") as f:
             f.writelines(response.iter_content(chunk_size=8192))
         return PDF(filepath)
+
+
+def _get_publication_id(result: dict) -> str | None:
+    return result.get("pmcid") or result.get("pmid") or result.get("id")
