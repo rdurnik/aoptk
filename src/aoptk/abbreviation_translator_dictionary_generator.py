@@ -1,31 +1,49 @@
+from __future__ import annotations
 import re
 
-class AbbreviationDictionaryGenerator():
+
+class AbbreviationDictionaryGenerator:
+    """Generates a dictionary of abbreviations and their full forms from text."""
+
     def __init__(self, text: str, window: int = 5):
         self.text = text
         self.window = window
         self.translation_dictionary = self.provide_translation_dictionary()
 
     def provide_translation_dictionary(self) -> dict[str, str]:
+        """Generate a dictionary mapping abbreviations to their full forms."""
         abbreviations_dict = {}
-        for text_in_brackets in re.finditer(r'\(([A-Za-z0-9\-]+)\)', self.text):
+        for text_in_brackets in re.finditer(r"\(([A-Za-z0-9\-]+)\)", self.text):
             abbreviation = text_in_brackets.group(1).strip()
             left_words = self.find_words_left_of_abbreviation(text_in_brackets)
             first_letter_of_the_abbreviation = abbreviation[0].lower()
-            
-            if (start_idx := self.find_rightmost_letter_matching_first_letter_of_abbreviation(left_words, first_letter_of_the_abbreviation)) is not None:
-                if expansion := self.extract_all_words_right_from_the_rightmost_letter(left_words, start_idx):
-                    abbreviations_dict[abbreviation] = expansion.lower()
+
+            if (
+                start_idx := self.find_rightmost_letter_matching_first_letter_of_abbreviation(
+                    left_words,
+                    first_letter_of_the_abbreviation,
+                )
+            ) is not None and (
+                expansion := self.extract_all_words_right_from_the_rightmost_letter(
+                    left_words,
+                    start_idx,
+                )
+            ):
+                abbreviations_dict[abbreviation] = expansion.lower()
 
         return abbreviations_dict
 
-    def extract_all_words_right_from_the_rightmost_letter(self, left_words, start_idx):
-        expansion = None
+    def extract_all_words_right_from_the_rightmost_letter(self, left_words: list[str], start_idx: int) -> str | None:
+        """Extract all words to the right of the rightmost letter matching the first letter of the abbreviation."""
         candidate_words = left_words[start_idx:]
-        expansion = " ".join(candidate_words)
-        return expansion
+        return " ".join(candidate_words) if candidate_words else None
 
-    def find_rightmost_letter_matching_first_letter_of_abbreviation(self, left_words, first_letter_of_the_abbreviation):
+    def find_rightmost_letter_matching_first_letter_of_abbreviation(
+        self,
+        left_words: list[str],
+        first_letter_of_the_abbreviation: str,
+    ) -> int | None:
+        """Find the index of the rightmost word whose first letter matches the first letter of the abbreviation."""
         start_idx = None
         for i in reversed(range(len(left_words))):
             if left_words[i][0].lower() == first_letter_of_the_abbreviation:
@@ -33,7 +51,7 @@ class AbbreviationDictionaryGenerator():
                 break
         return start_idx
 
-    def find_words_left_of_abbreviation(self, text_in_brackets):
-        words = re.findall(r"[A-Za-z0-9\-]+", self.text[:text_in_brackets.start()])
-        left_words = words[-self.window:]
-        return left_words
+    def find_words_left_of_abbreviation(self, text_in_brackets: str) -> list[str]:
+        """Find words to the left of the abbreviation within a specified window."""
+        words = re.findall(r"[A-Za-z0-9\-]+", self.text[: text_in_brackets.start()])
+        return words[-self.window :]
