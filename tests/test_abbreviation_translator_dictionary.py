@@ -43,7 +43,8 @@ def test_dict():
         ),
         (
             "Combination of TAA, CCL4 and FFA was used on HSCs.",
-            "Combination of thioacetamide, carbon tetrachloride and free fatty acids was used on hepatic stellate cells.",
+            "Combination of thioacetamide, carbon tetrachloride and "
+            "free fatty acids was used on hepatic stellate cells.",
         ),
     ],
 )

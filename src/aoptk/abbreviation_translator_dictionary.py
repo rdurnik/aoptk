@@ -25,7 +25,11 @@ class AbbreviationTranslatorDictionary(AbbreviationTranslator):
         return translated_text
 
     def fix_capitalization(
-        self, translated_text: str, replacement: str, matches: list, sentence_end_offset: int = 2
+        self,
+        translated_text: str,
+        replacement: str,
+        matches: list,
+        sentence_end_offset: int = 2,
     ) -> str:
         """Fix capitalization of the translated abbreviations based on their position in the text."""
         for match in reversed(matches):
