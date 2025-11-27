@@ -6,7 +6,7 @@ from aoptk.abbreviation_translator_dictionary import AbbreviationTranslatorDicti
 
 def test_can_create():
     """Test creation of AbbreviationTranslatorDictionary instance."""
-    actual = AbbreviationTranslatorDictionary({}, "")
+    actual = AbbreviationTranslatorDictionary({})
     assert actual is not None
 
 
@@ -17,7 +17,7 @@ def test_implements_interface():
 
 def test_get_abstract_not_empty():
     """Test that translate_abbreviation method returns a non-empty result."""
-    actual = AbbreviationTranslatorDictionary({}, "").translate_abbreviation()
+    actual = AbbreviationTranslatorDictionary({}).translate_abbreviation("")
     assert actual is not None
 
 
@@ -50,5 +50,5 @@ def test_dict():
 )
 def test_translates_known_abbreviations(test_dict: dict[str, str], text: str, expected: str):
     """Test that known abbreviations are correctly translated to their full forms."""
-    actual = AbbreviationTranslatorDictionary(test_dict, text).translate_abbreviation()
+    actual = AbbreviationTranslatorDictionary(test_dict).translate_abbreviation(text)
     assert actual == expected

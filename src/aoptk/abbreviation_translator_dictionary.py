@@ -6,13 +6,12 @@ from aoptk.abbreviation_translator import AbbreviationTranslator
 class AbbreviationTranslatorDictionary(AbbreviationTranslator):
     """Translates abbreviations in text using a provided dictionary."""
 
-    def __init__(self, pdf_dictionary: dict[str, str], text: str):
+    def __init__(self, pdf_dictionary: dict[str, str]):
         self.pdf_dictionary = pdf_dictionary
-        self.text = text
 
-    def translate_abbreviation(self) -> str:
+    def translate_abbreviation(self, text: str) -> str:
         """Translate abbreviations in the text using the provided dictionary."""
-        translated_text = self.text
+        translated_text = text
 
         for abbreviation, full_form in self.pdf_dictionary.items():
             patterns = [
