@@ -19,18 +19,14 @@ def test_get_publication_data_not_empty():
     actual = PymupdfParser("").get_publications()
     assert actual is not None
 
-
+# PMC12416454 - test_pdf_abstractcalledabstract.pdf
+# PMC12181427 - test_pdf_abstractnotcalledabstractnointroduction.pdf
+# Self-made, not on EuropePMC - test_pdf_no_abstract_introduction_keywords_specification.pdf
+# PMC12231352 - test_pdf_abstractnotcalledabstract.pdf
 @pytest.fixture
 def europepmc_pdf():
     pdf = EuropePMC('PMC12416454').get_pdf()
     return pdf
-
-# PMC12416454 - abstractcalledabstract.pdf
-# PMC12181427 - abstractnotcalledabstractnointroduction.pdf
-# Self-made, not on EuropePMC - no_abstract_introduction_keywords_specification.pdf
-# PMC12231352 - abstractnotcalledabstract.pdf
-
-
 def text_extract_abstract_fixture(pdf):
     actual = PymupdfParser([pdf]).get_publications()[0].abstract
     expected = "The rational design and selective self-assembly of ﬂexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination-driven self-assembly of natural ursodeoxycholic-bile-acid-derived unsymmetric tris-pyridyl ligand (L) resulting in the selective and switchable formation of chiral stellated Pd6L8 and Pd12L16 cages. The selectivity of the cage originates in the adaptivity and ﬂexibility of the arms of the ligand bearing pyridyl moieties. The interspeciﬁc transformations can be controlled by changes in the reaction conditions. The orientational self-sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right-handed helical species, was conﬁrmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2."
