@@ -5,10 +5,10 @@ from aoptk.cleaning import CleanText
 class HTMLTagRemover(CleanText):
     """Class to remove HTML tags from text."""
 
-    def __init__(self, text: str) -> str:
-        self.text = text
+    def __init__(self) -> str:
+        pass
 
-    def clean_text(self) -> str:
+    def clean_text(self, text: str) -> str:
         """Remove HTML tags from the input text."""
-        soup = BeautifulSoup(self.text, "html.parser")
+        soup = BeautifulSoup(text, "html.parser")
         return soup.get_text()
