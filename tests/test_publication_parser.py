@@ -1,6 +1,15 @@
+import os
 import pytest
 from aoptk.publication_parser import PublicationParser
 from aoptk.sentence_generator import SentenceGenerator
+
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
+
+
+pytestmark = pytest.mark.skipif(
+    IN_GITHUB_ACTIONS,
+    reason="Skip in Github Actions to save energy consumption (large model download required).",
+)
 
 
 def test_can_create():
