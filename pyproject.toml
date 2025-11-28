@@ -24,6 +24,7 @@ classifiers = [
 ]
 dependencies = [
     "pandas",
+    "pymupdf",
     "metapub",
     "requests",
     "scispacy",

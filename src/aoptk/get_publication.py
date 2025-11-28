@@ -7,6 +7,6 @@ class GetPublication(ABC):
     """Abstract base class for retrieving publication data."""
 
     @abstractmethod
-    def get_publication(self) -> Publication:
+    def get_publications(self) -> list[Publication]:
         """Return publication data."""
         ...
