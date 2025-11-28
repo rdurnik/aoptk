@@ -16,7 +16,7 @@ def test_implements_interface():
 
 def test_clean_text_data_not_empty():
     """Test that clean_text() method returns non-empty result."""
-    actual = HTMLTagRemover().clean_text("")
+    actual = HTMLTagRemover().clean("")
     assert actual is not None
 
 
@@ -40,5 +40,5 @@ def test_clean_text_data_not_empty():
 )
 def test_clean_text(text_with_html_tags: str, expected: str):
     """Test that clean_text() method removes HTML tags correctly."""
-    actual = HTMLTagRemover().clean_text(text_with_html_tags)
+    actual = HTMLTagRemover().clean(text_with_html_tags)
     assert actual == expected
