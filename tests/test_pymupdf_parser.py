@@ -81,9 +81,9 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture):
 @pytest.mark.parametrize(
     ("path", "expected_abstract"),
     [
-        ("tests/test_pdfs/test_pdf_no_abstract_introduction_keywords_specification.pdf", 
+        ("tests/test_pdfs/test_pdf.pdf", 
          "The rational design and selective self-assembly of flexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination-driven self-assembly of natural ursodeoxycholic-bile-acid-derived unsymmetric tris-pyridyl ligand (L) resulting in the selective and switchable formation of chiral stellated Pd6L8 and Pd12L16 cages. The selectivity of the cage originates in the adaptivity and flexibility of the arms of the ligand bearing pyridyl moieties. The interspecific transformations can be controlled by changes in the reaction conditions. The orientational self-sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right-handed helical species, was confirmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2.",
-),
+        ),
     ],
 )
 def test_extract_abstract_self_made_pdf(path, expected_abstract):
@@ -95,7 +95,7 @@ def test_extract_abstract_self_made_pdf(path, expected_abstract):
 @pytest.mark.parametrize(
     ("path", "where", "expected"),
     [
-        ("tests/test_pdfs/test_pdf_no_abstract_introduction_keywords_specification.pdf", slice(0, 26), "Natural chiral hydrophobic"),
+        ("tests/test_pdfs/test_pdf.pdf", slice(0, 26), "Natural chiral hydrophobic"),
     ],
 )
 def test_extract_full_text_self_made_pdf(path, where, expected):
@@ -105,46 +105,98 @@ def test_extract_full_text_self_made_pdf(path, where, expected):
         shutil.rmtree(output_dir)
 
 
+@pytest.fixture(params=[
+    {'id': 'PMC12637301',
+     'abbreviation_list': [("A3SS", "alternative 3′ splice site"), ("A5SS", "alternative 5′ splice site"), ("WB", "Western Blot")]},
+    {'id': 'PMC12231352',
+     'abbreviation_list': []}
+])
+def provide_params_extract_abbreviations_fixture(request):
+    europepmc = EuropePMC(request.param['id'])
+    data = {
+        'europepmc': europepmc,
+        'abbreviation_list': request.param['abbreviation_list']
+    }
+    yield data
+    if os.path.exists(europepmc.storage):
+        shutil.rmtree(europepmc.storage)
 
-def test_extract_abbreviations_with_content():
-    abbrev_dict = PymupdfParser([PDF("tests/test_pdfs/test_abbreviation.pdf")]).get_publications()[0].abbreviations
-    actual = [list(abbrev_dict.items())[0], list(abbrev_dict.items())[1], list(abbrev_dict.items())[-1]]
-    expected = [("AASLD", "American Association for the Study of Liver Diseases"), ("ACC", "acetyl-CoA carboxylase"), ("VLDL", "very-low-density lipoprotein")]
-    assert actual == expected
+def test_extract_abbreviations(provide_params_extract_abbreviations_fixture):
+    abbrev_dict = PymupdfParser(provide_params_extract_abbreviations_fixture['europepmc'].pdfs()).get_publications()[0].abbreviations
+    expected_list = provide_params_extract_abbreviations_fixture['abbreviation_list']
+    
+    if expected_list:
+        actual = [list(abbrev_dict.items())[0], list(abbrev_dict.items())[1], list(abbrev_dict.items())[-1]]
+        assert actual == expected_list
+    else:
+        assert abbrev_dict == {}
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
-def test_extract_abbreviations_empty():
-    abbrev_dict = PymupdfParser([PDF("tests/test_pdfs/test_pdf_abstractnotcalledabstract.pdf")]).get_publications()[0].abbreviations
-    assert abbrev_dict == {}
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
 
 def test_extract_id():
-    actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf_no_abstract_introduction_keywords_specification.pdf")]).get_publications()[0].id
-    expected = "test_pdf_no_abstract_introduction_keywords_specification.pdf"
+    actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()[0].id
+    expected = "test_pdf.pdf"
     assert actual == expected
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
-def test_extract_figure_description():
-    actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf_abstractcalledabstract.pdf")]).get_publications()[0].figure_descriptions
-    expected = ["Figure 5. Toxicological studies of the SCCs. a) Concentration-response of HepG2 spheroid viability (ATP content) after 8 days of exposure to Pd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically signiﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of spheroid viability to palladium content measured in spheroids. ρ represents Spearman’s rank correlation coeﬃcient with a P value."]
-    assert len(actual) == 5
-    assert actual[-1:] == expected
+
+# Add tests for new dictionaries
+@pytest.fixture(params=[
+    {'id': 'PMC12416454',
+     'figure_descriptions': ["Figure 1. Coordination-driven self-assembly of L into stellated helical octahedral Pd6L8 and cuboctahedral Pd12L16 SCCs and their transformation reactions: a) using [Pd(ACN)4](BF4)2, b) using Pd(NO3)2. The blue asterisk denotes chiral centres of the steroid skeleton.",
+                             "Figure 2. NMR characterisation of Pd6L8 and Pd12L16. a) 1H NMR spectra of L, mixture of Pd6L8 and Pd12L16 (RM1), Pd6L8 (RM2 3:2), and Pd12L16 (RM2) in [D6]-DMSO at 298.2 K and 700 MHz. 1H DOSY NMR spectra of b) Pd12L16 (RM2) and c) Pd6L8 (RM2 3:2) ([D6]-DMSO, 303.2 K and 700 MHz).",
+                             "Figure 3. Computational models and cartoon representations. a) PdC24L4 building subunit, b) Pd6L8, c) Pd12L16, and d) nomenclatures used for the triangular panel.",
+                             "Figure 4. Structural analysis of supramolecular coordination complexes using CD spectroscopy. a) CD spectra of ligands and their coordination complexes in methanol at 25 °C. Interpretation of helical structures of b) Pd6L8 or Pd12L16, and c) Pd3(Ld)6, following the C24-C3-Pd-C3-C24 backbone.",
+                             "Figure 5. Toxicological studies of the SCCs. a) Concentration-response of HepG2 spheroid viability (ATP content) after 8 days of exposure to Pd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically signiﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of spheroid viability to palladium content measured in spheroids. ρ represents Spearman’s rank correlation coeﬃcient with a P value."]},
+])
+def provide_params_extract_figure_descriptions(request):
+    europepmc = EuropePMC(request.param['id'])
+    data = {
+        'europepmc': europepmc,
+        'figure_descriptions': request.param['figure_descriptions']
+    }
+    yield data
+    if os.path.exists(europepmc.storage):
+        shutil.rmtree(europepmc.storage)
+
+def test_extract_figure_descriptions(provide_params_extract_figure_descriptions):
+    actual = PymupdfParser(provide_params_extract_figure_descriptions['europepmc'].pdfs()).get_publications()[0].figure_descriptions
+    expected = provide_params_extract_figure_descriptions['figure_descriptions']
+    assert actual == expected
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
-def test_extract_figures():
-    actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf_abstractcalledabstract.pdf")]).get_publications()[0].figures
-    expected = 'tests/figure_storage/figure2.png'
+# Add tests for figures being stored in a proper folder (folder per publication).
+@pytest.fixture(params=[
+    {'id': 'PMC12416454',
+     'figures': ['tests/figure_storage/figure1.jpeg',
+                'tests/figure_storage/figure2.png',
+                'tests/figure_storage/figure3.png',
+                'tests/figure_storage/figure4.png',
+                'tests/figure_storage/figure5.png']}])
+def provide_params_extract_figures(request):
+    europepmc = EuropePMC(request.param['id'])
+    data = {
+        'europepmc': europepmc,
+        'figures': request.param['figures']
+    }
+    yield data
+    if os.path.exists(europepmc.storage):
+        shutil.rmtree(europepmc.storage)
+
+def test_extract_figures(provide_params_extract_figures):
+    actual = PymupdfParser(provide_params_extract_figures['europepmc'].pdfs()).get_publications()[0].figures
+    expected = provide_params_extract_figures['figures']
     total_size = sum(os.path.getsize(os.path.join(dirpath, filename))
-                     for dirpath, dirnames, filenames in os.walk(output_dir)
-                     for filename in filenames)
+                    for dirpath, dirnames, filenames in os.walk(output_dir)
+                    for filename in filenames)
+    assert actual == expected
     assert total_size == 2493663
-    assert actual[1] == expected
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
+
 
 
 
