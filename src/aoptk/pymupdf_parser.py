@@ -140,5 +140,3 @@ class PymupdfParser(ParsePDF):
             image_paths = [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
             return image_paths
 
-
-
