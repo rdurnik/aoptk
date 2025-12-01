@@ -27,7 +27,7 @@ class PymupdfParser(ParsePDF):
     
     def _parse_pdf(self, pdf: PDF) -> Publication:
         text = self._extract_text_to_parse(pdf)
-        id = Path(pdf.path).name
+        id = Path(pdf.path).stem
         abstract = self._parse_abstract(text)
         full_text = self._parse_full_text(text)
         abbreviations = self._extract_abbreviations(text)
@@ -122,24 +122,30 @@ class PymupdfParser(ParsePDF):
         return figure_descriptions
 
     def _extract_figures(self, pdf: PDF, output_dir: str = "tests/figure_storage") -> list[str]:
-        output_dir = Path(output_dir)
+        output_dir = Path("tests/figure_storage") / Path(pdf.path).stem
         output_dir.mkdir(parents=True, exist_ok=True)
         with pymupdf.open(pdf.path) as doc:
             figure_count = 0
             for page in doc:
-                image_list = page.get_images()
-                for img_index, img in enumerate(image_list):
-                    xref = img[0]
-                    base_image = doc.extract_image(xref)
-                    image_bytes = base_image["image"]
-                    if len(image_bytes) > 10 * 1024:
-                        image_ext = base_image["ext"]
-                        image_filename = output_dir / f"figure{figure_count + 1}.{image_ext}"
-                        with open(image_filename, "wb") as img_file:
-                            img_file.write(image_bytes)
+                figures_list = page.get_images()
+                for fig_index, fig in enumerate(figures_list):
+                    xref = fig[0]
+                    base_figure = doc.extract_image(xref)
+                    figure_bytes = base_figure["image"]
+                    if self._figure_large_enough(figure_bytes):
+                        self._save_figure(output_dir, figure_count, base_figure, figure_bytes)
                         figure_count += 1
                     else:
                         continue
             image_paths = [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
             return image_paths
+
+    def _save_figure(self, output_dir, figure_count, base_image, image_bytes):
+        image_ext = base_image["ext"]
+        image_filename = output_dir / f"figure{figure_count + 1}.{image_ext}"
+        with open(image_filename, "wb") as img_file:
+            img_file.write(image_bytes)
+
+    def _figure_large_enough(self, image_bytes):
+        return len(image_bytes) > 10 * 1024
 

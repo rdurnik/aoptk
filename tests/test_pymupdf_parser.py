@@ -136,7 +136,7 @@ def test_extract_abbreviations(provide_params_extract_abbreviations_fixture):
 
 def test_extract_id():
     actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()[0].id
-    expected = "test_pdf.pdf"
+    expected = "test_pdf"
     assert actual == expected
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
@@ -171,11 +171,11 @@ def test_extract_figure_descriptions(provide_params_extract_figure_descriptions)
 # Add tests for figures being stored in a proper folder (folder per publication).
 @pytest.fixture(params=[
     {'id': 'PMC12416454',
-     'figures': ['tests/figure_storage/figure1.jpeg',
-                'tests/figure_storage/figure2.png',
-                'tests/figure_storage/figure3.png',
-                'tests/figure_storage/figure4.png',
-                'tests/figure_storage/figure5.png']}])
+     'figures': ['tests/figure_storage/PMC12416454/figure1.jpeg',
+                'tests/figure_storage/PMC12416454/figure2.png',
+                'tests/figure_storage/PMC12416454/figure3.png',
+                'tests/figure_storage/PMC12416454/figure4.png',
+                'tests/figure_storage/PMC12416454/figure5.png']}])
 def provide_params_extract_figures(request):
     europepmc = EuropePMC(request.param['id'])
     data = {
