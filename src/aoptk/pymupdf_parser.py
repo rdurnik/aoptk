@@ -26,64 +26,64 @@ class PymupdfParser(ParsePDF):
         return pubs
     
     def _parse_pdf(self, pdf: PDF) -> Publication:
-        text = self.extract_text_to_parse(pdf)
+        text = self._extract_text_to_parse(pdf)
         id = Path(pdf.path).name
-        abstract = self.parse_abstract(text)
-        full_text = self.parse_full_text(text)
-        abbreviations = self.extract_abbreviations(text)
-        figures = self.extract_figures(pdf)
-        figure_descriptions = self.extract_figure_descriptions(text)
+        abstract = self._parse_abstract(text)
+        full_text = self._parse_full_text(text)
+        abbreviations = self._extract_abbreviations(text)
+        figures = self._extract_figures(pdf)
+        figure_descriptions = self._extract_figure_descriptions(text)
         tables = [] # TODO
         return Publication(id=id, abstract=abstract, full_text=full_text, abbreviations=abbreviations, figures=figures, figure_descriptions=figure_descriptions, tables=tables)
 
-    def parse_abstract(self, text: str) -> Abstract:
-        if match := self.extract_abstract_match_abstract_specified(text):
+    def _parse_abstract(self, text: str) -> Abstract:
+        if match := self._extract_abstract_match_abstract_specified(text):
             abstract = match.group(1).strip()
             return abstract
-        if match := self.extract_abstract_match_abstract_not_specified(text):
-            match = self.remove_title_authors(match)
+        if match := self._extract_abstract_match_abstract_not_specified(text):
+            match = self._remove_title_authors(match)
             abstract = match.group(1).strip()
             return abstract
-        if match := self.extract_first_large_paragraph(text):
+        if match := self._extract_first_large_paragraph(text):
             abstract = match.group().strip()
             return abstract
         return None
 
-    def parse_full_text(self, text: str) -> str:
-        if match := self.extract_abstract_match_abstract_specified(text):
+    def _parse_full_text(self, text: str) -> str:
+        if match := self._extract_abstract_match_abstract_specified(text):
             match_end = match.end()
             full_text = text[match_end:].strip()
             return full_text
-        if match := self.extract_abstract_match_abstract_not_specified(text):
-            match = self.remove_title_authors(match)
+        if match := self._extract_abstract_match_abstract_not_specified(text):
+            match = self._remove_title_authors(match)
             match_end = match.end() + text.index(match.group(0))
             full_text = text[match_end:].strip()
             return full_text
-        if match := self.extract_first_large_paragraph(text):
+        if match := self._extract_first_large_paragraph(text):
             match_end = match.end() + text.index(match.group(0))
             full_text = text[match_end:].strip()
             return full_text
 
-    def extract_abstract_match_abstract_specified(self, text: str) -> str:
+    def _extract_abstract_match_abstract_specified(self, text: str) -> str:
         match = re.search(self.pattern_abstract_written, text, re.DOTALL)
         if match:
             return match
         return None
 
-    def extract_abstract_match_abstract_not_specified(self, text: str) -> str:
+    def _extract_abstract_match_abstract_not_specified(self, text: str) -> str:
         match = re.search(self.pattern_abstract_not_written, text, re.DOTALL | re.IGNORECASE)
         if match:
             return match
         return None
 
-    def remove_title_authors(self, match: str, newlines_to_remove_from_start: int = 2) -> str:
+    def _remove_title_authors(self, match: str, newlines_to_remove_from_start: int = 2) -> str:
         text = match.group(1)
         parts = text.split("\n", newlines_to_remove_from_start)
         if len(parts) > newlines_to_remove_from_start:
             match = re.match(self.pattern_any_character, parts[newlines_to_remove_from_start], re.DOTALL)
             return match
 
-    def extract_first_large_paragraph(self, text: str, large_paragraph_word_count: int = 100) -> str:
+    def _extract_first_large_paragraph(self, text: str, large_paragraph_word_count: int = 100) -> str:
         paragraphs = text.split("\n")
         large_paragraphs = [p for p in paragraphs if len(p.split()) > large_paragraph_word_count]
         if large_paragraphs:
@@ -91,7 +91,7 @@ class PymupdfParser(ParsePDF):
             return first_large_paragraph
         return None
 
-    def extract_text_to_parse(self, pdf: PDF) -> str:
+    def _extract_text_to_parse(self, pdf: PDF) -> str:
         text_to_parse = ""
         with pymupdf.open(pdf.path) as doc:
             for page in doc:
@@ -99,7 +99,7 @@ class PymupdfParser(ParsePDF):
                 text_to_parse += "\n".join([" ".join(block[4].split()) for block in blocks if block[4].strip()])
         return text_to_parse
 
-    def extract_abbreviations(self, text: str) -> dict[str, str]:
+    def _extract_abbreviations(self, text: str) -> dict[str, str]:
         match = re.search(self.pattern_abbreviations, text, re.DOTALL)
         abbreviations_dict = {}
         if match:
@@ -113,7 +113,7 @@ class PymupdfParser(ParsePDF):
                     abbreviations_dict[key.strip()] = value.strip()
         return abbreviations_dict
 
-    def extract_figure_descriptions(self, text: str) -> list[str]:
+    def _extract_figure_descriptions(self, text: str) -> list[str]:
         figure_descriptions = []
         description_matches = re.finditer(self.pattern_figure_descriptions, text, re.DOTALL | re.IGNORECASE)
         for description_match in description_matches:
@@ -121,7 +121,7 @@ class PymupdfParser(ParsePDF):
             figure_descriptions.append(description)
         return figure_descriptions
 
-    def extract_figures(self, pdf: PDF, output_dir: str = "tests/figure_storage") -> list[str]:
+    def _extract_figures(self, pdf: PDF, output_dir: str = "tests/figure_storage") -> list[str]:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         with pymupdf.open(pdf.path) as doc:
