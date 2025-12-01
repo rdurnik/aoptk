@@ -10,6 +10,13 @@ from aoptk.pdf_parser import ParsePDF
 class PymupdfParser(ParsePDF):
     def __init__(self, pdfs: list[PDF]):
         self.pdfs = pdfs
+        self.pattern_abstract_written = r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
+        self.pattern_abstract_not_written = r"(?:^|\n)((?:(?!\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b).)*?)\s*(?=\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b)"
+        self.pattern_abbreviations = r"(?i)Abbreviations[:\s]+(.*?)\."
+        self.pattern_figure_descriptions =r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
+        self.pattern_any_character = r"(.*)"
+        self.pattern_split_between_individual_abbreviations = r";\s*"
+        self.pattern_split_between_abbreviation_and_full_form = r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)"
 
     def get_publications(self) -> list[Publication]:
         pubs = []
@@ -58,15 +65,13 @@ class PymupdfParser(ParsePDF):
             return full_text
 
     def extract_abstract_match_abstract_specified(self, text: str) -> str:
-        pattern_abstract_written = r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
-        match = re.search(pattern_abstract_written, text, re.DOTALL)
+        match = re.search(self.pattern_abstract_written, text, re.DOTALL)
         if match:
             return match
         return None
 
     def extract_abstract_match_abstract_not_specified(self, text: str) -> str:
-        pattern_abstract_not_written = r"(?:^|\n)((?:(?!\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b).)*?)\s*(?=\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b)"
-        match = re.search(pattern_abstract_not_written, text, re.DOTALL | re.IGNORECASE)
+        match = re.search(self.pattern_abstract_not_written, text, re.DOTALL | re.IGNORECASE)
         if match:
             return match
         return None
@@ -75,14 +80,14 @@ class PymupdfParser(ParsePDF):
         text = match.group(1)
         parts = text.split("\n", newlines_to_remove_from_start)
         if len(parts) > newlines_to_remove_from_start:
-            match = re.match(r"(.*)", parts[newlines_to_remove_from_start], re.DOTALL)
+            match = re.match(self.pattern_any_character, parts[newlines_to_remove_from_start], re.DOTALL)
             return match
 
     def extract_first_large_paragraph(self, text: str, large_paragraph_word_count: int = 100) -> str:
         paragraphs = text.split("\n")
         large_paragraphs = [p for p in paragraphs if len(p.split()) > large_paragraph_word_count]
         if large_paragraphs:
-            first_large_paragraph = re.match(r"(.*)", large_paragraphs[0], re.DOTALL)
+            first_large_paragraph = re.match(self.pattern_any_character, large_paragraphs[0], re.DOTALL)
             return first_large_paragraph
         return None
 
@@ -95,15 +100,14 @@ class PymupdfParser(ParsePDF):
         return text_to_parse
 
     def extract_abbreviations(self, text: str) -> dict[str, str]:
-        pattern_abbreviations = r"(?i)Abbreviations[:\s]+(.*?)\."
-        match = re.search(pattern_abbreviations, text, re.DOTALL)
+        match = re.search(self.pattern_abbreviations, text, re.DOTALL)
         abbreviations_dict = {}
         if match:
             abbreviation_text = match.group(1)
             abbreviation_text_without_new_lines = re.sub(r"\n+", " ", abbreviation_text)
-            entries = re.split(r";\s*", abbreviation_text_without_new_lines.strip())
+            entries = re.split(self.pattern_split_between_individual_abbreviations, abbreviation_text_without_new_lines.strip())
             for entry in entries:
-                m = re.match(r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)", entry.strip())
+                m = re.match(self.pattern_split_between_abbreviation_and_full_form, entry.strip())
                 if m:
                     key, value = m.groups()
                     abbreviations_dict[key.strip()] = value.strip()
@@ -111,8 +115,7 @@ class PymupdfParser(ParsePDF):
 
     def extract_figure_descriptions(self, text: str) -> list[str]:
         figure_descriptions = []
-        figure_description_pattern = r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
-        description_matches = re.finditer(figure_description_pattern, text, re.DOTALL | re.IGNORECASE)
+        description_matches = re.finditer(self.pattern_figure_descriptions, text, re.DOTALL | re.IGNORECASE)
         for description_match in description_matches:
             description = description_match.group(0).strip()
             figure_descriptions.append(description)
