@@ -109,7 +109,9 @@ def test_extract_full_text_self_made_pdf(path, where, expected):
     {'id': 'PMC12637301',
      'abbreviation_list': [("A3SS", "alternative 3′ splice site"), ("A5SS", "alternative 5′ splice site"), ("WB", "Western Blot")]},
     {'id': 'PMC12231352',
-     'abbreviation_list': []}
+     'abbreviation_list': []},
+     {'id': 'PMC11339729',
+      'abbreviation_list': [("BEB", "binary-encounter-Bethe"), ("CID", "collision-induced dissociation"), ("UFF", "universal force field")]}
 ])
 def provide_params_extract_abbreviations_fixture(request):
     europepmc = EuropePMC(request.param['id'])

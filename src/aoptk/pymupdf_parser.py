@@ -12,11 +12,13 @@ class PymupdfParser(ParsePDF):
         self.pdfs = pdfs
         self.pattern_abstract_written = r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
         self.pattern_abstract_not_written = r"(?:^|\n)((?:(?!\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b).)*?)\s*(?=\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b)"
-        self.pattern_abbreviations = r"(?i)Abbreviations[:\s]+(.*?)\."
-        self.pattern_figure_descriptions =r"(?ms)(?<=\n)\s*Figure\s+\d+\.\s*(.*?)(?=\n)"
+        self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
-        self.pattern_split_between_individual_abbreviations = r";\s*"
-        self.pattern_split_between_abbreviation_and_full_form = r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)"
+        self.pattern_abbreviations = r"(?i)[^\w\s]*\s*(?:Abbreviations|Glossary)[:\s]+(.*?)(?:\.\s|$)"
+        self.pattern_semicolon_split_between_individual_abbreviations = r";\s*"
+        self.pattern_double_space_split_between_individual_abbreviations = r"\s{2,}"
+        self.pattern_comma_split_between_abbreviation_and_full_form = r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)"
+        self.pattern_single_space_split_between_abbreviation_and_full_form = r"([A-Z][A-Za-z0-9\-α-ωΑ-Ω]*)\s+(.+?)(?=\s+(?:[A-Z][A-Za-z0-9\-α-ωΑ-Ω]*\b)|$)"
 
     def get_publications(self) -> list[Publication]:
         pubs = []
@@ -100,17 +102,27 @@ class PymupdfParser(ParsePDF):
         return text_to_parse
 
     def _extract_abbreviations(self, text: str) -> dict[str, str]:
-        match = re.search(self.pattern_abbreviations, text, re.DOTALL)
+        match = re.search(self.pattern_abbreviations, text, re.DOTALL | re.IGNORECASE)
         abbreviations_dict = {}
         if match:
             abbreviation_text = match.group(1)
-            abbreviation_text_without_new_lines = re.sub(r"\n+", " ", abbreviation_text)
-            entries = re.split(self.pattern_split_between_individual_abbreviations, abbreviation_text_without_new_lines.strip())
-            for entry in entries:
-                m = re.match(self.pattern_split_between_abbreviation_and_full_form, entry.strip())
-                if m:
-                    key, value = m.groups()
-                    abbreviations_dict[key.strip()] = value.strip()
+            if entries := re.split(self.pattern_semicolon_split_between_individual_abbreviations, abbreviation_text.strip()):
+                for entry in entries:
+                    m = re.match(self.pattern_comma_split_between_abbreviation_and_full_form, entry.strip())
+                    if m:
+                        key, value = m.groups()
+                        abbreviations_dict[key.strip()] = value.strip()
+            if entries := re.split(self.pattern_double_space_split_between_individual_abbreviations, abbreviation_text.strip()):
+                print(entries)
+                for entry in entries:
+                    m = re.match(self.pattern_comma_split_between_abbreviation_and_full_form, entry.strip())
+                    if m:
+                        key, value = m.groups()
+                        abbreviations_dict[key.strip()] = value.strip()
+                    else:
+                        for m2 in re.finditer(self.pattern_single_space_split_between_abbreviation_and_full_form, entry.strip()):
+                            key, value = m2.groups()
+                            abbreviations_dict[key.strip()] = value.strip()
         return abbreviations_dict
 
     def _extract_figure_descriptions(self, text: str) -> list[str]:
@@ -149,3 +161,6 @@ class PymupdfParser(ParsePDF):
     def _figure_large_enough(self, image_bytes):
         return len(image_bytes) > 10 * 1024
 
+pub = PymupdfParser([PDF('tests/test_pdfs/glossary.pdf')]).get_publications()[0]
+print(pub.full_text)
+print(pub.abbreviations)
