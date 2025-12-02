@@ -111,7 +111,9 @@ def test_extract_full_text_self_made_pdf(path, where, expected):
     {'id': 'PMC12231352',
      'abbreviation_list': []},
      {'id': 'PMC11339729',
-      'abbreviation_list': [("BEB", "binary-encounter-Bethe"), ("CID", "collision-induced dissociation"), ("UFF", "universal force field")]}
+      'abbreviation_list': [("BEB", "binary-encounter-Bethe"), ("CID", "collision-induced dissociation"), ("UFF", "universal force field")]},
+    # {'id': 'PMC12577378',
+    #  'abbreviation_list': [('AD-MSCs', ' Adipose mesenchymal stem cells'), ('AKT', 'Protein kinase B'), ('VEGF', 'Vascular endothelial growth factor')]}
 ])
 def provide_params_extract_abbreviations_fixture(request):
     europepmc = EuropePMC(request.param['id'])
@@ -170,7 +172,6 @@ def test_extract_figure_descriptions(provide_params_extract_figure_descriptions)
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
 
-# Add tests for figures being stored in a proper folder (folder per publication).
 @pytest.fixture(params=[
     {'id': 'PMC12416454',
      'figures': ['tests/figure_storage/PMC12416454/figure1.jpeg',
