@@ -34,7 +34,7 @@ def test_get_publication_data_not_empty():
     {'id': 'PMC12181427',
      'expected_abstract': "This study explores the potential of six novel thiophene derivative thin films (THIOs) for reducing cancer cell adhesion and enhancing controlled drug release on inert glass substrates. Thiophene derivatives 3a–c and 5a–c were synthesized and characterized using IR, 1H NMR, 13C NMR, and elemental analysis before being spin-coated onto glass to form thin films. SEM analysis and roughness measurements were used to assess their structural and functional properties. Biological evaluations demonstrated that the films significantly reduced HepG2 liver cancer cell adhesion (~ 78% decrease vs. control) and enabled controlled drug release, validated through the Korsmeyer-Peppas model (R2 > 0.99). Theoretical studies, including in-silico target prediction, molecular docking with JAK1 (PDB: 4E4L), and DFT calculations, provided insights into the electronic properties and chemical reactivity of these compounds. Notably, compound 5b exhibited the best binding energy (-7.59 kcal/mol) within the JAK1 pocket, aligning with its observed apoptotic behavior in cell culture. DFT calculations further revealed that 5b had the lowest calculated energy values; -4.89 eV (HOMO) and − 3.22 eV (LUMO), and the energy gap was found to be 1.66 eV, supporting its role in JAK1 inhibition and cancer cell adhesion reduction. These findings underscore the promise of thiophene derivatives in biomedical applications, potentially leading to safer surgical procedures and more effective localized drug delivery systems."},
 ])
-def provide_params_extract_abstract_fixture(request):
+def provide_params_extract_abstract_fixture(request: pytest.FixtureRequest):
     europepmc = EuropePMC(request.param['id'])
     data = {
         'europepmc': europepmc,
@@ -44,7 +44,7 @@ def provide_params_extract_abstract_fixture(request):
     if os.path.exists(europepmc.storage):
         shutil.rmtree(europepmc.storage)
 
-def test_extract_abstract_europepmc(provide_params_extract_abstract_fixture):
+def test_extract_abstract_europepmc(provide_params_extract_abstract_fixture: dict):
     actual = PymupdfParser(provide_params_extract_abstract_fixture['europepmc'].pdfs()).get_publications()[0].abstract
     assert actual == provide_params_extract_abstract_fixture['expected_abstract']
     if os.path.exists(output_dir):
@@ -61,7 +61,7 @@ def test_extract_abstract_europepmc(provide_params_extract_abstract_fixture):
      'full_text_slice': slice(108, 127),
      'full_text': "Surgical tools used"},
 ])
-def provide_params_extract_full_text_fixture(request):
+def provide_params_extract_full_text_fixture(request: pytest.FixtureRequest):
     europepmc = EuropePMC(request.param['id'])
     data = {
         'europepmc': europepmc,
@@ -72,7 +72,7 @@ def provide_params_extract_full_text_fixture(request):
     if os.path.exists(europepmc.storage):
         shutil.rmtree(europepmc.storage)
 
-def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture):
+def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture: dict):
     actual = PymupdfParser(provide_params_extract_full_text_fixture['europepmc'].pdfs()).get_publications()[0].full_text[provide_params_extract_full_text_fixture['full_text_slice']]
     assert actual == provide_params_extract_full_text_fixture['full_text']
     if os.path.exists(output_dir):
@@ -86,7 +86,7 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture):
         ),
     ],
 )
-def test_extract_abstract_self_made_pdf(path, expected_abstract):
+def test_extract_abstract_self_made_pdf(path: str, expected_abstract: str):
     actual = PymupdfParser([PDF(path)]).get_publications()[0].abstract
     assert actual == expected_abstract
     if os.path.exists(output_dir):
@@ -98,7 +98,7 @@ def test_extract_abstract_self_made_pdf(path, expected_abstract):
         ("tests/test_pdfs/test_pdf.pdf", slice(0, 26), "Natural chiral hydrophobic"),
     ],
 )
-def test_extract_full_text_self_made_pdf(path, where, expected):
+def test_extract_full_text_self_made_pdf(path: str, where: slice, expected: str):
     actual = PymupdfParser([PDF(path)]).get_publications()[0].full_text[where]
     assert actual == expected
     if os.path.exists(output_dir):
@@ -112,12 +112,12 @@ def test_extract_full_text_self_made_pdf(path, where, expected):
      'abbreviation_list': []},
      {'id': 'PMC11339729',
       'abbreviation_list': [("BEB", "binary-encounter-Bethe"), ("CID", "collision-induced dissociation"), ("UFF", "universal force field")]},
-    {'id': 'PMC12429144',
-     'abbreviation_list': [('ALT', "Alanine aminotransferase"), ('AMPK', "AMP-activated protein kinase"), ("α-SMA", 'Alpha Smooth Muscle Actin')]},
-    # {'id': 'PMC12577378',
-    #  'abbreviation_list': [('AD-MSCs', ' Adipose mesenchymal stem cells'), ('AKT', 'Protein kinase B'), ('VEGF', 'Vascular endothelial growth factor')]}
+    {'id': 'PMC9103499',
+     'abbreviation_list': [('ABC', "ATP-binding cassette"), ('AQP', "Aquaporin"), ("VDR", 'Vitamin D receptor')]},
+    {'id': 'PMC12577378',
+     'abbreviation_list': [('AD-MSCs', 'Adipose mesenchymal stem cells'), ('AKT', 'Protein kinase B'), ('VEGF', 'Vascular endothelial growth factor')]}
 ])
-def provide_params_extract_abbreviations_fixture(request):
+def provide_params_extract_abbreviations_fixture(request: pytest.FixtureRequest):
     europepmc = EuropePMC(request.param['id'])
     data = {
         'europepmc': europepmc,
@@ -127,7 +127,7 @@ def provide_params_extract_abbreviations_fixture(request):
     if os.path.exists(europepmc.storage):
         shutil.rmtree(europepmc.storage)
 
-def test_extract_abbreviations(provide_params_extract_abbreviations_fixture):
+def test_extract_abbreviations(provide_params_extract_abbreviations_fixture: dict):
     abbrev_dict = PymupdfParser(provide_params_extract_abbreviations_fixture['europepmc'].pdfs()).get_publications()[0].abbreviations
     expected_list = provide_params_extract_abbreviations_fixture['abbreviation_list']
     
@@ -157,7 +157,7 @@ def test_extract_id():
                              "Figure 4. Structural analysis of supramolecular coordination complexes using CD spectroscopy. a) CD spectra of ligands and their coordination complexes in methanol at 25 °C. Interpretation of helical structures of b) Pd6L8 or Pd12L16, and c) Pd3(Ld)6, following the C24-C3-Pd-C3-C24 backbone.",
                              "Figure 5. Toxicological studies of the SCCs. a) Concentration-response of HepG2 spheroid viability (ATP content) after 8 days of exposure to Pd(NO3)2, L, Pd6L8, and Pd12L16. The asterisk (*) indicates a statistically signiﬁcant (P < 0.05) diﬀerence from the solvent control. b) Relation of spheroid viability to palladium content measured in spheroids. ρ represents Spearman’s rank correlation coeﬃcient with a P value."]},
 ])
-def provide_params_extract_figure_descriptions(request):
+def provide_params_extract_figure_descriptions(request: pytest.FixtureRequest):
     europepmc = EuropePMC(request.param['id'])
     data = {
         'europepmc': europepmc,
@@ -167,7 +167,7 @@ def provide_params_extract_figure_descriptions(request):
     if os.path.exists(europepmc.storage):
         shutil.rmtree(europepmc.storage)
 
-def test_extract_figure_descriptions(provide_params_extract_figure_descriptions):
+def test_extract_figure_descriptions(provide_params_extract_figure_descriptions: dict):
     actual = PymupdfParser(provide_params_extract_figure_descriptions['europepmc'].pdfs()).get_publications()[0].figure_descriptions
     expected = provide_params_extract_figure_descriptions['figure_descriptions']
     assert actual == expected
@@ -181,7 +181,7 @@ def test_extract_figure_descriptions(provide_params_extract_figure_descriptions)
                 'tests/figure_storage/PMC12416454/figure3.png',
                 'tests/figure_storage/PMC12416454/figure4.png',
                 'tests/figure_storage/PMC12416454/figure5.png']}])
-def provide_params_extract_figures(request):
+def provide_params_extract_figures(request: pytest.FixtureRequest):
     europepmc = EuropePMC(request.param['id'])
     data = {
         'europepmc': europepmc,
@@ -191,7 +191,7 @@ def provide_params_extract_figures(request):
     if os.path.exists(europepmc.storage):
         shutil.rmtree(europepmc.storage)
 
-def test_extract_figures(provide_params_extract_figures):
+def test_extract_figures(provide_params_extract_figures: dict):
     actual = PymupdfParser(provide_params_extract_figures['europepmc'].pdfs()).get_publications()[0].figures
     expected = provide_params_extract_figures['figures']
     total_size = sum(os.path.getsize(os.path.join(dirpath, filename))

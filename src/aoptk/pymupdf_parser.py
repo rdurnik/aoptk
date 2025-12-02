@@ -14,10 +14,9 @@ class PymupdfParser(ParsePDF):
         self.pattern_abstract_not_written = r"(?:^|\n)((?:(?!\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b).)*?)\s*(?=\n\s*(?:keywords?|introduction|(?:1|I)\.?\s|section\s+1)\b)"
         self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
-        self.pattern_abbreviations = r"(?i)[^\w\s]*\s*(?:Abbreviations|Glossary)[:\s]+(.*?)(?:\.\s|.?references|$)"
+        self.pattern_abbreviations = r"(?i)[^\w\s]*\s*(?:Abbreviations|Glossary)[:\s]+(.*?)(?:\.?\s*(?:references|acknowledgement|funding|author|conflict|ethics|corresponding|⁎)|$)"
         self.pattern_semicolon_split_between_individual_abbreviations = r";\s*"
         self.pattern_space_split_between_individual_abbreviations = r'(?<=\s)(?=[A-Z0-9α-ωΑ-Ωβ]+(?:[A-Z0-9\-\u2212α-ωΑ-Ω]+)*\s+[A-Za-zα-ωΑ-Ω])'
-        self.pattern_first_space_split_between_abbreviation_and_full_form = r'([A-Z0-9α-ωΑ-Ω][A-Za-z0-9\-\u2212α-ωΑ-Ω]*)\s+(.+)'
         self.pattern_comma_split_between_abbreviation_and_full_form = r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)"
 
     def get_publications(self) -> list[Publication]:
@@ -32,7 +31,7 @@ class PymupdfParser(ParsePDF):
         id = Path(pdf.path).stem
         abstract = self._parse_abstract(text)
         full_text = self._parse_full_text(text)
-        abbreviations = self._extract_abbreviations(text)
+        abbreviations = self._extract_abbreviations(text, pdf)
         figures = self._extract_figures(pdf)
         figure_descriptions = self._extract_figure_descriptions(text)
         tables = [] # TODO
@@ -101,28 +100,64 @@ class PymupdfParser(ParsePDF):
                 text_to_parse += "\n".join([" ".join(block[4].split()) for block in blocks if block[4].strip()])
         return text_to_parse
 
-    def _extract_abbreviations(self, text: str) -> dict[str, str]:
-        match = re.search(self.pattern_abbreviations, text, re.DOTALL | re.IGNORECASE)
+    def _extract_abbreviations(self, text: str, pdf: PDF) -> dict[str, str]:
         abbreviations_dict = {}
-        if match:
+        if match := re.search(self.pattern_abbreviations, text, re.DOTALL | re.IGNORECASE):
             abbreviation_text = match.group(1)
-            print("Abbreviation text:", abbreviation_text)
             if (entries := re.split(self.pattern_semicolon_split_between_individual_abbreviations, abbreviation_text.strip())) and len(entries) > 1:
-                for entry in entries:
-                    m = re.match(self.pattern_comma_split_between_abbreviation_and_full_form, entry.strip())
-                    if m:
-                        key, value = m.groups()
-                        abbreviations_dict[key.strip()] = value.strip()
+                abbreviations_dict = self._generate_dictionary_from_semicolon_seperated_abbreviations(entries)
             elif (entries := re.split(self.pattern_space_split_between_individual_abbreviations, abbreviation_text.strip())) and len(entries) > 1:
-                # Create new text to parse with test_text_to_parse += "\n".join([block[4].replace("\r\n", "\n").rstrip() for block in blocks if block[4].strip()])
-                # and then take pairs of newlines...
-                for entry in entries:
-                    m = re.match(self.pattern_first_space_split_between_abbreviation_and_full_form, entry.strip())
-                    if m:
-                        key, value = m.groups()
-                        abbreviations_dict[key.strip()] = value.strip()
+                text_to_parse_with_preserved_newlines = self._extract_text_to_parse_abbreviations_seperated_by_newlines(pdf)
+                abbreviations_dict = self._generate_dictionary_from_newline_seperated_abbreviations(text_to_parse_with_preserved_newlines)
         return abbreviations_dict
 
+    def _generate_dictionary_from_newline_seperated_abbreviations(self, text_to_parse_with_preserved_newlines: str) -> dict[str, str]:
+        abbreviations_dict = {}
+        newline_match = re.search(self.pattern_abbreviations, text_to_parse_with_preserved_newlines, re.DOTALL | re.IGNORECASE)
+        if newline_match:
+            abbr_text_newlines = newline_match.group(1)
+            lines = [l.strip() for l in abbr_text_newlines.split('\n') if l.strip()]
+            for i in range(0, len(lines) - 1, 2):
+                if i + 1 < len(lines):
+                    key = lines[i]
+                    value = lines[i + 1]
+                    abbreviations_dict[key] = value
+        return abbreviations_dict
+
+    def _generate_dictionary_from_semicolon_seperated_abbreviations(self, entries: list[str]) -> dict[str, str]:
+        abbreviations_dict = {}
+        for entry in entries:
+            m = re.match(self.pattern_comma_split_between_abbreviation_and_full_form, entry.strip())
+            if m:
+                key, value = m.groups()
+                abbreviations_dict[key.strip()] = value.strip()
+            self._remove_dot_from_the_final_value(abbreviations_dict, key)
+        return abbreviations_dict
+
+    def _remove_dot_from_the_final_value(self, abbreviations_dict: dict[str, str], key: str) -> dict[str, str]:
+        k = key.strip()
+        v = abbreviations_dict[k]
+        if v.endswith('.'):
+            abbreviations_dict[k] = v[:-1].rstrip()
+
+    def _extract_text_to_parse_abbreviations_seperated_by_newlines(self, pdf: PDF) -> str:
+        """Extract text to parse, preserving newlines."""
+        text_to_parse = ""
+        with pymupdf.open(pdf.path) as doc:
+            for page in doc:
+                blocks = page.get_text("blocks")
+                for block in blocks:
+                    if block[4].strip():
+                        cleaned = self._clean_control_chars(block[4])
+                        text_to_parse += cleaned
+        return text_to_parse
+
+    def _clean_control_chars(self, text: str) -> str:
+        """Remove unwanted control characters."""
+        control_chars = ''.join(chr(i) for i in range(32)) + ''.join(chr(i) for i in range(127, 160))
+        translator = str.maketrans('', '', control_chars.replace('\n', '').replace('\t', ''))
+        return text.translate(translator)
+    
     def _extract_figure_descriptions(self, text: str) -> list[str]:
         figure_descriptions = []
         description_matches = re.finditer(self.pattern_figure_descriptions, text, re.DOTALL | re.IGNORECASE)
@@ -150,13 +185,11 @@ class PymupdfParser(ParsePDF):
             image_paths = [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
             return image_paths
 
-    def _save_figure(self, output_dir, figure_count, base_image, image_bytes):
-        image_ext = base_image["ext"]
+    def _save_figure(self, output_dir: str, figure_count: int, base_figure: dict, figure_bytes: bytes):
+        image_ext = base_figure["ext"]
         image_filename = output_dir / f"figure{figure_count + 1}.{image_ext}"
         with open(image_filename, "wb") as img_file:
-            img_file.write(image_bytes)
+            img_file.write(figure_bytes)
 
-    def _figure_large_enough(self, image_bytes):
-        return len(image_bytes) > 10 * 1024
-
-test = PymupdfParser([PDF('tests/test_pdfs/abbreviations_3.pdf')]).get_publications()[0].abbreviations
+    def _figure_large_enough(self, figure_bytes: bytes) -> bool:
+        return len(figure_bytes) > 10 * 1024
