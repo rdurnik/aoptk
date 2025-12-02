@@ -82,7 +82,7 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture: d
     ("path", "expected_abstract"),
     [
         ("tests/test_pdfs/test_pdf.pdf", 
-         "The rational design and selective self-assembly of flexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination-driven self-assembly of natural ursodeoxycholic-bile-acid-derived unsymmetric tris-pyridyl ligand (L) resulting in the selective and switchable formation of chiral stellated Pd6L8 and Pd12L16 cages. The selectivity of the cage originates in the adaptivity and flexibility of the arms of the ligand bearing pyridyl moieties. The interspecific transformations can be controlled by changes in the reaction conditions. The orientational self-sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right-handed helical species, was confirmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2.",
+         "Thioacetamide (TAA) is a widely utilized model hepatotoxicant, yet its cellular impact in advanced three-dimensional liver-mimetic systems continues to be characterized. HepG2 spheroids—derived from hepatocellular carcinoma cells cultured under conditions that promote multicellular aggregation— offer improved physiological relevance compared with conventional 2D monolayers due to enhanced cell–cell communication, more representative metabolic profiles, and the formation of nutrient and oxygen gradients that approximate aspects of in vivo liver tissue. In this study context, the responses of HepG2 spheroids to TAA exposure were examined to better understand how three-dimensional architecture influences toxicant susceptibility and downstream stress signaling. The spheroids exhibited a spectrum of reactions consistent with hepatocellular injury, including metabolic perturbation, oxidative imbalance, and modulation of survival and stress pathways. These responses appeared to emerge not only from direct chemical insult but also from the layered microenvironment inherent to spheroid organization, which shapes diffusion dynamics and cellular heterogeneity. Collectively, these observations underscore the usefulness of HepG2 spheroids as an intermediate-complexity system for modeling hepatotoxicity, enabling the capture of multicellular stress patterns that are often attenuated or absent in 2D cultures. The findings support the growing interest in 3D liver models as more predictive platforms for mechanistic toxicology and preclinical safety assessment.",
         ),
     ],
 )
@@ -95,7 +95,7 @@ def test_extract_abstract_self_made_pdf(path: str, expected_abstract: str):
 @pytest.mark.parametrize(
     ("path", "where", "expected"),
     [
-        ("tests/test_pdfs/test_pdf.pdf", slice(0, 26), "Natural chiral hydrophobic"),
+        ("tests/test_pdfs/test_pdf.pdf", slice(0, 29), "Thioacetamide (TAA) is widely"),
     ],
 )
 def test_extract_full_text_self_made_pdf(path: str, where: slice, expected: str):
