@@ -16,8 +16,8 @@ class PymupdfParser(ParsePDF):
         self.pattern_any_character = r"(.*)"
         self.pattern_abbreviations = r"(?i)[^\w\s]*\s*(?:Abbreviations|Glossary)[:\s]+(.*?)(?:\.\s|.?references|$)"
         self.pattern_semicolon_split_between_individual_abbreviations = r";\s*"
-        self.pattern_space_split_between_individual_abbreviations = r'(?<=\s)(?=[A-Z0-9]+(?:[A-Z0-9\-\u2212α-ωΑ-Ω]+)*\s+[A-Za-z])'
-        self.pattern_first_space_split_between_abbreviation_and_full_form = r'([A-Z0-9][A-Za-z0-9\-\u2212α-ωΑ-Ω]*)\s+(.+)'
+        self.pattern_space_split_between_individual_abbreviations = r'(?<=\s)(?=[A-Z0-9α-ωΑ-Ωβ]+(?:[A-Z0-9\-\u2212α-ωΑ-Ω]+)*\s+[A-Za-zα-ωΑ-Ω])'
+        self.pattern_first_space_split_between_abbreviation_and_full_form = r'([A-Z0-9α-ωΑ-Ω][A-Za-z0-9\-\u2212α-ωΑ-Ω]*)\s+(.+)'
         self.pattern_comma_split_between_abbreviation_and_full_form = r"([A-Za-z0-9\-α-ωΑ-Ω]+)\s*[:,]\s*(.+)"
 
     def get_publications(self) -> list[Publication]:
@@ -114,7 +114,8 @@ class PymupdfParser(ParsePDF):
                         key, value = m.groups()
                         abbreviations_dict[key.strip()] = value.strip()
             elif (entries := re.split(self.pattern_space_split_between_individual_abbreviations, abbreviation_text.strip())) and len(entries) > 1:
-                print(entries)
+                # Create new text to parse with test_text_to_parse += "\n".join([block[4].replace("\r\n", "\n").rstrip() for block in blocks if block[4].strip()])
+                # and then take pairs of newlines...
                 for entry in entries:
                     m = re.match(self.pattern_first_space_split_between_abbreviation_and_full_form, entry.strip())
                     if m:
@@ -158,5 +159,4 @@ class PymupdfParser(ParsePDF):
     def _figure_large_enough(self, image_bytes):
         return len(image_bytes) > 10 * 1024
 
-pub = PymupdfParser([PDF('tests/test_pdfs/glossary.pdf')]).get_publications()[0]
-print(pub.abbreviations)
+test = PymupdfParser([PDF('tests/test_pdfs/abbreviations_3.pdf')]).get_publications()[0].abbreviations

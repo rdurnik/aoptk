@@ -112,6 +112,8 @@ def test_extract_full_text_self_made_pdf(path, where, expected):
      'abbreviation_list': []},
      {'id': 'PMC11339729',
       'abbreviation_list': [("BEB", "binary-encounter-Bethe"), ("CID", "collision-induced dissociation"), ("UFF", "universal force field")]},
+    {'id': 'PMC12429144',
+     'abbreviation_list': [('ALT', "Alanine aminotransferase"), ('AMPK', "AMP-activated protein kinase"), ("α-SMA", 'Alpha Smooth Muscle Actin')]},
     # {'id': 'PMC12577378',
     #  'abbreviation_list': [('AD-MSCs', ' Adipose mesenchymal stem cells'), ('AKT', 'Protein kinase B'), ('VEGF', 'Vascular endothelial growth factor')]}
 ])
