@@ -60,7 +60,7 @@ class EuropePMC(GetPDF, GetAbstract):
             stream=True,
             timeout=self.timeout,
         )
-        if not response.ok:
+        if not response.ok and publication_id.isdecimal():
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
                 response = requests.get(pubmed_url, stream=True, timeout=self.timeout)
