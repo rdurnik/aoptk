@@ -76,16 +76,15 @@ class EuropePMC(GetPDF, GetAbstract):
             f.writelines(response.iter_content(chunk_size=8192))
         return PDF(filepath)
 
-    def get_abstracts(self) -> list[Abstract]:
+    def get_abstract(self, publication_id: str) -> Abstract:
         """Return abstracts from Europe PMC based on the query."""
         cursor_mark = "*"
-        all_abstracts: list[Abstract] = []
 
         while True:
             json_data = self.call_api(cursor_mark, "core")
             results = json_data.get("resultList", {}).get("result", [])
 
-            all_abstracts.extend([Abstract(record.get("abstractText", "")) for record in results])
+            abstract = [Abstract(record.get("abstractText", "")) for record in results]
             next_cursor = json_data.get("nextCursorMark")
             if not results or not next_cursor or next_cursor == cursor_mark:
                 break
