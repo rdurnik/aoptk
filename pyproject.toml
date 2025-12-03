@@ -51,6 +51,8 @@ dev = [
     "sphinx-autoapi",
     "tox",
     "myst_parser",
+    "jupyter",
+    "ipykernel"
 ]
 docs = [
     "sphinx",
