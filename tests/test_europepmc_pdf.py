@@ -66,7 +66,16 @@ def test_return_id_list(query: str, expected: list[str]):
         ),
         (
             "spheroid methotrexate hepg2 AND (FIRST_PDATE:[2024 TO 2024])",
-            ["PMC11201042", "PMC11354664", "PMC11156946", "PMC11208286", "PMC11245638", "PMC11177578", "PMC11470995"],
+            [
+                "PMC11201042",
+                "PMC11354664",
+                "PMC11156946",
+                "PMC12149029",
+                "PMC11208286",
+                "PMC11245638",
+                "PMC11177578",
+                "PMC11470995",
+            ],
             False,
             True,
         ),
