@@ -1,7 +1,9 @@
+from __future__ import annotations
 import os
 import pytest
-from aoptk.publication_parser import PublicationParser
+from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
+from aoptk.spacy import Spacy
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
@@ -13,19 +15,48 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_can_create():
-    """Test that PublicationParser can be instantiated."""
-    actual = PublicationParser("")
+    """Can create ScispacyFindChemical instance."""
+    actual = Spacy()
     assert actual is not None
 
 
-def test_implements_interface():
-    """Test that PublicationParser implements SentenceGenerator interface."""
-    assert issubclass(PublicationParser, SentenceGenerator)
+def test_implements_interface_find_chemical():
+    """ScispacyFindChemical implements FindChemical interface."""
+    assert isinstance(Spacy(), FindChemical)
+
+
+def test_find_chemical_not_empty():
+    """Test that find_chemical method returns a non-empty result."""
+    actual = Spacy().find_chemical("")
+    assert actual is not None
+
+
+@pytest.mark.parametrize(
+    ("sentence", "expected"),
+    [
+        ("Thioacetamide was studied for its effect on liver cells.", ["thioacetamide"]),
+        ("HepaRG cells were used as an experimental model.", []),
+        (
+            "Thioacetamide, carbon tetrachloride and ethanol were used to induce liver injury.",
+            ["thioacetamide", "carbon tetrachloride", "ethanol"],
+        ),
+        ("Thioacetamide causes cancer.", ["thioacetamide"]),
+    ],
+)
+def test_find_chemical_one_chemical(sentence: str, expected: list[str]):
+    """Test that find_chemical method finds chemicals in text."""
+    actual = [chem.name for chem in Spacy().find_chemical(sentence)]
+    assert actual == expected
+
+
+def test_implements_interface_sentence_generator():
+    """Test that Spacy implements SentenceGenerator interface."""
+    assert issubclass(Spacy, SentenceGenerator)
 
 
 def test_generate_sentences_not_empty():
     """Test that generate_sentences method returns a non-empty result."""
-    actual = PublicationParser("").generate_sentences()
+    actual = Spacy().generate_sentences("")
     assert actual is not None
 
 
@@ -98,19 +129,5 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence.sentence_text for sentence in PublicationParser(text).generate_sentences()]
-    assert actual == expected
-
-
-def test_spacy_generate_sentences(sentence_cases: pytest.FixtureRequest):
-    """Test spacy_generate_sentences method with various cases."""
-    text, expected = sentence_cases
-    actual = [sentence.sentence_text for sentence in PublicationParser(text).spacy_generate_sentences()]
-    assert actual == expected
-
-
-def test_regex_generate_sentences(sentence_cases: pytest.FixtureRequest):
-    """Test regex_generate_sentences method with various cases."""
-    text, expected = sentence_cases
-    actual = [sentence.sentence_text for sentence in PublicationParser(text).regex_generate_sentences()]
+    actual = [sentence.sentence_text for sentence in Spacy().generate_sentences(text)]
     assert actual == expected
