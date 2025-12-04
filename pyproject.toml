@@ -111,6 +111,7 @@ ignore = [
     "FIX001", # Resolve FIXMEs
     "FIX002", # Resolve TODOs
     "B028",   # No explicit `stacklevel` keyword argument found in warning
+    "RUF001",  # String contains ambiguous ` ` (THIN SPACE). String contains ambiguous `α` (GREEK SMALL LETTER ALPHA).
     # No docstrings required in the following cases
     "D100", # Missing module docstring
     "D104", # Missing public package docstring
