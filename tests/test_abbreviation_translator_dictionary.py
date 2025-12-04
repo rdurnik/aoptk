@@ -33,7 +33,7 @@ def test_dict():
         "MTX": "methotrexate",
         "ECM": "extracellular matrix",
         "Nrf2": "nuclear factor E2-related factor 2",
-
+        "CD44": "cluster of Differentiation 44",
     }
 
 
@@ -51,27 +51,29 @@ def test_dict():
             "Combination of thioacetamide, carbon tetrachloride and "
             "free fatty acids was used on hepatic stellate cells.",
         ),
-        ("Extracellular matrix remodelling expected during the progression of fibrosis was "
-        "observed in the MTs treated with the model compounds. Gene expression of MTs treated "
-        "with MTX and TAA showed significant, dose-dependent transcriptional induction of"
-        " collagen I, collagen IV, fibronectin I and CD44 (Fig 8).",
-        "Extracellular matrix remodelling expected during the progression of fibrosis was "
-        "observed in the microtissues treated with the model compounds. Gene expression of microtissues treated "
-        "with methotrexate and thioacetamide showed significant, dose-dependent transcriptional induction of"
-        " collagen I, collagen IV, fibronectin I and CD44 (Fig 8)."),
-        ("In addition to the effects on viability and ECM, the involvement of oxidative stress and the activation"
-        " of the Nrf2 pathway in liver fibrosis have previously been reported [10]. The induction of Nrf2 and"
-        " Keap-1 after exposure to MTX and TAA clearly indicates that this cellular defence mechanism is active"
-        " in our culture system.",
-        "In addition to the effects on viability and extracellular matrix, the involvement of oxidative stress "
-        "and the activation"
-        " of the nuclear factor E2-related factor 2 pathway in liver fibrosis have previously been reported [10]. "
-        "The induction of nuclear factor E2-related factor 2 and"
-        " Keap-1 after exposure to methotrexate and thioacetamide clearly indicates that this cellular "
-        "defence mechanism is active"
-        " in our culture system."
-        )
-
+        (
+            "Extracellular matrix remodelling expected during the progression of fibrosis was "
+            "observed in the MTs treated with the model compounds. Gene expression of MTs treated "
+            "with MTX and TAA showed significant, dose-dependent transcriptional induction of"
+            " collagen I, collagen IV, fibronectin I and CD44 (Fig 8).",
+            "Extracellular matrix remodelling expected during the progression of fibrosis was "
+            "observed in the microtissues treated with the model compounds. Gene expression of microtissues treated "
+            "with methotrexate and thioacetamide showed significant, dose-dependent transcriptional induction of"
+            " collagen I, collagen IV, fibronectin I and cluster of Differentiation 44 (Fig 8).",
+        ),
+        (
+            "In addition to the effects on viability and ECM, the involvement of oxidative stress and the activation"
+            " of the Nrf2 pathway in liver fibrosis have previously been reported [10]. The induction of Nrf2 and"
+            " Keap-1 after exposure to MTX and TAA clearly indicates that this cellular defence mechanism is active"
+            " in our culture system.",
+            "In addition to the effects on viability and extracellular matrix, the involvement of oxidative stress "
+            "and the activation"
+            " of the nuclear factor E2-related factor 2 pathway in liver fibrosis have previously been reported [10]. "
+            "The induction of nuclear factor E2-related factor 2 and"
+            " Keap-1 after exposure to methotrexate and thioacetamide clearly indicates that this cellular "
+            "defence mechanism is active"
+            " in our culture system.",
+        ),
     ],
 )
 def test_translates_known_abbreviations(test_dict: dict[str, str], text: str, expected: str):
