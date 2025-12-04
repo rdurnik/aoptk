@@ -17,7 +17,7 @@ class AbbreviationDictionaryGenerator:
     def provide_translation_dictionary(self) -> dict[str, str]:
         """Generate a dictionary mapping abbreviations to their full forms."""
         abbreviations_dict = {}
-        for text_in_brackets in re.finditer(r"\(([A-Za-z0-9\-]+)\)", self.text):
+        for text_in_brackets in self.provide_list_of_abbreviations():
             abbreviation = text_in_brackets.group(1).strip()
             left_words = self.find_words_left_of_abbreviation(text_in_brackets)
             first_letter_of_the_abbreviation = abbreviation[0].lower()
@@ -36,6 +36,9 @@ class AbbreviationDictionaryGenerator:
                 abbreviations_dict[abbreviation] = expansion.lower()
 
         return abbreviations_dict
+    
+    def provide_list_of_abbreviations(self) -> list[str]:
+        return re.finditer(r"\(([A-Za-z0-9\-α-ωΑ-Ω]+)\)", self.text)
 
     def extract_all_words_right_from_the_rightmost_letter(self, left_words: list[str], start_idx: int) -> str | None:
         """Extract all words to the right of the rightmost letter matching the first letter of the abbreviation."""
