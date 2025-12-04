@@ -25,6 +25,14 @@ class EuropePMC(GetPDF, GetAbstract):
         """Retrieve PDFs based on the query."""
         return [pdf for pdf in (self.get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
 
+    def get_abstracts(self) -> list[Abstract]:
+        """Retrieve Abstracts based on the query."""
+        return [
+            abstract
+            for abstract in (self.get_abstract(publication_id) for publication_id in self.id_list)
+            if abstract is not None
+        ]
+
     def get_id_list(self) -> list[str]:
         """Get a list of publication IDs from EuropePMC based on the query."""
         cursor_mark = "*"
@@ -77,19 +85,16 @@ class EuropePMC(GetPDF, GetAbstract):
         return PDF(filepath)
 
     def get_abstract(self, publication_id: str) -> Abstract:
-        """Return abstracts from Europe PMC based on the query."""
+        """Return abstract from Europe PMC for a given publication ID."""
         cursor_mark = "*"
+        self._query = publication_id
 
-        while True:
-            json_data = self.call_api(cursor_mark, "core")
-            results = json_data.get("resultList", {}).get("result", [])
+        json_data = self.call_api(cursor_mark, "core")
+        results = json_data.get("resultList", {}).get("result", [])
 
-            abstract = [Abstract(record.get("abstractText", "")) for record in results]
-            next_cursor = json_data.get("nextCursorMark")
-            if not results or not next_cursor or next_cursor == cursor_mark:
-                break
-            cursor_mark = next_cursor
-        return all_abstracts
+        if results:
+            return Abstract(results[0].get("abstractText", ""), publication_id)
+        return None
 
     def call_api(self, cursor_mark: str, result_type: str) -> dict:
         """Call the EuropePMC web api to query the search.
