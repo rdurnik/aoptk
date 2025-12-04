@@ -3,7 +3,9 @@ import re
 
 
 class AbbreviationDictionaryGenerator:
-    """Generates a dictionary of abbreviations and their full forms from text."""
+    """Generates a dictionary of abbreviations and their full forms from text.
+       text: input text that should be translated. 
+       window: number of words to the left of the abbreviation to consider for translating."""
 
     def __init__(self, text: str, window: int = 5):
         self.text = text

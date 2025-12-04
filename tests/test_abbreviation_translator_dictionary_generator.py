@@ -9,7 +9,7 @@ def test_can_create():
     assert actual is not None
 
 
-def test_get_abstract_not_empty():
+def test_not_empty():
     """Test that provide_translation_dictionary method returns a non-empty result."""
     actual = AbbreviationDictionaryGenerator("").provide_translation_dictionary()
     assert actual is not None

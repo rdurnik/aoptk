@@ -22,4 +22,3 @@ class AbbreviationTranslatorDictionary(AbbreviationTranslator):
                 translated_text = re.sub(pattern, replacement, translated_text, flags=re.IGNORECASE)
 
         return translated_text
-
