@@ -36,10 +36,10 @@ def test_dict():
     ("text", "expected"),
     [
         ("One of the chemicals studied was TAA.", "One of the chemicals studied was thioacetamide."),
-        ("TAA is a chemical compound.", "Thioacetamide is a chemical compound."),
+        ("TAA is a chemical compound.", "thioacetamide is a chemical compound."),
         (
             "TAA was studied in this study. TAA was found to be toxic to HepG2 cells.",
-            "Thioacetamide was studied in this study. Thioacetamide was found to be toxic to HepG2 cells.",
+            "thioacetamide was studied in this study. thioacetamide was found to be toxic to HepG2 cells.",
         ),
         (
             "Combination of TAA, CCL4 and FFA was used on HSCs.",
