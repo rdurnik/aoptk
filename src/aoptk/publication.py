@@ -13,7 +13,7 @@ class Publication:
     abbreviations: dict
     tables: list
     figures: list
-    figure_descriptions: dict
+    figure_descriptions: list
 
     def __str__(self) -> str:
         return self.abstract
