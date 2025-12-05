@@ -119,8 +119,8 @@ def test_generate_sentences_not_empty():
             ["This is the first sentence.", "the author did not put capital T at the start."],
         ),
         (
-            "This is the first sentence.There is missing space after the period!",
-            ["This is the first sentence.", "There is missing space after the period!"],
+            "This is the first sentence.There is a missing space after the period!",
+            ["This is the first sentence.", "There is a missing space after the period!"],
         ),
     ],
 )

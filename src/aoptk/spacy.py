@@ -31,7 +31,5 @@ class Spacy(FindChemical, SentenceGenerator):
         for sent in doc.sents:
             sent_text = sent.text.strip()
             s = Sentence(sent_text)
-            ents = getattr(sent, "ents", ())
-            s.entities = [(ent.text, ent.label_) for ent in ents] if ents else []
             sentences.append(s)
         return sentences
