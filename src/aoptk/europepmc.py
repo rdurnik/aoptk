@@ -16,10 +16,15 @@ class EuropePMC(GetPDF, GetAbstract):
     timeout = 10
     headers: ClassVar = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Accept-Encoding": "gzip, deflate",
-        "Connection": "keep-alive",
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'max-age=0',
     }
 
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
@@ -28,6 +33,8 @@ class EuropePMC(GetPDF, GetAbstract):
         Path(self.storage).mkdir(parents=True, exist_ok=True)
 
         self.id_list = self.get_id_list()
+        self._session = requests.Session()
+        self._session.headers.update(self.headers)
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
@@ -79,7 +86,7 @@ class EuropePMC(GetPDF, GetAbstract):
         if not response.ok:
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
-                response = requests.get(pubmed_url, stream=True, timeout=self.timeout, headers=self.headers)
+                response = self._session.get(pubmed_url, stream=True, timeout=self.timeout)
                 if not response.ok:
                     return None
 
