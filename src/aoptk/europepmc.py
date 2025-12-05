@@ -13,6 +13,13 @@ class EuropePMC(GetPDF, GetAbstract):
 
     page_size = 1000
     timeout = 10
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+    }
 
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
         self._query = query
@@ -39,7 +46,7 @@ class EuropePMC(GetPDF, GetAbstract):
         id_list = []
 
         while True:
-            data_europepmc = self.call_api(cursor_mark, "idlist")
+            data_europepmc = self.call_api(cursor_mark, "idlist", self._query)
             results = data_europepmc.get("resultList", {}).get("result", [])
 
             id_list.extend([_get_publication_id(result) for result in results])
@@ -71,7 +78,7 @@ class EuropePMC(GetPDF, GetAbstract):
         if not response.ok:
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
-                response = requests.get(pubmed_url, stream=True, timeout=self.timeout)
+                response = requests.get(pubmed_url, stream=True, timeout=self.timeout, headers = self.headers)
                 if not response.ok:
                     return None
 
@@ -87,16 +94,15 @@ class EuropePMC(GetPDF, GetAbstract):
     def get_abstract(self, publication_id: str) -> Abstract:
         """Return abstract from Europe PMC for a given publication ID."""
         cursor_mark = "*"
-        self._query = publication_id
 
-        json_data = self.call_api(cursor_mark, "core")
+        json_data = self.call_api(cursor_mark, "core", publication_id)
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
             return Abstract(results[0].get("abstractText", ""), publication_id)
         return None
 
-    def call_api(self, cursor_mark: str, result_type: str) -> dict:
+    def call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
         """Call the EuropePMC web api to query the search.
 
         Args:
@@ -108,7 +114,7 @@ class EuropePMC(GetPDF, GetAbstract):
         """
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
         params = {
-            "query": self._query,
+            "query": query,
             "format": "json",
             "pageSize": self.page_size,
             "cursorMark": cursor_mark,

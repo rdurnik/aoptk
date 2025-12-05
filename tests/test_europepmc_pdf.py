@@ -124,9 +124,11 @@ def test_open_access_europepmc_pdf_file_exists():
 
 def test_metapub_pdf_file_exists():
     """Test that a PDF retrieved via PubMed can be saved."""
-    EuropePMC("41107038").pdfs()
-    filepath = Path("tests/pdf_storage") / "41107038.pdf"
+    storage = Path("tests/pdf_storage")
+    sut = EuropePMC("41107038", storage=storage)
+    sut.pdfs()
+    filepath = storage / "41107038.pdf"
     assert filepath.exists()
     assert filepath.is_file()
     assert filepath.stat().st_size > 0
-    shutil.rmtree("tests/pdf_storage", ignore_errors=True)
+    shutil.rmtree(storage, ignore_errors=True)
