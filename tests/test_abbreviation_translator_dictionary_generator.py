@@ -23,6 +23,15 @@ def test_provide_list_of_abbreviations():
     assert actual == expected
 
 
+def test_find_words_left_of_abbreviation():
+    """Test that find_words_left_of_abbreviation method returns correct list of words."""
+    text = "One of the chemicals studied was thioacetamide (TAA). TAA was found to be toxic to HepG2 cells."
+    abbreviations = list(AbbreviationDictionaryGenerator(text).provide_list_of_abbreviations())
+    expected = ["the", "chemicals", "studied", "was", "thioacetamide"]
+    actual = AbbreviationDictionaryGenerator(text).find_words_left_of_abbreviation(abbreviations[0])
+    assert actual == expected
+
+
 @pytest.mark.parametrize(
     ("text_abbreviations", "expected"),
     [

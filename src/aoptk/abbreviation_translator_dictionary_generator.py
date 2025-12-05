@@ -54,7 +54,7 @@ class AbbreviationDictionaryGenerator:
                 return i
         return None
 
-    def find_words_left_of_abbreviation(self, text_in_brackets: str) -> list[str]:
+    def find_words_left_of_abbreviation(self, text_in_brackets: re.Match) -> list[str]:
         """Find words to the left of the abbreviation within a specified window."""
         words = re.findall(r"[A-Za-z0-9\-α-ωΑ-Ω]+", self.text[: text_in_brackets.start()])
         return words[-self.window :]
