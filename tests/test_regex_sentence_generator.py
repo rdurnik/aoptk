@@ -89,5 +89,5 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence._sentence_text for sentence in RegexSentenceGenerator().tokenize(text)]
+    actual = [sentence.tokenize for sentence in RegexSentenceGenerator().tokenize(text)]
     assert actual == expected

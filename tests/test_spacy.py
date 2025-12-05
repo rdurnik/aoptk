@@ -41,9 +41,12 @@ def test_find_chemical_not_empty():
             ["thioacetamide", "carbon tetrachloride", "ethanol"],
         ),
         ("Thioacetamide causes cancer.", ["thioacetamide"]),
+        ("CCl4 and thioacetamide were tested for hepatotoxicity.", ["ccl4", "thioacetamide"]),
+        ("Liver fibrosis and cancer were studied.", []),
+        ("Thioacetamide (TAA) was used to induce liver fibrosis.", ["thioacetamide"]),
     ],
 )
-def test_find_chemical_one_chemical(sentence: str, expected: list[str]):
+def test_find_chemical_chemical(sentence: str, expected: list[str]):
     """Test that find_chemical method finds chemicals in text."""
     actual = [chem.name for chem in Spacy().find_chemical(sentence)]
     assert actual == expected
@@ -129,5 +132,5 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence.sentence_text for sentence in Spacy().tokenize(text)]
+    actual = [sentence.tokenize for sentence in Spacy().tokenize(text)]
     assert actual == expected
