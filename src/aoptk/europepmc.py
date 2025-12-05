@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import ClassVar
 import requests
 from aoptk.abstract import Abstract
 from aoptk.get_abstract import GetAbstract
@@ -13,12 +14,12 @@ class EuropePMC(GetPDF, GetAbstract):
 
     page_size = 1000
     timeout = 10
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive',
+    headers: ClassVar = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
     }
 
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
@@ -78,7 +79,7 @@ class EuropePMC(GetPDF, GetAbstract):
         if not response.ok:
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
-                response = requests.get(pubmed_url, stream=True, timeout=self.timeout, headers = self.headers)
+                response = requests.get(pubmed_url, stream=True, timeout=self.timeout, headers=self.headers)
                 if not response.ok:
                     return None
 
@@ -108,6 +109,7 @@ class EuropePMC(GetPDF, GetAbstract):
         Args:
             cursor_mark (str): Parameter for pagination.
             result_type (str): Whether to search for idlists or core.
+            query (str): main query to carry out - default self._query
 
         Returns:
             dict: JSON response
