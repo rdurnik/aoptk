@@ -11,6 +11,6 @@ class SentenceGenerator(ABC):
     """Sentence generator base class."""
 
     @abstractmethod
-    def generate_sentences(self, text: str) -> list[Sentence]:
+    def tokenize(self, text: str) -> list[Sentence]:
         """Return sentence data."""
         ...

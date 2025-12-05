@@ -16,7 +16,7 @@ def test_implements_interface():
 
 def test_generate_sentences_not_empty():
     """Test that generate_sentences method returns a non-empty result."""
-    actual = RegexSentenceGenerator().generate_sentences("")
+    actual = RegexSentenceGenerator().tokenize("")
     assert actual is not None
 
 
@@ -89,5 +89,5 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence.sentence_text for sentence in RegexSentenceGenerator().generate_sentences(text)]
+    actual = [sentence._sentence_text for sentence in RegexSentenceGenerator().tokenize(text)]
     assert actual == expected

@@ -24,7 +24,7 @@ class Spacy(FindChemical, SentenceGenerator):
         doc = self.nlp(sentence)
         return [Chemical(name=ent.text.lower()) for ent in doc.ents if ent.label_ == "CHEMICAL"]
 
-    def generate_sentences(self, text: str) -> list[Sentence]:
+    def tokenize(self, text: str) -> list[Sentence]:
         """Use spaCy to generate sentences."""
         doc = self.nlp(text)
         sentences = []

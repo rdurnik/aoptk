@@ -56,7 +56,7 @@ def test_implements_interface_sentence_generator():
 
 def test_generate_sentences_not_empty():
     """Test that generate_sentences method returns a non-empty result."""
-    actual = Spacy().generate_sentences("")
+    actual = Spacy().tokenize("")
     assert actual is not None
 
 
@@ -129,5 +129,5 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence.sentence_text for sentence in Spacy().generate_sentences(text)]
+    actual = [sentence.sentence_text for sentence in Spacy().tokenize(text)]
     assert actual == expected
