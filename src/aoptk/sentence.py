@@ -8,3 +8,7 @@ class Sentence:
     def sentence_text(self) -> str:
         """Return the sentence's text."""
         return self._sentence_text
+    
+    def __str__(self) -> str:
+        """Return the sentence's text."""
+        return self._sentence_text
