@@ -4,8 +4,8 @@ from Bio import Entrez
 from aoptk.abstract import Abstract
 from aoptk.get_abstract import GetAbstract
 
-
-Entrez.api_key = os.environ['NCBI_API_KEY']
+api_key = os.getenv('NCBI_API_KEY')
+Entrez.api_key = api_key
 
 class QueryTooLargeError(Exception):
     """Exception raised when query returns more than maximum_results."""
