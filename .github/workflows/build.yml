@@ -13,6 +13,8 @@ jobs:
   build:
     name: Build for (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
     strategy:
       fail-fast: true
       matrix:
