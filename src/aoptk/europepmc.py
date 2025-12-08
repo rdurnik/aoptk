@@ -7,6 +7,7 @@ from aoptk.get_abstract import GetAbstract
 from aoptk.get_pdf import GetPDF
 from aoptk.pdf import PDF
 from aoptk.utils import get_pubmed_pdf_url
+import time
 
 
 class EuropePMC(GetPDF, GetAbstract):
@@ -89,6 +90,7 @@ class EuropePMC(GetPDF, GetAbstract):
                 response = self._session.get(pubmed_url, stream=True, timeout=self.timeout)
                 if not response.ok:
                     return None
+            time.sleep(0.5)
 
         return self.write(publication_id, response)
 
