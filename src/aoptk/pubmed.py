@@ -1,8 +1,11 @@
 from __future__ import annotations
+import os
 from Bio import Entrez
 from aoptk.abstract import Abstract
 from aoptk.get_abstract import GetAbstract
 
+
+Entrez.api_key = os.environ['NCBI_API_KEY']
 
 class QueryTooLargeError(Exception):
     """Exception raised when query returns more than maximum_results."""
