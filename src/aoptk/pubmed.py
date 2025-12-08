@@ -4,7 +4,7 @@ from Bio import Entrez
 from aoptk.abstract import Abstract
 from aoptk.get_abstract import GetAbstract
 
-Entrez.api_key = os.environ['NCBI_API_KEY']
+Entrez.api_key = os.environ.get('NCBI_API_KEY')
 
 class QueryTooLargeError(Exception):
     """Exception raised when query returns more than maximum_results."""
@@ -59,3 +59,4 @@ class PubMed(GetAbstract):
             abstract_text = "".join(abstract_obj)
             return Abstract(text=abstract_text, publication_id=pmid)
         return None
+
