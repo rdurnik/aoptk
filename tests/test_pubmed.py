@@ -2,11 +2,6 @@ import pytest
 from aoptk.get_abstract import GetAbstract
 from aoptk.pubmed import PubMed
 from aoptk.pubmed import QueryTooLargeError
-import os
-from Bio import Entrez
-
-api_key = os.getenv('NCBI_API_KEY')
-Entrez.api_key = api_key
 
 
 def test_can_create():
