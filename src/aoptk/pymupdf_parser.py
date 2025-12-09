@@ -230,7 +230,7 @@ class PymupdfParser(ParsePDF):
 
     def _extract_figures(self, pdf: PDF, output_dir: str = "tests/figure_storage") -> list[str]:
         """Extract figures from the PDF and save them to the output directory."""
-        output_dir = Path("tests/figure_storage") / Path(pdf.path).stem
+        output_dir = Path(output_dir) / Path(pdf.path).stem
         output_dir.mkdir(parents=True, exist_ok=True)
         with pymupdf.open(pdf.path) as doc:
             figure_count = 0
