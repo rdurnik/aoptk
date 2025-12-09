@@ -116,29 +116,34 @@ class PymupdfParser(ParsePDF):
             abbreviation_text = match.group(1)
             if (
                 entries := re.split(
-                    self.pattern_semicolon_split_between_individual_abbreviations, abbreviation_text.strip()
+                    self.pattern_semicolon_split_between_individual_abbreviations,
+                    abbreviation_text.strip(),
                 )
             ) and len(entries) > 1:
                 abbreviations_dict = self._generate_dictionary_from_semicolon_seperated_abbreviations(entries)
             elif (
                 entries := re.split(
-                    self.pattern_space_split_between_individual_abbreviations, abbreviation_text.strip()
+                    self.pattern_space_split_between_individual_abbreviations,
+                    abbreviation_text.strip(),
                 )
             ) and len(entries) > 1:
                 text_to_parse_with_preserved_newlines = self._extract_text_to_parse_abbreviations_seperated_by_newlines(
-                    pdf
+                    pdf,
                 )
                 abbreviations_dict = self._generate_dictionary_from_newline_seperated_abbreviations(
-                    text_to_parse_with_preserved_newlines
+                    text_to_parse_with_preserved_newlines,
                 )
         return abbreviations_dict
 
     def _generate_dictionary_from_newline_seperated_abbreviations(
-        self, text_to_parse_with_preserved_newlines: str
+        self,
+        text_to_parse_with_preserved_newlines: str,
     ) -> dict[str, str]:
         abbreviations_dict = {}
         newline_match = re.search(
-            self.pattern_abbreviations, text_to_parse_with_preserved_newlines, re.DOTALL | re.IGNORECASE
+            self.pattern_abbreviations,
+            text_to_parse_with_preserved_newlines,
+            re.DOTALL | re.IGNORECASE,
         )
         if newline_match:
             abbr_text_newlines = newline_match.group(1)
