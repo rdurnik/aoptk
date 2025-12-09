@@ -1,5 +1,6 @@
 from __future__ import annotations
 from pathlib import Path
+from typing import ClassVar
 import requests
 from aoptk.abstract import Abstract
 from aoptk.get_abstract import GetAbstract
@@ -13,6 +14,18 @@ class EuropePMC(GetPDF, GetAbstract):
 
     page_size = 1000
     timeout = 10
+    headers: ClassVar = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Cache-Control": "max-age=0",
+    }
 
     def __init__(self, query: str, storage: str = "tests/pdf_storage"):
         self._query = query
@@ -20,10 +33,20 @@ class EuropePMC(GetPDF, GetAbstract):
         Path(self.storage).mkdir(parents=True, exist_ok=True)
 
         self.id_list = self.get_id_list()
+        self._session = requests.Session()
+        self._session.headers.update(self.headers)
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
         return [pdf for pdf in (self.get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
+
+    def get_abstracts(self) -> list[Abstract]:
+        """Retrieve Abstracts based on the query."""
+        return [
+            abstract
+            for abstract in (self.get_abstract(publication_id) for publication_id in self.id_list)
+            if abstract is not None
+        ]
 
     def get_id_list(self) -> list[str]:
         """Get a list of publication IDs from EuropePMC based on the query."""
@@ -31,7 +54,7 @@ class EuropePMC(GetPDF, GetAbstract):
         id_list = []
 
         while True:
-            data_europepmc = self.call_api(cursor_mark, "idlist")
+            data_europepmc = self.call_api(cursor_mark, "idlist", self._query)
             results = data_europepmc.get("resultList", {}).get("result", [])
 
             id_list.extend([_get_publication_id(result) for result in results])
@@ -63,7 +86,7 @@ class EuropePMC(GetPDF, GetAbstract):
         if not response.ok:
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
-                response = requests.get(pubmed_url, stream=True, timeout=self.timeout)
+                response = self._session.get(pubmed_url, stream=True, timeout=self.timeout)
                 if not response.ok:
                     return None
 
@@ -76,35 +99,31 @@ class EuropePMC(GetPDF, GetAbstract):
             f.writelines(response.iter_content(chunk_size=8192))
         return PDF(filepath)
 
-    def get_abstracts(self) -> list[Abstract]:
-        """Return abstracts from Europe PMC based on the query."""
+    def get_abstract(self, publication_id: str) -> Abstract:
+        """Return abstract from Europe PMC for a given publication ID."""
         cursor_mark = "*"
-        all_abstracts: list[Abstract] = []
 
-        while True:
-            json_data = self.call_api(cursor_mark, "core")
-            results = json_data.get("resultList", {}).get("result", [])
+        json_data = self.call_api(cursor_mark, "core", publication_id)
+        results = json_data.get("resultList", {}).get("result", [])
 
-            all_abstracts.extend([Abstract(record.get("abstractText", "")) for record in results])
-            next_cursor = json_data.get("nextCursorMark")
-            if not results or not next_cursor or next_cursor == cursor_mark:
-                break
-            cursor_mark = next_cursor
-        return all_abstracts
+        if results:
+            return Abstract(results[0].get("abstractText", ""), publication_id)
+        return None
 
-    def call_api(self, cursor_mark: str, result_type: str) -> dict:
+    def call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
         """Call the EuropePMC web api to query the search.
 
         Args:
             cursor_mark (str): Parameter for pagination.
             result_type (str): Whether to search for idlists or core.
+            query (str): main query to carry out - default self._query
 
         Returns:
             dict: JSON response
         """
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
         params = {
-            "query": self._query,
+            "query": query,
             "format": "json",
             "pageSize": self.page_size,
             "cursorMark": cursor_mark,
