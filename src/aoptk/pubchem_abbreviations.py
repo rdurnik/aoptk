@@ -5,7 +5,7 @@ from aoptk.chemical import Chemical
 
 
 class PubChemAbbreviations:
-    """Lookup chemical abbreviations from PubChem."""
+    """Find chemical abbreviations via PubChem."""
 
     timeout = 10
     headers: ClassVar = {
