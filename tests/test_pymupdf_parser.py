@@ -10,6 +10,7 @@ from aoptk.pymupdf_parser import PymupdfParser
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
 
 
+
 def test_can_create():
     """Test that PymupdfParser can be instantiated."""
     actual = PymupdfParser(str)
@@ -56,7 +57,8 @@ def test_get_publication_data_not_empty():
         },
         {
             "id": "PMC12231352",
-            "expected_abstract": "1School of Clinical Medical, Hubei University of Chinese Medicine, "
+            "expected_abstract":
+            "1School of Clinical Medical, Hubei University of Chinese Medicine, "
             "Wuhan, China, 2Department of Gastroenterology, Hubei Provincial Hospital "
             "of Integrated Chinese and Western Medicine, Wuhan, China, 3Department of "
             "Health Management Center, Hubei Provincial Hospital of Traditional Chinese "
@@ -298,7 +300,6 @@ def test_extract_id():
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
 
-
 @pytest.fixture(
     params=[
         {
@@ -385,17 +386,16 @@ def provide_params_extract_figures(request: pytest.FixtureRequest):
         shutil.rmtree(europepmc.storage)
 
 
-def test_extract_figures(provide_params_extract_figures: dict):
+def test_extract_figures(provide_params_extract_figures: dict, tmp_path: Path):
     """Test extracting figures from EuropePMC PDFs."""
-    actual = PymupdfParser(provide_params_extract_figures["europepmc"].pdfs()).get_publications()[0].figures
-    expected = provide_params_extract_figures["figures"]
+    figures_output_dir = str(tmp_path / "figure_storage")
+    actual = PymupdfParser(provide_params_extract_figures["europepmc"].pdfs(), figures_output_dir=figures_output_dir).get_publications()[0].figures
+    expected = [str(tmp_path / "figure_storage" / Path(fig).relative_to("tests/figure_storage")) for fig in provide_params_extract_figures["figures"]]
     expected_size = 2493663
     total_size = sum(
         Path(dirpath, filename).stat().st_size
-        for dirpath, dirnames, filenames in os.walk(output_dir)
+        for dirpath, dirnames, filenames in os.walk(figures_output_dir)
         for filename in filenames
     )
     assert actual == expected
     assert total_size == expected_size
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)

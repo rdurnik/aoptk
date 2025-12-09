@@ -14,7 +14,8 @@ if TYPE_CHECKING:
 class PymupdfParser(ParsePDF):
     """Parse PDFs using PyMuPDF."""
 
-    def __init__(self, pdfs: list[PDF]):
+    def __init__(self, pdfs: list[PDF], figures_output_dir: str = "tests/figure_storage"):
+        self.figures_output_dir = figures_output_dir
         self.pdfs = pdfs
         self.pattern_abstract_written = (
             r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*"
@@ -228,9 +229,9 @@ class PymupdfParser(ParsePDF):
             figure_descriptions.append(description)
         return figure_descriptions
 
-    def _extract_figures(self, pdf: PDF, output_dir: str = "tests/figure_storage") -> list[str]:
+    def _extract_figures(self, pdf: PDF) -> list[str]:
         """Extract figures from the PDF and save them to the output directory."""
-        output_dir = Path(output_dir) / Path(pdf.path).stem
+        output_dir = Path(self.figures_output_dir) / Path(pdf.path).stem
         output_dir.mkdir(parents=True, exist_ok=True)
         with pymupdf.open(pdf.path) as doc:
             figure_count = 0
