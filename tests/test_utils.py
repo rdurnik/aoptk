@@ -17,7 +17,6 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
     assert actual == expected
 
 
-@pytest.mark.xfail(raises=HTTPError)
 @pytest.mark.parametrize(
     ("pubmed_id", "expected"),
     [

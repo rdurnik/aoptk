@@ -1,9 +1,11 @@
 import pytest
+from requests import HTTPError
 from aoptk.get_abstract import GetAbstract
 from aoptk.pubmed import PubMed
 from aoptk.pubmed import QueryTooLargeError
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_can_create():
     """Can create PubMed instance."""
     actual = PubMed("hepg2 thioacetamide")
@@ -15,12 +17,14 @@ def test_implements_interface():
     assert issubclass(PubMed, GetAbstract)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_get_abstract_not_empty():
     """Get abstracts returns non-empty list."""
     actual = PubMed("hepg2 thioacetamide").get_abstracts()
     assert actual is not None
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_count():
     """Get publication count returns correct number."""
     actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_publication_count()
@@ -28,12 +32,14 @@ def test_get_publication_count():
     assert actual == expected
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_too_many_results():
     """Raises SystemExit for too many results."""
     with pytest.raises(QueryTooLargeError):
         PubMed("cancer").get_abstracts()
 
 
+@pytest.mark.xfail(raises=HTTPError)
 @pytest.mark.parametrize(
     ("query", "expected_abstract", "expected_id"),
     [
