@@ -1,4 +1,5 @@
 import pytest
+from requests import HTTPError
 from aoptk.utils import get_pubmed_pdf_url
 from aoptk.utils import is_europepmc_id
 
@@ -16,6 +17,7 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
     assert actual == expected
 
 
+@pytest.mark.xfail(raises=HTTPError)
 @pytest.mark.parametrize(
     ("pubmed_id", "expected"),
     [
