@@ -1,5 +1,4 @@
 from metapub import FindIt
-from metapub.exceptions import NoPDFLink
 from requests import HTTPError
 
 
@@ -12,5 +11,5 @@ def get_pubmed_pdf_url(publication_id: str) -> str:
     """Get the PubMed PDF URL for a given publication ID."""
     findit = FindIt(publication_id, retry_errors=True, max_redirects=5, verify=False)
     if not findit.url:
-        raise NoPDFLink(findit.reason)
+        raise HTTPError(findit.reason)
     return findit.url
