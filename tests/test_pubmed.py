@@ -1,5 +1,5 @@
-import pytest
 from urllib.error import HTTPError
+import pytest
 from aoptk.get_abstract import GetAbstract
 from aoptk.pubmed import PubMed
 from aoptk.pubmed import QueryTooLargeError
