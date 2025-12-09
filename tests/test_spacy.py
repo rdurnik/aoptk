@@ -132,5 +132,5 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence.tokenize for sentence in Spacy().tokenize(text)]
+    actual = [sentence.__str__() for sentence in Spacy().tokenize(text)]
     assert actual == expected
