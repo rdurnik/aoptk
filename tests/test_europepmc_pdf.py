@@ -2,6 +2,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 import pytest
+from requests import HTTPError
 from aoptk.europepmc import EuropePMC
 from aoptk.get_pdf import GetPDF
 
@@ -122,11 +123,15 @@ def test_open_access_europepmc_pdf_file_exists():
     shutil.rmtree("tests/pdf_storage", ignore_errors=True)
 
 
-def test_metapub_pdf_file_exists():
+@pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
+@pytest.mark.xfail(raises=HTTPError)
+def test_metapub_pdf_file_exists(pubmed_id: str):
     """Test that a PDF retrieved via PubMed can be saved."""
-    EuropePMC("41107038").pdfs()
-    filepath = Path("tests/pdf_storage") / "41107038.pdf"
+    storage = Path("tests/pdf_storage")
+    sut = EuropePMC(pubmed_id, storage=storage)
+    sut.pdfs()
+    filepath = storage / f"{pubmed_id}.pdf"
     assert filepath.exists()
     assert filepath.is_file()
     assert filepath.stat().st_size > 0
-    shutil.rmtree("tests/pdf_storage", ignore_errors=True)
+    shutil.rmtree(storage, ignore_errors=True)
