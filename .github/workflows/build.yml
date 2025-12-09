@@ -15,6 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      CI: True
     strategy:
       fail-fast: true
       matrix:
@@ -36,7 +37,7 @@ jobs:
           python -m pip install --upgrade pip setuptools
           python -m pip install .[dev,publishing]
       - name: Run unit tests
-        run: python -m pytest
+        run: python -m pytest -r -q
       - name: Verify that we can build the package
         run: python -m build
   lint:
