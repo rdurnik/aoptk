@@ -39,7 +39,6 @@ def test_too_many_results():
         PubMed("cancer").get_abstracts()
 
 
-@pytest.mark.xfail(raises=HTTPError)
 @pytest.mark.parametrize(
     ("query", "expected_abstract", "expected_id"),
     [
@@ -67,6 +66,7 @@ def test_too_many_results():
         ),
     ],
 )
+@pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str):
     """Generate list of abstracts for given query."""
     abstract = PubMed(query).get_abstracts()[3].text
