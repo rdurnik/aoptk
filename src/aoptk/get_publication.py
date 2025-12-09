@@ -1,6 +1,10 @@
+from __future__ import annotations
 from abc import ABC
 from abc import abstractmethod
-from aoptk.publication import Publication
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from aoptk.publication import Publication
 
 
 class GetPublication(ABC):

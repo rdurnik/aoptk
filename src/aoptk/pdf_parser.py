@@ -1,6 +1,10 @@
+from __future__ import annotations
 from abc import abstractmethod
+from typing import TYPE_CHECKING
 from aoptk.get_publication import GetPublication
-from aoptk.publication import Publication
+
+if TYPE_CHECKING:
+    from aoptk.publication import Publication
 
 
 class ParsePDF(GetPublication):
