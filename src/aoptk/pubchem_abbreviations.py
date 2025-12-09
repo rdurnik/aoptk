@@ -2,9 +2,10 @@ from __future__ import annotations
 from typing import ClassVar
 import requests
 from aoptk.chemical import Chemical
+from aoptk.normalize_chemical import NormalizeChemical
 
 
-class PubChemAbbreviations:
+class PubChemAbbreviations(NormalizeChemical):
     """Find chemical abbreviations via PubChem."""
 
     timeout = 10
