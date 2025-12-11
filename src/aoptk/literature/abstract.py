@@ -1,4 +1,4 @@
-from aoptk.id import ID
+from aoptk.literature.id import ID
 
 
 class Abstract:

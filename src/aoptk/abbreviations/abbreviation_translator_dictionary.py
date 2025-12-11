@@ -1,6 +1,6 @@
 from __future__ import annotations
 import re
-from aoptk.abbreviation_translator import AbbreviationTranslator
+from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 
 
 class AbbreviationTranslatorDictionary(AbbreviationTranslator):

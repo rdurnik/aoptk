@@ -2,10 +2,10 @@ import os
 import shutil
 from pathlib import Path
 import pytest
-from aoptk.europepmc import EuropePMC
-from aoptk.get_publication import GetPublication
-from aoptk.pdf import PDF
-from aoptk.pymupdf_parser import PymupdfParser
+from aoptk.literature.databases.europepmc import EuropePMC
+from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.pdf import PDF
+from aoptk.literature.pymupdf_parser import PymupdfParser
 
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
 

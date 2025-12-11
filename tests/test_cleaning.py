@@ -1,6 +1,6 @@
 import pytest
-from aoptk.cleaning.text_cleaner import TextCleaner
 from aoptk.cleaning.html_tag_remover import HTMLTagRemover
+from aoptk.cleaning.text_cleaner import TextCleaner
 
 
 def test_can_create():

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import pytest
-from aoptk.abbreviation_translator_dictionary_generator import AbbreviationDictionaryGenerator
+from aoptk.abbreviations.abbreviation_translator_dictionary_generator import AbbreviationDictionaryGenerator
 
 
 def test_can_create():

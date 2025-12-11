@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 import pytest
 from requests import HTTPError
-from aoptk.europepmc import EuropePMC
+from aoptk.literature.databases.europepmc import EuropePMC
 
 
 def test_can_create():
