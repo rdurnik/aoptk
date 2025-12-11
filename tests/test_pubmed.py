@@ -1,8 +1,8 @@
 from urllib.error import HTTPError
 import pytest
-from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
+from aoptk.literature.get_abstract import GetAbstract
 
 
 @pytest.mark.xfail(raises=HTTPError)
