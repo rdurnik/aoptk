@@ -2,14 +2,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 import requests
-from aoptk.abstract import Abstract
-from aoptk.get_abstract import GetAbstract
-from aoptk.get_pdf import GetPDF
-from aoptk.pdf import PDF
-from aoptk.utils import get_pubmed_pdf_url
+from aoptk.literature.abstract import Abstract
+from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_pdf import GetPDF
+from aoptk.literature.pdf import PDF
+from aoptk.literature.utils import get_pubmed_pdf_url
 
 
-class EuropePMC(GetPDF, GetAbstract):
+class EuropePMC(GetAbstract, GetPDF):
     """Class to get PDFs from EuropePMC based on a query."""
 
     page_size = 1000

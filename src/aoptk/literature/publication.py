@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from aoptk.abstract import Abstract
-from aoptk.id import ID
+from aoptk.literature.abstract import Abstract
+from aoptk.literature.id import ID
 
 
 @dataclass

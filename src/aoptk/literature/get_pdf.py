@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from aoptk.pdf import PDF
+    from aoptk.literature.pdf import PDF
 
 
 class GetPDF(ABC):

@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
-from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
+from aoptk.normalization.provide_normalization_dataframe import ProvideNormalizationDataframe
 
 
 class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
@@ -13,7 +13,7 @@ class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
         """Parse the XML file and create a DataFrame for MeSH term normalization."""
         tree = ET.parse(self._database_path)
         root = tree.getroot()
-        name_space = {"name_space": "http://www.nlm.nih.gov/mesh"}
+        name_space = {"name_space": "https://www.nlm.nih.gov/mesh"}
         rows = []
         for record in root.findall(".//DescriptorRecord", name_space):
             heading_element = record.find(".//DescriptorName/String", name_space)

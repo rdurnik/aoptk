@@ -1,6 +1,6 @@
 import pytest
-from aoptk.cleaning import CleanText
-from aoptk.html_tag_remover import HTMLTagRemover
+from aoptk.cleaning.html_tag_remover import HTMLTagRemover
+from aoptk.cleaning.text_cleaner import TextCleaner
 
 
 def test_can_create():
@@ -11,7 +11,7 @@ def test_can_create():
 
 def test_implements_interface():
     """Test that HTMLTagRemover implements CleanText interface."""
-    assert issubclass(HTMLTagRemover, CleanText)
+    assert issubclass(HTMLTagRemover, TextCleaner)
 
 
 def test_clean_text_data_not_empty():

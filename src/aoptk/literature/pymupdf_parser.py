@@ -3,15 +3,15 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 import pymupdf
-from aoptk.pdf_parser import ParsePDF
-from aoptk.publication import Publication
+from aoptk.literature.pdf_parser import PDFParser
+from aoptk.literature.publication import Publication
 
 if TYPE_CHECKING:
-    from aoptk.abstract import Abstract
-    from aoptk.pdf import PDF
+    from aoptk.literature.abstract import Abstract
+    from aoptk.literature.pdf import PDF
 
 
-class PymupdfParser(ParsePDF):
+class PymupdfParser(PDFParser):
     """Parse PDFs using PyMuPDF."""
 
     def __init__(self, pdfs: list[PDF], figures_output_dir: str = "tests/figure_storage"):

@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from aoptk.publication import Publication
+    from aoptk.literature.publication import Publication
 
 
 class GetPublication(ABC):

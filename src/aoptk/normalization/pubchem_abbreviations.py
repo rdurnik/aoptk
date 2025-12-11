@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import ClassVar
 import requests
 from aoptk.chemical import Chemical
-from aoptk.normalize_chemical import NormalizeChemical
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 
 
 class PubChemAbbreviations(NormalizeChemical):

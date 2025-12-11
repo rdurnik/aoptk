@@ -1,6 +1,6 @@
 import pandas as pd
 from aoptk.chemical import Chemical
-from aoptk.normalize_chemical import NormalizeChemical
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 
 
 class MeshTerms(NormalizeChemical):

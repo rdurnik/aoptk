@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 
-class CleanText:
+class TextCleaner:
     """Abstract base class for cleaning text."""
 
     @abstractmethod
