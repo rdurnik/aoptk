@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 from aoptk.chemical import Chemical
-from aoptk.normalize_chemical import NormalizeChemical
-from aoptk.pubchem_synonyms import PubChemSynonyms
+from aoptk.normalization.normalize_chemical import NormalizeChemical
+from aoptk.normalization.pubchem_synonyms import PubChemSynonyms
 
 
 def test_can_create():

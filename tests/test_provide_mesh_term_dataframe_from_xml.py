@@ -1,6 +1,6 @@
 import pytest
-from aoptk.provide_mesh_term_dataframe_from_xml import ProvideMeshTermDataframeFromXML
-from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
+from aoptk.normalization.provide_mesh_term_dataframe_from_xml import ProvideMeshTermDataframeFromXML
+from aoptk.normalization.provide_normalization_dataframe import ProvideNormalizationDataframe
 
 
 @pytest.fixture

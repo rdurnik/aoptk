@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 import pandas as pd
-from aoptk.provide_normalization_dataframe import ProvideNormalizationDataframe
+from aoptk.normalization.provide_normalization_dataframe import ProvideNormalizationDataframe
 
 
 class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
