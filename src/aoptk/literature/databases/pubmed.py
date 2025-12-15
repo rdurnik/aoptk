@@ -1,8 +1,11 @@
 from __future__ import annotations
 import os
+from time import time
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.publication_metadata import Publication_metadata
+from datetime import datetime
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")
 
@@ -35,6 +38,14 @@ class PubMed(GetAbstract):
             for abstract in (self.get_abstract(publication_id) for publication_id in self.id_list)
             if abstract is not None
         ]
+    
+    def get_publications_metadata(self) -> list[Publication_metadata]:
+        """Retrieve Publication metadata based on the query."""
+        return [
+            publication_metadata
+            for publication_metadata in (self.get_publication_metadata(publication_id) for publication_id in self.id_list)
+            if publication_metadata is not None
+        ]
 
     def get_publication_count(self) -> int:
         """Return the number of publications matching the query in PubMed."""
@@ -60,3 +71,18 @@ class PubMed(GetAbstract):
             abstract_text = "".join(abstract_obj)
             return Abstract(text=abstract_text, publication_id=pmid)
         return None
+    
+    def get_publication_metadata (self, pmid: str) -> Publication_metadata:
+        handle = Entrez.esummary(db="pubmed", id=pmid)
+        summary_records = Entrez.read(handle)
+        handle.close()
+        for summary in summary_records:
+            publication_id = pmid
+            pub_date = summary.get('PubDate', None)
+            year_publication = pub_date.split()[0] if pub_date else 'Unknown'
+            title = summary.get('Title', None)
+            authors = ", ".join(summary.get('AuthorList', []))
+            search_date = datetime.now()
+        return Publication_metadata(publication_id=publication_id, publication_date=year_publication, title=title, authors=authors, database='PubMed', search_date=search_date)
+    
+print(PubMed('40027749').get_publications_metadata())
