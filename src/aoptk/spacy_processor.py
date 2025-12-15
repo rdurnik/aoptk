@@ -58,5 +58,3 @@ class Spacy(FindChemical, SentenceGenerator):
             mesh_terms = sorted({alias.lower() for alias in aliases})
 
         return mesh_terms
-
-print(Spacy().generate_mesh_terms("Thioacetamide was studied for its effect on liver cells."))
