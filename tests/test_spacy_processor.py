@@ -3,7 +3,7 @@ import os
 import pytest
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
-from aoptk.spacy import Spacy
+from aoptk.spacy_processor import Spacy
 
 IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
@@ -134,3 +134,42 @@ def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     text, expected = sentence_cases
     actual = [sentence.__str__() for sentence in Spacy().tokenize(text)]
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("chemical", "expected_mesh_terms"),
+    [
+        ("thioacetamide", ["ethanethioamide", "thiacetamid", "thioacetamide"]),
+        ("nothing", []),
+        ("Thioacetamide causes cancer.", ["ethanethioamide", "thiacetamid", "thioacetamide"]),
+        (
+            "acetaminophen",
+            [
+                "acetamide, n-(4-hydroxyphenyl)-",
+                "acetamidophenol",
+                "acetaminophen",
+                "apap",
+                "hydroxyacetanilide",
+                "n-(4-hydroxyphenyl)acetanilide",
+                "n-acetyl-p-aminophenol",
+                "p-acetamidophenol",
+                "p-hydroxyacetanilide",
+                "paracetamol",
+            ],
+        ),
+        (
+            "methotrexate",
+            [
+                "amethopterin",
+                "methotrexate",
+                "methotrexate sodium",
+                "methotrexate, sodium salt",
+                "sodium, methotrexate",
+            ],
+        ),
+    ],
+)
+def test_generate_mesh_terms(chemical: str, expected_mesh_terms: list[str]):
+    """Test that generate_mesh_terms method generates MeSH terms."""
+    actual = Spacy().generate_mesh_terms(chemical)
+    assert actual == expected_mesh_terms
