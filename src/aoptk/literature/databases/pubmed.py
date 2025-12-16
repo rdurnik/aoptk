@@ -33,11 +33,20 @@ class PubMed(GetAbstract):
 
     def get_abstracts(self) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
-        return [
-            abstract
-            for abstract in (self.get_abstract(publication_id) for publication_id in self.id_list)
-            if abstract is not None
-        ]
+        batch_size = 200
+        abstracts = []
+        for i in range(0, len(self.id_list), batch_size):
+            batch_ids = self.id_list[i:i + batch_size]
+            handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml")
+            records = Entrez.read(handle)
+            handle.close()
+            for article in records.get("PubmedArticle", []):
+                pmid = str(article["MedlineCitation"]["PMID"])
+                abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
+                if abstract_obj:
+                    abstract_text = "".join(abstract_obj)
+                    abstracts.append(Abstract(text=abstract_text, publication_id=pmid))
+        return abstracts
     
     def get_publications_metadata(self) -> list[Publication_metadata]:
         """Retrieve Publication metadata based on the query."""
@@ -84,3 +93,4 @@ class PubMed(GetAbstract):
             authors = ", ".join(summary.get('AuthorList', []))
             search_date = datetime.now()
         return Publication_metadata(publication_id=publication_id, publication_date=year_publication, title=title, authors=authors, database='PubMed', search_date=search_date)
+
