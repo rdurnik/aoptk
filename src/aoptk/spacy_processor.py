@@ -1,10 +1,7 @@
 from __future__ import annotations
 from typing import ClassVar
 import spacy
-from typing import TYPE_CHECKING, ClassVar
-
-if TYPE_CHECKING:
-    from scispacy.linking import EntityLinker
+from scispacy.linking import EntityLinker
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence import Sentence
