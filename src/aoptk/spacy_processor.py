@@ -56,3 +56,4 @@ class Spacy(FindChemical, SentenceGenerator):
             mesh_terms = sorted({alias.lower() for alias in aliases})
 
         return mesh_terms
+
