@@ -84,7 +84,6 @@ def main(email, use_tg_gates, use_tox21, user_defined_database, query, literatur
         abstracts = EuropePMC(query).get_abstracts()
     result_df = pd.DataFrame(columns=["publication_id", "chemicals", "relevant_chemicals"])
     for abstract in abstracts:
-        print(abstract)
         id = abstract.publication_id
         chemicals = Spacy().find_chemical(abstract.text)
         chemicals = [chem.trimmed_name for chem in chemicals if chem.name]
