@@ -28,3 +28,9 @@ def test_eq(acetaminophen: Chemical, thioacetamide: Chemical):
 def test_name(acetaminophen: Chemical):
     """Test name."""
     assert acetaminophen.name == "acetaminophen"
+
+def test_trimmed_name():
+    """Test trimmed_name property."""
+    assert Chemical("CCL4-treated").trimmed_name.name == "CCL4"
+    assert Chemical("thioacetamide-induced").trimmed_name.name == "thioacetamide"
+    assert Chemical("carbon tetrachloride-induced").trimmed_name.name == "carbon tetrachloride"
