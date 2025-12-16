@@ -14,7 +14,7 @@ class Spacy(FindChemical, SentenceGenerator):
     _models: ClassVar[dict[str, object]] = {}
     _mesh_terms_config: ClassVar[dict[str, bool | str]] = {"resolve_abbreviations": True, "linker_name": "mesh"}
 
-    def __init__(self, model: str = "en_ner_bc5cdr_md", mesh_model: str = "en_core_sci_md"):
+    def __init__(self, model: str = "en_ner_bc5cdr_md", mesh_model: str = "en_ner_bc5cdr_md"):
         """Initialize with a spaCy model."""
         self.model = model
         self.mesh_model = mesh_model
@@ -22,11 +22,10 @@ class Spacy(FindChemical, SentenceGenerator):
             Spacy._models[model] = spacy.load(model)
         self.nlp = Spacy._models[model]
         if mesh_model not in Spacy._models:
-            nlp_mesh = spacy.load(mesh_model)
-            if "scispacy_linker" not in nlp_mesh.pipe_names:
-                nlp_mesh.add_pipe("scispacy_linker", config=Spacy._mesh_terms_config)
-            Spacy._models[mesh_model] = nlp_mesh
+            Spacy._models[mesh_model] = spacy.load(mesh_model)
         self.nlp_mesh = Spacy._models[mesh_model]
+        if "scispacy_linker" not in self.nlp_mesh.pipe_names:
+            self.nlp_mesh.add_pipe("scispacy_linker", config=Spacy._mesh_terms_config)
 
     def find_chemical(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""
@@ -58,3 +57,4 @@ class Spacy(FindChemical, SentenceGenerator):
             mesh_terms = sorted({alias.lower() for alias in aliases})
 
         return mesh_terms
+
