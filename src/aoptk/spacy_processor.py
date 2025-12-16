@@ -1,6 +1,10 @@
 from __future__ import annotations
 from typing import ClassVar
 import spacy
+from typing import TYPE_CHECKING, ClassVar
+
+if TYPE_CHECKING:
+    from scispacy.linking import EntityLinker
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence import Sentence
@@ -48,7 +52,7 @@ class Spacy(FindChemical, SentenceGenerator):
 
         if mesh_doc.ents:
             entity = mesh_doc.ents[0]
-            mesh_linker = self.nlp_mesh.get_pipe("scispacy_linker")
+            mesh_linker: EntityLinker = self.nlp_mesh.get_pipe("scispacy_linker")
             aliases = []
             for cui, _ in entity._.kb_ents:
                 mesh_info = mesh_linker.kb.cui_to_entity[cui]
