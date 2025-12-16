@@ -1,5 +1,3 @@
-import re
-
 class Chemical:
     """Data structure representing a chemical.
 
@@ -20,13 +18,12 @@ class Chemical:
     def name(self) -> str:
         """Return the chemical's name."""
         return self._name
-    
+
     @property
     def trimmed_name(self) -> str:
         """Return a Chemical with - trimmed from the name."""
-
-        if '-' in self._name:
-            trimmed_name = self._name.rsplit('-', 1)[0].strip() if self._name.endswith('-') else self._name
+        if "-" in self._name:
+            trimmed_name = self._name.rsplit("-", 1)[0].strip() if self._name.endswith("-") else self._name
             return Chemical(name=trimmed_name)
         return self
 

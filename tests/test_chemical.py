@@ -29,6 +29,7 @@ def test_name(acetaminophen: Chemical):
     """Test name."""
     assert acetaminophen.name == "acetaminophen"
 
+
 def test_trimmed_name():
     """Test trimmed_name property."""
     assert Chemical("CCL4-").trimmed_name == "CCL4"

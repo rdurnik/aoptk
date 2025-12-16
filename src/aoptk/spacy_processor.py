@@ -5,7 +5,6 @@ from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence import Sentence
 from aoptk.sentence_generator import SentenceGenerator
-from scispacy.linking import EntityLinker
 
 
 class Spacy(FindChemical, SentenceGenerator):
@@ -57,4 +56,3 @@ class Spacy(FindChemical, SentenceGenerator):
             mesh_terms = sorted({alias.lower() for alias in aliases})
 
         return mesh_terms
-

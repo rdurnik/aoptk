@@ -1,9 +1,10 @@
+from datetime import datetime
+from datetime import timezone
 from urllib.error import HTTPError
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.get_abstract import GetAbstract
-from datetime import datetime
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -75,15 +76,18 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     assert abstract == expected_abstract
     assert publication_id == expected_id
 
+
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_metadata():
     """Generate publication metadata for given id."""
     publication_metadata = PubMed("41345959").get_publications_metadata()[0]
     assert publication_metadata.publication_id == "41345959"
     assert publication_metadata.publication_date == "2025"
-    assert publication_metadata.title == "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression."
+    assert publication_metadata.title == "YAP-induced MAML1 cooperates with "
+    "STAT3 to drive hepatocellular carcinoma progression."
     assert publication_metadata.authors == "Li J, Li X, Wang R, Li M, Xiao Y"
     assert publication_metadata.database == "PubMed"
-    assert [publication_metadata.search_date.year, publication_metadata.search_date.month] == [datetime.now().year, datetime.now().month]
-
-
+    assert [publication_metadata.search_date.year, publication_metadata.search_date.month] == [
+        datetime.now(timezone.utc).year,
+        datetime.now(timezone.utc).month,
+    ]

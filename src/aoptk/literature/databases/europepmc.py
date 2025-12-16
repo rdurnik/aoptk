@@ -1,4 +1,6 @@
 from __future__ import annotations
+from datetime import datetime
+from datetime import timezone
 from pathlib import Path
 from typing import ClassVar
 import requests
@@ -6,9 +8,8 @@ from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.pdf import PDF
+from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.utils import get_pubmed_pdf_url
-from aoptk.literature.publication_metadata import Publication_metadata
-from datetime import datetime
 
 
 class EuropePMC(GetAbstract, GetPDF):
@@ -50,14 +51,16 @@ class EuropePMC(GetAbstract, GetPDF):
             if abstract is not None
         ]
 
-    def get_publications_metadata(self) -> list[Publication_metadata]:
+    def get_publications_metadata(self) -> list[PublicationMetadata]:
         """Retrieve Publication metadata based on the query."""
         return [
             publication_metadata
-            for publication_metadata in (self.get_publication_metadata(publication_id) for publication_id in self.id_list)
+            for publication_metadata in (
+                self.get_publication_metadata(publication_id) for publication_id in self.id_list
+            )
             if publication_metadata is not None
         ]
-    
+
     def get_id_list(self) -> list[str]:
         """Get a list of publication IDs from EuropePMC based on the query."""
         cursor_mark = "*"
@@ -143,7 +146,7 @@ class EuropePMC(GetAbstract, GetPDF):
         response.raise_for_status()
         return response.json()
 
-    def get_publication_metadata(self, publication_id: str) -> Publication_metadata:
+    def get_publication_metadata(self, publication_id: str) -> PublicationMetadata:
         """Return abstract from Europe PMC for a given publication ID."""
         cursor_mark = "*"
 
@@ -156,11 +159,17 @@ class EuropePMC(GetAbstract, GetPDF):
             title = results[0].get("title")
             authors = results[0].get("authorString", "")
             database = "Europe PMC"
-            search_date = datetime.now()
-            return Publication_metadata(publication_id=publication_id, publication_date=publication_date, title=title, authors=authors, database=database, search_date=search_date)
+            search_date = datetime.now(timezone.utc)
+            return PublicationMetadata(
+                publication_id=publication_id,
+                publication_date=publication_date,
+                title=title,
+                authors=authors,
+                database=database,
+                search_date=search_date,
+            )
         return None
+
 
 def _get_publication_id(result: dict) -> str | None:
     return result.get("pmcid") or result.get("pmid") or result.get("id")
-
-

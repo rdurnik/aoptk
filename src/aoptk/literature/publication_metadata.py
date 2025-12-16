@@ -1,10 +1,16 @@
+from __future__ import annotations
 from dataclasses import dataclass
-from aoptk.literature.id import ID
-from datetime import datetime
+
+if __name__ == "__main__":
+    from typing import TYPE_CHECKING
+
+    if TYPE_CHECKING:
+        from datetime import datetime
+        from aoptk.literature.id import ID
 
 
 @dataclass
-class Publication_metadata:
+class PublicationMetadata:
     """Data structure representing a publication."""
 
     publication_id: ID
