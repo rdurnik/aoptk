@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.europepmc import EuropePMC
-
+from datetime import datetime
 
 def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
@@ -225,3 +225,14 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     publication_id = EuropePMC(query).get_abstracts()[0].publication_id
     assert abstract == expected_abstract
     assert publication_id == expected_id
+
+def test_get_publication_metadata():
+    """Generate publication metadata for given id."""
+    publication_metadata = EuropePMC("PMC12696947").get_publications_metadata()[0]
+    assert publication_metadata.publication_id == "41345959"
+    assert publication_metadata.publication_date == "2025"
+    assert publication_metadata.title == "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression."
+    assert publication_metadata.authors == "Li J, Li X, Wang R, Li M, Xiao Y."
+    assert publication_metadata.database == "Europe PMC"
+    assert [publication_metadata.search_date.year, publication_metadata.search_date.month] == [datetime.now().year, datetime.now().month]
+

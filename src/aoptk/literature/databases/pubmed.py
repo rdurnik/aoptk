@@ -84,5 +84,3 @@ class PubMed(GetAbstract):
             authors = ", ".join(summary.get('AuthorList', []))
             search_date = datetime.now()
         return Publication_metadata(publication_id=publication_id, publication_date=year_publication, title=title, authors=authors, database='PubMed', search_date=search_date)
-    
-print(PubMed('40027749').get_publications_metadata())
