@@ -23,10 +23,10 @@ class Chemical:
     
     @property
     def trimmed_name(self) -> str:
-        """Return a Chemical with "-treated"/"-induced" etc. trimmed from the name."""
+        """Return a Chemical with - trimmed from the name."""
 
-        if re.search(r'-(treat|treating|induce|induced|inducing)', self._name):
-            trimmed_name = self._name.rsplit('-', 1)[0].strip()
+        if '-' in self._name:
+            trimmed_name = self._name.rsplit('-', 1)[0].strip() if self._name.endswith('-') else self._name
             return Chemical(name=trimmed_name)
         return self
 
