@@ -23,6 +23,7 @@ class PubMed(GetAbstract):
     """Class to get data from PubMed based on a query."""
 
     maximum_results = 10000
+    batch_size = 200
 
     def __init__(self, query: str):
         self._query = query
@@ -33,17 +34,15 @@ class PubMed(GetAbstract):
 
     def get_abstracts(self) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
-        batch_size = 200
         abstracts = []
-        for i in range(0, len(self.id_list), batch_size):
-            batch_ids = self.id_list[i : i + batch_size]
+        for i in range(0, len(self.id_list), self.batch_size):
+            batch_ids = self.id_list[i : i + self.batch_size]
             handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml")
             records = Entrez.read(handle)
             handle.close()
             for article in records.get("PubmedArticle", []):
                 pmid = str(article["MedlineCitation"]["PMID"])
-                abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
-                if abstract_obj:
+                if abstract_obj := article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", []):
                     abstract_text = "".join(abstract_obj)
                     abstracts.append(Abstract(text=abstract_text, publication_id=pmid))
         return abstracts

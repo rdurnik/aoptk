@@ -83,7 +83,7 @@ def test_get_publication_metadata():
     publication_metadata = PubMed("41345959").get_publications_metadata()[0]
     assert publication_metadata.publication_id == "41345959"
     assert publication_metadata.publication_date == "2025"
-    assert publication_metadata.title == "YAP-induced MAML1 cooperates with "
+    assert publication_metadata.title == "YAP-induced MAML1 cooperates with " \
     "STAT3 to drive hepatocellular carcinoma progression."
     assert publication_metadata.authors == "Li J, Li X, Wang R, Li M, Xiao Y"
     assert publication_metadata.database == "PubMed"
