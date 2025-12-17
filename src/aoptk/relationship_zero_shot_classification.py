@@ -1,8 +1,11 @@
 from transformers import pipeline
 from aoptk.chemical import Chemical
+from aoptk.relationship import Relationship
+from aoptk.effect import Effect
+from aoptk.find_relationship import FindRelationships
 
 
-class ZeroShotClassification():
+class ZeroShotClassification(FindRelationships):
     threshold=0.85
     classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
