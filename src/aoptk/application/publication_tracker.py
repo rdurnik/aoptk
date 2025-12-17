@@ -44,7 +44,7 @@ def generate_publications_to_read(database_path, search_code, publications_metad
         ],
         ignore_index=True,
     )
-    updated_read_publications.to_excel("/home/rdurnik/aoptk/src/aoptk/application/updated_read_publications.xlsx", index=False)
+    updated_read_publications.to_excel("src/aoptk/application/updated_read_publications.xlsx", index=False)
 
     existing_ids = set(read_publications["id"].dropna().astype(str))
     to_read_data = [row for row in publications_metadata_df if str(row[0]) not in existing_ids]
@@ -53,7 +53,7 @@ def generate_publications_to_read(database_path, search_code, publications_metad
         to_read_data,
         columns=["id", "year_publication", "authors", "title", "search_term", "search_code", "search_date", "database"],
     )
-    df_to_read_data.to_excel(f"/home/rdurnik/aoptk/src/aoptk/application/read_{search_code}.xlsx", index=False)
+    df_to_read_data.to_excel(f"src/aoptk/application/read_{search_code}.xlsx", index=False)
 
 def update_master_table_search_codes(master_table_path, search_code, publications_metadata_df):
     master_wb = load_workbook(master_table_path)
@@ -72,7 +72,7 @@ def update_master_table_search_codes(master_table_path, search_code, publication
                 current_value = cell.value
                 updated_value = f"{current_value} ; {search_code}" if current_value else search_code
                 cell.value = updated_value
-    master_wb.save("/home/rdurnik/aoptk/src/aoptk/application/updated_master_table.xlsx")
+    master_wb.save("src/aoptk/application/updated_master_table.xlsx")
 
 def create_map_of_ids_from_master_table(master_ws, master_id_col):
     master_id_map = {}
