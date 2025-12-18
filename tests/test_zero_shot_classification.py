@@ -151,7 +151,7 @@ def test_normalize_chemical_not_empty():
         ),
         (
             "Effect of thioacetamide on liver fibrosis was not studied in"
-            " this studied. We did, however, study the effect of other chemicals.",
+            " this study. We did, however, study the effect of other chemicals.",
             [Chemical(name="thioacetamide")],
             [Effect(name="liver fibrosis")],
             [],
