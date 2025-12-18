@@ -4,7 +4,7 @@ from dataclasses import dataclass
 @dataclass
 class Effect:
     """Data structure representing a biological effect (adverse outcome / key event)."""
-    
+
     def __init__(self, name: str):
         """Create an `Effect`.
 
@@ -15,9 +15,11 @@ class Effect:
 
     @property
     def name(self) -> str:
+        """Return the effect's name."""
         return self._name
 
     def __str__(self) -> str:
+        """Return a human-friendly string for the effect (its name)."""
         return self.name
 
     def __eq__(self, other: object) -> bool:

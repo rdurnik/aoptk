@@ -1,8 +1,13 @@
+from __future__ import annotations
 from abc import ABC
 from abc import abstractmethod
-from aoptk.chemical import Chemical
-from aoptk.relationships.relationship import Relationship
-from aoptk.effect import Effect
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from aoptk.chemical import Chemical
+    from aoptk.effect import Effect
+    from aoptk.relationships.relationship import Relationship
+
 
 class FindRelationships(ABC):
     """Interface for finding relationships in text."""
