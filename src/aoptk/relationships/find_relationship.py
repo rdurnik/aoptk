@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 from aoptk.chemical import Chemical
-from aoptk.relationship import Relationship
+from aoptk.relationships.relationship import Relationship
 from aoptk.effect import Effect
 
 class FindRelationships(ABC):
