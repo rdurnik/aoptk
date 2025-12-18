@@ -162,6 +162,12 @@ def test_normalize_chemical_not_empty():
             [Effect(name="liver fibrosis")],
             [],
         ),
+        (
+            "Thioacetamide was studied in this study.",
+            [Chemical(name="thioacetamide")],
+            [Effect(name="liver fibrosis")],
+            [],
+        ),
     ],
 )
 def test_find_relationships(
