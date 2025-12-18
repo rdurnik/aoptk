@@ -1,4 +1,5 @@
 from __future__ import annotations
+from itertools import product
 from typing import TYPE_CHECKING
 from transformers import pipeline
 from aoptk.relationships.find_relationship import FindRelationships
@@ -12,48 +13,61 @@ if TYPE_CHECKING:
 class ZeroShotClassification(FindRelationships):
     """Zero-shot classification for finding relationships between chemicals and effects in text."""
 
-    threshold = 0.6
-    margin = 0.15
-    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    task = "zero-shot-classification"
 
-    def __init__(self, text: str, chemicals: list[Chemical], effects: list[Effect]):
+    def __init__(self, 
+                 text: str, 
+                 chemicals: list[Chemical], 
+                 effects: list[Effect], 
+                 model: str = "facebook/bart-large-mnli",
+                 threshold: float = 0.6,
+                 margin: float = 0.15):
         self.text = text
         self.chemicals = chemicals
         self.effects = effects
+        self.model = model
+        self.classifier = pipeline(self.task, model)
+        self.threshold = threshold
+        self.margin = margin
 
     def find_relationships(self) -> list[Relationship]:
         """Find relationships between chemicals and effects using zero-shot classification."""
         relationships = []
-        for effect in self.effects:
-            for chemical in self.chemicals:
-                candidate_labels = [
-                    f"{chemical} induces {effect}",
-                    f"{chemical} does not induce {effect}",
-                    f"{chemical} prevents or does not prevent {effect}",
-                ]
-
-                result = self.classifier(self.text, candidate_labels)
-
-                labels = result["labels"]
-                scores = result["scores"]
-
-                top_label = labels[0]
-                top_score = scores[0]
-                second_score = scores[1]
-
-                if top_score >= self.threshold and (top_score - second_score) >= self.margin:
-                    if top_label == candidate_labels[0]:
-                        relationship_type = "positive"
-                    elif top_label == candidate_labels[1]:
-                        relationship_type = "negative"
-                    else:
-                        continue
-
-                    relationships.append(
-                        Relationship(
-                            relationship=relationship_type,
-                            chemical=chemical,
-                            effect=effect,
-                        ),
-                    )
+        for chemical, effect in product(self.chemicals, self.effects):
+            relationship = self._classify_relationship(chemical, effect)
+            if relationship:
+                relationships.append(relationship)
         return relationships
+
+    def _classify_relationship(self, chemical: Chemical, effect: Effect) -> Relationship | None:
+        """Classify the relationship between a chemical and effect.
+        
+        Returns:
+            Relationship object if confidence thresholds are met, None otherwise.
+        """
+        candidate_labels = [
+            f"{chemical} induces {effect}",
+            f"{chemical} does not induce {effect}",
+            f"{chemical} prevents or does not prevent {effect}",
+        ]
+
+        result = self.classifier(self.text, candidate_labels)
+        top_label = result["labels"][0]
+        top_score = result["scores"][0]
+        second_score = result["scores"][1]
+
+        if top_score < self.threshold or (top_score - second_score) < self.margin:
+            return None
+
+        if top_label == candidate_labels[0]:
+            relationship_type = "positive"
+        elif top_label == candidate_labels[1]:
+            relationship_type = "negative"
+        else:
+            return None
+
+        return Relationship(
+            relationship=relationship_type,
+            chemical=chemical,
+            effect=effect,
+        )
