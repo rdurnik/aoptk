@@ -16,22 +16,25 @@ class ZeroShotClassification(FindRelationships):
     """Zero-shot classification for finding relationships between chemicals and effects in text."""
 
     task = "zero-shot-classification"
+    default_relationships = (
+        "induces",
+        "does not induce",
+        "prevents or does not prevent",
+        "has no known association with",
+    )
 
     def __init__(
         self,
-        relationships: list[str] = ["induces", 
-                                    "does not induce", 
-                                    "prevents or does not prevent", 
-                                    "has no known association with"],
+        relationships: list[str] | None = None,
         model: str = "facebook/bart-large-mnli",
         threshold: float = 0.6,
         margin: float = 0.15,
     ):
+        self.relationships = relationships if relationships is not None else self.default_relationships
         self.model = model
         self.threshold = threshold
         self.margin = margin
         self.classifier = pipeline(self.task, model)
-        self.relationships = relationships
 
     def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
         """Find relationships between chemicals and effects using zero-shot classification."""
