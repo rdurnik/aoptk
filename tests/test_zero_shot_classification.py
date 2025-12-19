@@ -9,7 +9,7 @@ from aoptk.relationships.zero_shot_classification import ZeroShotClassification
 
 def test_can_create():
     """Test that ZeroShotClassification can be instantiated."""
-    actual = ZeroShotClassification(text="", chemicals=[], effects=[])
+    actual = ZeroShotClassification()
     assert actual is not None
 
 
@@ -20,7 +20,7 @@ def test_implements_interface():
 
 def test_normalize_chemical_not_empty():
     """Test that normalize_chemical method returns a non-empty result."""
-    actual = ZeroShotClassification(text="", chemicals=[], effects=[]).find_relationships()
+    actual = ZeroShotClassification().find_relationships(text="", chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -177,7 +177,7 @@ def test_find_relationships(
     expected_relationships: list[Relationship],
 ):
     """Test find_relationships method with multiple chemicals and effects."""
-    actual = ZeroShotClassification(text=text, chemicals=chemicals, effects=effects).find_relationships()
+    actual = ZeroShotClassification().find_relationships(text=text, chemicals=chemicals, effects=effects)
 
     def sort_key(r: Relationship) -> tuple[str, str, str]:
         return (r.relationship, r.chemical.name, r.effect.name)

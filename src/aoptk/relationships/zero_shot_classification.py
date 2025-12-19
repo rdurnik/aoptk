@@ -16,31 +16,27 @@ class ZeroShotClassification(FindRelationships):
     """Zero-shot classification for finding relationships between chemicals and effects in text."""
 
     task = "zero-shot-classification"
-    threshold = 0.6
-    margin = 0.15
 
     def __init__(
         self,
-        text: str,
-        chemicals: list[Chemical],
-        effects: list[Effect],
         model: str = "facebook/bart-large-mnli",
+        threshold: float = 0.6,
+        margin: float = 0.15,
     ):
-        self.text = text
-        self.chemicals = chemicals
-        self.effects = effects
         self.model = model
+        self.threshold = threshold
+        self.margin = margin
         self.classifier = pipeline(self.task, model)
 
-    def find_relationships(self) -> list[Relationship]:
+    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
         """Find relationships between chemicals and effects using zero-shot classification."""
         relationships = []
-        for chemical, effect in product(self.chemicals, self.effects):
-            if relationship := self._classify_relationship(chemical, effect):
+        for chemical, effect in product(chemicals, effects):
+            if relationship := self._classify_relationship(text, chemical, effect):
                 relationships.append(relationship)
         return relationships
 
-    def _classify_relationship(self, chemical: Chemical, effect: Effect) -> Relationship | None:
+    def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
         """Classify the relationship between a chemical and an effect."""
         candidate_labels = [
             f"{chemical} induces {effect}",
@@ -49,7 +45,7 @@ class ZeroShotClassification(FindRelationships):
             f"{chemical} has no known association with {effect}",
         ]
 
-        result = self.classifier(self.text, candidate_labels)
+        result = self.classifier(text, candidate_labels)
 
         labels = result["labels"]
         scores = result["scores"]
