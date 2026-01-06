@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 
 
 class ZeroShotClassificationMultiple(FindRelationships):
-    """Zero-shot classification with for finding relationships between chemicals and effects in text. This version classifies multiple relationship types at once."""
+    """Zero-shot classification with for finding relationships between chemicals and effects in text.
+
+    This version classifies multiple relationship types at once.
+    """
 
     task = "zero-shot-classification"
     default_relationships = (
