@@ -177,7 +177,11 @@ def test_find_relationships(
     expected_relationships: list[Relationship],
 ):
     """Test find_relationships method with multiple chemicals and effects."""
-    actual = ZeroShotClassification().find_relationships(text=text, chemicals=chemicals, effects=effects)
+    actual = ZeroShotClassification(
+        model="facebook/bart-large-mnli",
+        threshold=0.6,
+        margin=0.15,
+    ).find_relationships(text=text, chemicals=chemicals, effects=effects)
 
     def sort_key(r: Relationship) -> tuple[str, str, str]:
         return (r.relationship, r.chemical.name, r.effect.name)
