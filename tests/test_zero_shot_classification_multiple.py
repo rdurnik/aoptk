@@ -4,23 +4,23 @@ from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
-from aoptk.relationships.zero_shot_classification import ZeroShotClassification
+from aoptk.relationships.zero_shot_classification_multiple import ZeroShotClassificationMultiple
 
 
 def test_can_create():
     """Test that ZeroShotClassification can be instantiated."""
-    actual = ZeroShotClassification()
+    actual = ZeroShotClassificationMultiple()
     assert actual is not None
 
 
 def test_implements_interface():
     """Test that ZeroShotClassification implements FindRelationships interface."""
-    assert issubclass(ZeroShotClassification, FindRelationships)
+    assert issubclass(ZeroShotClassificationMultiple, FindRelationships)
 
 
 def test_normalize_chemical_not_empty():
     """Test that normalize_chemical method returns a non-empty result."""
-    actual = ZeroShotClassification().find_relationships(text="", chemicals=[], effects=[])
+    actual = ZeroShotClassificationMultiple().find_relationships(text="", chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -177,7 +177,7 @@ def test_find_relationships(
     expected_relationships: list[Relationship],
 ):
     """Test find_relationships method with multiple chemicals and effects."""
-    actual = ZeroShotClassification(
+    actual = ZeroShotClassificationMultiple(
         model="facebook/bart-large-mnli",
         threshold=0.6,
         margin=0.15,

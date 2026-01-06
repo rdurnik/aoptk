@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from aoptk.effect import Effect
 
 
-class ZeroShotClassification(FindRelationships):
+class ZeroShotClassificationMultiple(FindRelationships):
     """Zero-shot classification for finding relationships between chemicals and effects in text."""
 
     task = "zero-shot-classification"
