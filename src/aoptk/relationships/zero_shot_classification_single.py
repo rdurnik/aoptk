@@ -23,6 +23,7 @@ class ZeroShotClassificationSingle(FindRelationships):
         "induces",
         "does not induce",
     )
+    text_to_avoid_confusion_with_preventive_or_non_preventive = "prevents or does not prevent"
 
     def __init__(
         self,
@@ -48,8 +49,8 @@ class ZeroShotClassificationSingle(FindRelationships):
         hypothesis = f"{chemical} {{}} {effect}"
         hypothesis_verbs = list(self.relationships)
 
-        for verb in hypothesis_verbs:
-            verbs = self._add_verbs_to_avoid_confussion_with_preventive_or_non_preventive(verb)
+        for hypothesis_verb in hypothesis_verbs:
+            verbs = self._add_verbs_to_avoid_confussion_with_preventive_or_non_preventive(hypothesis_verb)
             result = self.classifier(text, verbs, hypothesis_template=hypothesis, multi_label=False)
 
             top_label = result["labels"][0]
@@ -63,9 +64,9 @@ class ZeroShotClassificationSingle(FindRelationships):
 
     def _add_verbs_to_avoid_confussion_with_preventive_or_non_preventive(self, verb: str) -> list[str]:
         """Add verbs to avoid confusion with preventive or non-preventive relationships."""
-        verb = [verb]
-        verb.append("prevents or does not prevent")
-        return verb
+        verbs = [verb]
+        verbs.append(self.text_to_avoid_confusion_with_preventive_or_non_preventive)
+        return verbs
 
     def _is_prediction_confident_enough(self, top_score: int) -> bool:
         """Check if the prediction is confident enough based on threshold and margin."""
