@@ -28,11 +28,11 @@ class PubChemAPI(NormalizeChemical):
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Use PubChem API to normalize chemical names."""
-        if title_name := self.find_title_in_pubchem(chemical.name):
+        if title_name := self._find_title_in_pubchem(chemical.name):
             return Chemical(name=title_name)
         return Chemical(name=chemical.name)
 
-    def find_title_in_pubchem(self, chemical_name: str) -> str | None:
+    def _find_title_in_pubchem(self, chemical_name: str) -> str | None:
         """Find the title chemical name from PubChem."""
         search_url = (
             f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{chemical_name}/property/Title/TXT"
