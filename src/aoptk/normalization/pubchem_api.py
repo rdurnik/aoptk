@@ -5,8 +5,8 @@ from aoptk.chemical import Chemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 
 
-class PubChemAbbreviations(NormalizeChemical):
-    """Find chemical abbreviations via PubChem."""
+class PubChemAPI(NormalizeChemical):
+    """Use PubChem API to normalize chemical names."""
 
     timeout = 10
     headers: ClassVar = {
@@ -27,22 +27,17 @@ class PubChemAbbreviations(NormalizeChemical):
         self._session.headers.update(self.headers)
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
-        """Return a Chemical with abbreviation set if name is uppercase."""
-        if self.is_uppercase(chemical.name):
-            full_name = self.find_title_in_pubchem(chemical.name)
-            return Chemical(name=full_name)
-        return Chemical(chemical.name)
+        """Use PubChem API to normalize chemical names."""
+        if title_name := self.find_title_in_pubchem(chemical.name):
+            return Chemical(name=title_name)
+        return Chemical(name=chemical.name)
 
-    def is_uppercase(self, chemical: str) -> bool:
-        """Check if the chemical name is uppercase."""
-        return chemical.isupper()
-
-    def find_title_in_pubchem(self, suspected_abbreviation: str) -> str | None:
-        """Find the full chemical name from PubChem."""
+    def find_title_in_pubchem(self, chemical_name: str) -> str | None:
+        """Find the title chemical name from PubChem."""
         search_url = (
-            f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{suspected_abbreviation}/property/Title/TXT"
+            f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{chemical_name}/property/Title/TXT"
         )
         response = self._session.get(search_url, timeout=self.timeout)
         if not response.ok:
-            return suspected_abbreviation
+            return chemical_name
         return response.text.strip().lower()
