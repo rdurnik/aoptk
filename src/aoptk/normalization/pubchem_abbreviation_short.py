@@ -13,7 +13,7 @@ class PubChemAbbreviationShort(PubChemAPI):
         super().__init__()
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
-        """Return a Chemical with abbreviation set if name is uppercase."""
+        """Return a full-form of a chemical name if the original name is short."""
         if self.is_short(chemical.name):
             return super().normalize_chemical(chemical)
         return Chemical(chemical.name)
