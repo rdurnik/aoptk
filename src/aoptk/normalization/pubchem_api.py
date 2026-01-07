@@ -1,5 +1,7 @@
 from __future__ import annotations
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from aoptk.chemical import Chemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 
@@ -11,6 +13,15 @@ class PubChemAPI(NormalizeChemical):
 
     def __init__(self):
         self._session = requests.Session()
+        retry_strategy = Retry(
+            total=5,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["GET", "POST"],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self._session.mount("https://", adapter)
+        self._session.mount("http://", adapter)
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Use PubChem API to normalize chemical names."""
