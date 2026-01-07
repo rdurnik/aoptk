@@ -1,51 +1,33 @@
 from __future__ import annotations
-from itertools import product
 from typing import TYPE_CHECKING
-from transformers import pipeline
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
-from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
+from aoptk.relationships.zero_shot_classification import ZeroShotClassification
 
 if TYPE_CHECKING:
     from aoptk.chemical import Chemical
     from aoptk.effect import Effect
 
 
-class ZeroShotClassificationMultiple(FindRelationships):
+class ZeroShotClassificationMultiple(ZeroShotClassification):
     """Zero-shot classification with for finding relationships between chemicals and effects in text.
 
     This version classifies multiple relationship types at once.
     """
 
-    task = "zero-shot-classification"
-    default_relationships = (
-        "induces",
-        "does not induce",
-        "prevents or does not prevent",
-        "has no known association with",
-    )
-
     def __init__(
         self,
-        relationships: list[str] | None = None,
+        relationships: list[str] | None = ("induces",
+                                           "does not induce",
+                                           "prevents or does not prevent",
+                                           "has no known association with"),
         model: str = "facebook/bart-large-mnli",
         threshold: float = 0.6,
         margin: float = 0.15,
     ):
-        self.relationships = relationships if relationships is not None else self.default_relationships
-        self.model = model
-        self.threshold = threshold
+        super().__init__(relationships, model, threshold)
         self.margin = margin
-        self.classifier = pipeline(self.task, model)
-
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
-        """Find relationships between chemicals and effects using zero-shot classification."""
-        relationships = []
-        for chemical, effect in product(chemicals, effects):
-            if relationship := self._classify_relationship(text, chemical, effect):
-                relationships.append(relationship)
-        return relationships
 
     def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
         """Classify the relationship between a chemical and an effect."""

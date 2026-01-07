@@ -1,48 +1,30 @@
 from __future__ import annotations
-from itertools import product
 from typing import TYPE_CHECKING
-from transformers import pipeline
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
-from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
+from aoptk.relationships.zero_shot_classification import ZeroShotClassification
 
 if TYPE_CHECKING:
     from aoptk.chemical import Chemical
     from aoptk.effect import Effect
 
 
-class ZeroShotClassificationSingle(FindRelationships):
+class ZeroShotClassificationSingle(ZeroShotClassification):
     """Zero-shot classification for finding relationships between chemicals and effects in text.
 
     This version classifies a single relationship type at a time.
     """
 
-    task = "zero-shot-classification"
-    default_relationships = (
-        "induces",
-        "does not induce",
-    )
     text_to_avoid_confusion_with_preventive_or_non_preventive = "prevents or does not prevent"
 
     def __init__(
         self,
-        relationships: list[str] | None = None,
+        relationships: list[str] | None = ("induces", "does not induce"),
         model: str = "MoritzLaurer/deberta-v3-large-zeroshot-v2.0",
         threshold: float = 0.8,
     ):
-        self.relationships = relationships if relationships is not None else self.default_relationships
-        self.model = model
-        self.threshold = threshold
-        self.classifier = pipeline(self.task, model)
-
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
-        """Find relationships between chemicals and effects using zero-shot classification."""
-        relationships = []
-        for chemical, effect in product(chemicals, effects):
-            if relationship := self._classify_relationship(text, chemical, effect):
-                relationships.append(relationship)
-        return relationships
+        super().__init__(relationships, model, threshold)
 
     def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
         """Classify the relationship between a chemical and an effect."""
