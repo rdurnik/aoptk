@@ -2,6 +2,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
@@ -35,6 +37,14 @@ class EuropePMC(GetAbstract, GetPDF):
         self.id_list = self.get_id_list()
         self._session = requests.Session()
         self._session.headers.update(self.headers)
+        retry_strategy = Retry(
+            total=5,
+            backoff_factor=3,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["GET", "POST"],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self._session.mount("https://", adapter)
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
