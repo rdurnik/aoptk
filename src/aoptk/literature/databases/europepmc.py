@@ -7,6 +7,7 @@ from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
+from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.utils import get_pubmed_pdf_url
 
@@ -117,7 +118,7 @@ class EuropePMC(GetAbstract, GetPDF):
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            return Abstract(results[0].get("abstractText", ""), publication_id)
+            return Abstract(results[0].get("abstractText", ""), ID(publication_id))
         return None
 
     def call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
