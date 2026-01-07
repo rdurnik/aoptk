@@ -6,6 +6,7 @@ from requests import HTTPError
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
 
+
 def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
     actual = EuropePMC("")
