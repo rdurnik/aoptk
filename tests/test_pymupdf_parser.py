@@ -294,7 +294,7 @@ def test_extract_id():
     """Test extracting publication ID from user-provided PDF."""
     actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()[0].id
     expected = "test_pdf"
-    assert actual == expected
+    assert str(actual) == expected
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
 
