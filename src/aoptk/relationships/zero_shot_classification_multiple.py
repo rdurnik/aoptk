@@ -18,10 +18,12 @@ class ZeroShotClassificationMultiple(ZeroShotClassification):
 
     def __init__(
         self,
-        relationships: list[str] | None = ("induces",
-                                           "does not induce",
-                                           "prevents or does not prevent",
-                                           "has no known association with"),
+        relationships: list[str] | None = (
+            "induces",
+            "does not induce",
+            "prevents or does not prevent",
+            "has no known association with",
+        ),
         model: str = "facebook/bart-large-mnli",
         threshold: float = 0.6,
         margin: float = 0.15,
