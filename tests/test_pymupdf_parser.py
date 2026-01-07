@@ -6,6 +6,7 @@ from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
+from aoptk .literature.id import ID
 
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
 
@@ -30,7 +31,7 @@ def test_get_publication_data_not_empty():
 @pytest.fixture(
     params=[
         {
-            "id": "PMC12416454",
+            "id": ID("PMC12416454"),
             "expected_abstract": "The rational design and "
             "selective self-assembly of ﬂexible and unsymmetric"
             " ligands into large coordination complexes is an"
@@ -55,7 +56,7 @@ def test_get_publication_data_not_empty():
             "in vitro 3D spheroids of the human hepatic cells HepG2.",
         },
         {
-            "id": "PMC12231352",
+            "id": ID("PMC12231352"),
             "expected_abstract": "1School of Clinical Medical, Hubei University of Chinese Medicine, "
             "Wuhan, China, 2Department of Gastroenterology, Hubei Provincial Hospital "
             "of Integrated Chinese and Western Medicine, Wuhan, China, 3Department of "
@@ -89,7 +90,7 @@ def test_get_publication_data_not_empty():
             " by inhibiting the NLRP3/caspase-1/GSDMD signaling pathway.",
         },
         {
-            "id": "PMC12181427",
+            "id": ID("PMC12181427"),
             "expected_abstract": "This study explores the potential of six novel "
             "thiophene derivative thin films (THIOs) for reducing cancer cell adhesion"
             " and enhancing controlled drug release on inert glass substrates. Thiophene"
