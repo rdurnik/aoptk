@@ -21,7 +21,6 @@ class PubChemAPI(NormalizeChemical):
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
-        self._session.mount("http://", adapter)
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Use PubChem API to normalize chemical names."""
