@@ -1,7 +1,7 @@
 import pytest
 from aoptk.chemical import Chemical
-from aoptk.normalization.pubchem_api import PubChemAPI
 from aoptk.normalization.pubchem_abbreviation_uppercase import PubChemAbbreviationUppercase
+from aoptk.normalization.pubchem_api import PubChemAPI
 
 
 def test_can_create():
@@ -32,7 +32,7 @@ def test_normalize_chemical_not_empty():
 )
 def test_check_uppercase(chemical: str, expected: str):
     """Test _is_uppercase method."""
-    actual = PubChemAbbreviationUppercase()._is_uppercase(chemical)
+    actual = PubChemAbbreviationUppercase().is_uppercase(chemical)
     assert actual == expected
 
 

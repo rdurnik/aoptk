@@ -1,7 +1,7 @@
 import pytest
 from aoptk.chemical import Chemical
-from aoptk.normalization.pubchem_api import PubChemAPI
 from aoptk.normalization.pubchem_abbreviation_short import PubChemAbbreviationShort
+from aoptk.normalization.pubchem_api import PubChemAPI
 
 
 def test_can_create():
@@ -28,12 +28,14 @@ def test_normalize_chemical_not_empty():
         ("TAA", True),
         ("CCL4", True),
         ("PCB-126", True),
+        ("B(a)P", True),
+        ("B[a]P", True),
         ("Thioacetamide", False),
     ],
 )
 def test_check_short_length(chemical: str, expected: str):
     """Test _is_short method."""
-    actual = PubChemAbbreviationShort()._is_short(chemical)
+    actual = PubChemAbbreviationShort().is_short(chemical)
     assert actual == expected
 
 
@@ -43,6 +45,9 @@ def test_check_short_length(chemical: str, expected: str):
         ("TAA", "thioacetamide"),
         ("CCL4", "carbon tetrachloride"),
         ("MTX", "methotrexate"),
+        ("B(a)P", "benzo[a]pyrene"),
+        ("PFOA", "perfluorooctanoic acid"),
+        ("2,3,7,8-TCDD", "2,3,7,8-tetrachlorodibenzo-p-dioxin"),
         ("thioacetamide", "thioacetamide"),
         ("Thioacetamide", "Thioacetamide"),
         ("somethingnotinpubchem", "somethingnotinpubchem"),

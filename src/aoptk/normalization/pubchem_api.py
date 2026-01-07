@@ -34,9 +34,7 @@ class PubChemAPI(NormalizeChemical):
 
     def _find_title_in_pubchem(self, chemical_name: str) -> str | None:
         """Find the title chemical name from PubChem."""
-        search_url = (
-            f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{chemical_name}/property/Title/TXT"
-        )
+        search_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{chemical_name}/property/Title/TXT"
         response = self._session.get(search_url, timeout=self.timeout)
         if not response.ok:
             return chemical_name

@@ -20,6 +20,7 @@ def test_normalize_chemical_not_empty():
     actual = PubChemAPI().normalize_chemical(Chemical(""))
     assert actual is not None
 
+
 @pytest.mark.parametrize(
     ("chemical_name", "expected"),
     [
