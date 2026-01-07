@@ -7,6 +7,18 @@ class ID:
     def __str__(self) -> str:
         return self.id_str
 
+    def __eq__(self, other: object) -> bool:
+        """Compare IDs by their string value."""
+        if isinstance(other, ID):
+            return self.id_str == other.id_str
+        if isinstance(other, str):
+            return self.id_str == other
+        return False
+
+    def __hash__(self) -> int:
+        """Hash based on string value for use in sets/dicts."""
+        return hash(self.id_str)
+
 
 class PMCID(ID):
     """PubMed Central ID."""
