@@ -10,7 +10,7 @@ class PubChemAPI(NormalizeChemical):
     """Use PubChem API to normalize chemical names."""
 
     timeout = 10
-    headers_list: ClassVar = [
+    headers_list = [
         {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -51,8 +51,6 @@ class PubChemAPI(NormalizeChemical):
 
     def __init__(self):
         self._session = requests.Session()
-        self._headers_cycle = cycle(self.headers_list)
-        self._session.headers.update(next(self._headers_cycle))
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Use PubChem API to normalize chemical names."""
@@ -63,6 +61,8 @@ class PubChemAPI(NormalizeChemical):
     def _find_title_in_pubchem(self, chemical_name: str) -> str | None:
         """Find the title chemical name from PubChem."""
         search_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{chemical_name}/property/Title/TXT"
+        headers_cycle = cycle(self.headers_list)
+        self._session.headers.update(next(headers_cycle))
         response = self._session.get(search_url, timeout=self.timeout)
         if not response.ok:
             return chemical_name
