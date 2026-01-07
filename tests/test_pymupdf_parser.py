@@ -2,9 +2,9 @@ import os
 import shutil
 from pathlib import Path
 import pytest
-from aoptk.literature.id import ID
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
 
