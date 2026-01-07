@@ -30,7 +30,10 @@ dependencies = [
     "scispacy",
     "spacy>=3.0.0",
     "bs4",
-    "biopython"
+    "biopython",
+    "transformers",
+    "torch",
+    "openpyxl"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
