@@ -1,6 +1,6 @@
 import pytest
 from aoptk.chemical import Chemical
-from aoptk.normalization.normalize_chemical import NormalizeChemical
+from aoptk.normalization.pubchem_api import PubChemAPI
 from aoptk.normalization.pubchem_abbreviation_uppercase import PubChemAbbreviationUppercase
 
 
@@ -11,8 +11,8 @@ def test_can_create():
 
 
 def test_implements_interface():
-    """Test that PubChemAbbreviationsUppercase implements NormalizeChemical interface."""
-    assert issubclass(PubChemAbbreviationUppercase, NormalizeChemical)
+    """Test that PubChemAbbreviationsUppercase implements PubChemAPI."""
+    assert issubclass(PubChemAbbreviationUppercase, PubChemAPI)
 
 
 def test_normalize_chemical_not_empty():
