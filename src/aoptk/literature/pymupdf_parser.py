@@ -3,6 +3,8 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 import pymupdf
+from aoptk.literature.id import ID
+from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
 
@@ -56,7 +58,7 @@ class PymupdfParser(PDFParser):
     def _parse_pdf(self, pdf: PDF) -> Publication:
         """Parse a single PDF and return a Publication object."""
         text = self._extract_text_to_parse(pdf)
-        publication_id = Path(pdf.path).stem
+        publication_id = ID(Path(pdf.path).stem)
         abstract = self._parse_abstract(text)
         full_text = self._parse_full_text(text)
         abbreviations = self._extract_abbreviations(text, pdf)
