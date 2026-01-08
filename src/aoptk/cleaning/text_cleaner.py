@@ -12,6 +12,7 @@ class TextCleaner:
 
 class CleaningPipeline(TextCleaner):
     """Cleaning pipeline, combining various text clears into a single function."""
+
     def __init__(self, cleaners: list[TextCleaner]):
         self.cleaners = cleaners
 
