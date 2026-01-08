@@ -9,9 +9,9 @@ class TextCleaner:
         """Return a cleaned version of the input text."""
 
 
-class CleaningPipeline(CleanText):
+class CleaningPipeline(TextCleaner):
 
-    def __init__(self, cleaners: list[CleanText]):
+    def __init__(self, cleaners: list[TextCleaner]):
         self.cleaners = cleaners
     
     def clean(self, text: str) -> str:
