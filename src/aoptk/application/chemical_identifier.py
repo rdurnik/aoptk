@@ -37,7 +37,7 @@ def find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemical
     return relevant_chemicals
 
 
-def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals, relevant_chemicals, chemical):
+def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals, relevant_chemicals, chemical) -> None:
     if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
         for term in mesh_terms:
             if term in list_of_relevant_chemicals:
@@ -75,7 +75,7 @@ def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals, rele
     required=True,
     help="Use MeSH terms to normalize chemical names (yes/no)",
 )
-def main(email, use_tg_gates, use_tox21, user_defined_database, query, literature_database, use_mesh_terms):
+def main(email, use_tg_gates, use_tox21, user_defined_database, query, literature_database, use_mesh_terms) -> None:
     Entrez.email = email
     list_of_relevant_chemicals = generate_list_of_relevant_chemicals(use_tg_gates, use_tox21, user_defined_database)
     if literature_database == "pubmed":
@@ -88,7 +88,7 @@ def main(email, use_tg_gates, use_tox21, user_defined_database, query, literatur
         chemicals = Spacy().find_chemical(abstract.text)
         chemicals = [chem.trimmed_name for chem in chemicals if chem.name]
         relevant_chemicals = find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemicals)
-        result_df.loc[len(result_df)] = [id, set([chemical.name for chemical in chemicals]), set(relevant_chemicals)]
+        result_df.loc[len(result_df)] = [id, {chemical.name for chemical in chemicals}, set(relevant_chemicals)]
 
     result_df.to_excel(
         f"src/aoptk/application/{literature_database}_testing_purposes_use_mesh_terms_{use_mesh_terms}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",

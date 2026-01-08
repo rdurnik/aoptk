@@ -1,11 +1,14 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 from typing import ClassVar
 import spacy
-from scispacy.linking import EntityLinker
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence import Sentence
 from aoptk.sentence_generator import SentenceGenerator
+
+if TYPE_CHECKING:
+    from scispacy.linking import EntityLinker
 
 
 class Spacy(FindChemical, SentenceGenerator):
@@ -57,4 +60,3 @@ class Spacy(FindChemical, SentenceGenerator):
             mesh_terms = sorted({alias.lower() for alias in aliases})
 
         return mesh_terms
-
