@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 from aoptk.chemical import Chemical
-from aoptk.mesh_terms import MeshTerms
-from aoptk.normalize_chemical import NormalizeChemical
+from aoptk.normalization.mesh_terms import MeshTerms
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 
 
 def test_can_create():

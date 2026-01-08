@@ -24,11 +24,16 @@ classifiers = [
 ]
 dependencies = [
     "pandas",
+    "pymupdf",
     "metapub",
     "requests",
     "scispacy",
     "spacy>=3.0.0",
     "bs4",
+    "biopython",
+    "transformers",
+    "torch",
+    "openpyxl"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
@@ -113,6 +118,7 @@ ignore = [
     "FIX001", # Resolve FIXMEs
     "FIX002", # Resolve TODOs
     "B028",   # No explicit `stacklevel` keyword argument found in warning
+    "RUF001",  # String contains ambiguous ` ` (THIN SPACE). String contains ambiguous `α` (GREEK SMALL LETTER ALPHA).
     # No docstrings required in the following cases
     "D100", # Missing module docstring
     "D104", # Missing public package docstring
