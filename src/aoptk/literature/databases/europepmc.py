@@ -4,9 +4,12 @@ from datetime import timezone
 from pathlib import Path
 from typing import ClassVar
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
+from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.utils import get_pubmed_pdf_url
@@ -38,6 +41,14 @@ class EuropePMC(GetAbstract, GetPDF):
         self.id_list = self.get_id_list()
         self._session = requests.Session()
         self._session.headers.update(self.headers)
+        retry_strategy = Retry(
+            total=5,
+            backoff_factor=10,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["GET", "POST"],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self._session.mount("https://", adapter)
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
@@ -96,7 +107,7 @@ class EuropePMC(GetAbstract, GetPDF):
             stream=True,
             timeout=self.timeout,
         )
-        if not response.ok:
+        if not response.ok and publication_id.isdecimal():
             pubmed_url = get_pubmed_pdf_url(publication_id)
             if pubmed_url:
                 response = self._session.get(pubmed_url, stream=True, timeout=self.timeout)
@@ -120,7 +131,7 @@ class EuropePMC(GetAbstract, GetPDF):
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            return Abstract(results[0].get("abstractText", ""), publication_id)
+            return Abstract(results[0].get("abstractText", ""), ID(publication_id))
         return None
 
     def call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:

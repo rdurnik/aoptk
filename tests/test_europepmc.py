@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.europepmc import EuropePMC
+from aoptk.literature.id import ID
 
 
 def test_can_create():
@@ -191,7 +192,7 @@ def test_generate_abstract_for_given_id(publication_id: str, expected_abstract: 
     abstract = EuropePMC("").get_abstract(publication_id).text
     publication_id = EuropePMC("").get_abstract(publication_id).publication_id
     assert abstract == expected_abstract
-    assert publication_id == expected_id
+    assert publication_id == ID(expected_id)
 
 
 @pytest.mark.parametrize(
@@ -226,7 +227,7 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     abstract = EuropePMC(query).get_abstracts()[0].text
     publication_id = EuropePMC(query).get_abstracts()[0].publication_id
     assert abstract == expected_abstract
-    assert publication_id == expected_id
+    assert publication_id == ID(expected_id)
 
 
 def test_get_publication_metadata():
