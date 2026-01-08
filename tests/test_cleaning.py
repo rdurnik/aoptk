@@ -1,5 +1,6 @@
 import pytest
 from aoptk.cleaning.html_tag_remover import HTMLTagRemover
+from aoptk.cleaning.text_cleaner import CleaningPipeline
 from aoptk.cleaning.text_cleaner import TextCleaner
 
 
@@ -20,6 +21,7 @@ def test_clean_text_data_not_empty():
     assert actual is not None
 
 
+@pytest.mark.parametrize("cleaner", [HTMLTagRemover(), CleaningPipeline([HTMLTagRemover()])])
 @pytest.mark.parametrize(
     ("text_with_html_tags", "expected"),
     [
@@ -38,7 +40,7 @@ def test_clean_text_data_not_empty():
         ),
     ],
 )
-def test_clean_text(text_with_html_tags: str, expected: str):
+def test_clean_text(cleaner: TextCleaner, text_with_html_tags: str, expected: str):
     """Test that clean_text() method removes HTML tags correctly."""
-    actual = HTMLTagRemover().clean(text_with_html_tags)
+    actual = cleaner.clean(text_with_html_tags)
     assert actual == expected
