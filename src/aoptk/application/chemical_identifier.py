@@ -29,9 +29,11 @@ def generate_list_of_relevant_chemicals(use_tg_gates: str, use_tox21: str, user_
     return list_of_relevant_chemicals
 
 
-def find_relevant_chemicals(use_mesh_terms: str,
-                            list_of_relevant_chemicals: list[str],
-                            chemicals: list[str]) -> list[str]:
+def find_relevant_chemicals(
+    use_mesh_terms: str,
+    list_of_relevant_chemicals: list[str],
+    chemicals: list[str],
+) -> list[str]:
     """Find chemical names that are in the list of relevant chemicals."""
     relevant_chemicals = []
     for chemical in chemicals:
@@ -42,9 +44,11 @@ def find_relevant_chemicals(use_mesh_terms: str,
     return relevant_chemicals
 
 
-def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals: list[str],
-                                                relevant_chemicals: list[str],
-                                                chemical: str) -> None:
+def try_to_match_mesh_term_to_relevant_chemical(
+    list_of_relevant_chemicals: list[str],
+    relevant_chemicals: list[str],
+    chemical: str,
+) -> None:
     """Try to match MeSH terms generated from chemical name to relevant chemicals."""
     if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
         for term in mesh_terms:
@@ -83,13 +87,15 @@ def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals: list
     required=True,
     help="Use MeSH terms to normalize chemical names (yes/no)",
 )
-def cli(email: str,
-        use_tg_gates: str,
-        use_tox21: str,
-        user_defined_database: str,
-        query: str,
-        literature_database: str,
-        use_mesh_terms: str) -> None:
+def cli(
+    email: str,
+    use_tg_gates: str,
+    use_tox21: str,
+    user_defined_database: str,
+    query: str,
+    literature_database: str,
+    use_mesh_terms: str,
+) -> None:
     """Identify relevant chemicals in abstracts from literature databases."""
     Entrez.email = email
     list_of_relevant_chemicals = generate_list_of_relevant_chemicals(use_tg_gates, use_tox21, user_defined_database)
@@ -103,9 +109,11 @@ def cli(email: str,
         chemicals = Spacy().find_chemical(abstract.text)
         chemicals = [chem.trimmed_name for chem in chemicals if chem.name]
         relevant_chemicals = find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemicals)
-        result_df.loc[len(result_df)] = [publication_id,
-                                         {chemical.name for chemical in chemicals},
-                                         set(relevant_chemicals)]
+        result_df.loc[len(result_df)] = [
+            publication_id,
+            {chemical.name for chemical in chemicals},
+            set(relevant_chemicals),
+        ]
     result_df.to_excel(
         f"src/aoptk/application/{literature_database}_testing_purposes_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
         index=False,

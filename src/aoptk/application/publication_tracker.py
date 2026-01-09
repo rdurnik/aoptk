@@ -9,10 +9,12 @@ from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.databases.pubmed import PubMed
 
 
-def convert_metadata_structures_to_df(search_code: str,
-                                      query: str,
-                                      literature_database: str,
-                                      publications_metadata: list) -> list[list]:
+def convert_metadata_structures_to_df(
+    search_code: str,
+    query: str,
+    literature_database: str,
+    publications_metadata: list,
+) -> list[list]:
     """Convert list of publication metadata structures to dataframe."""
     return [
         [
@@ -29,9 +31,7 @@ def convert_metadata_structures_to_df(search_code: str,
     ]
 
 
-def generate_publications_to_read(database_path: str,
-                                  search_code: str,
-                                  publications_metadata_df: list[list]) -> None:
+def generate_publications_to_read(database_path: str, search_code: str, publications_metadata_df: list[list]) -> None:
     """Generate publications to read based on existing database of read publications."""
     read_publications = pd.read_excel(database_path)
     updated_read_publications = pd.concat(
@@ -65,9 +65,11 @@ def generate_publications_to_read(database_path: str,
     df_to_read_data.to_excel(f"src/aoptk/application/read_{search_code}.xlsx", index=False)
 
 
-def update_master_table_search_codes(master_table_path: str,
-                                     search_code: str,
-                                     publications_metadata_df: list[list]) -> None:
+def update_master_table_search_codes(
+    master_table_path: str,
+    search_code: str,
+    publications_metadata_df: list[list],
+) -> None:
     """Update master table with new search codes."""
     master_wb = load_workbook(master_table_path)
     master_ws = master_wb.active
@@ -123,12 +125,14 @@ def get_column_index(header: list[str], col_name: str) -> int:
     required=True,
     help="Database to search: PubMed or Europe PMC",
 )
-def cli(database_path: str,
-        master_table_path: str,
-        email: str,
-        search_code: str,
-        query: str,
-        literature_database: str) -> None:
+def cli(
+    database_path: str,
+    master_table_path: str,
+    email: str,
+    search_code: str,
+    query: str,
+    literature_database: str,
+) -> None:
     """Generate publications to read and update master table search codes."""
     Entrez.email = email
     if literature_database == "europepmc":
