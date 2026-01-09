@@ -44,6 +44,10 @@ readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
 version = "0.1.0"
 
+[project.scripts]
+chemical_identifier = "aoptk.application.chemical_identifier:cli"
+publication_tracker = "aoptk.application.publication_tracker:cli"
+
 [project.optional-dependencies]
 dev = [
     "build",  # build is not only used in publishing (below), but also in the template's test suite
