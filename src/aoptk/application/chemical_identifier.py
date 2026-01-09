@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 import click
 import pandas as pd
@@ -7,7 +8,8 @@ from aoptk.literature.databases.pubmed import PubMed
 from aoptk.spacy_processor import Spacy
 
 
-def generate_list_of_relevant_chemicals(use_tg_gates, use_tox21, user_defined_database):
+def generate_list_of_relevant_chemicals(use_tg_gates: str, use_tox21: str, user_defined_database: str) -> list[str]:
+    """Generate a list of relevant chemicals from Excel file."""
     list_of_relevant_chemicals = []
     if use_tg_gates:
         relevant_chemicals_database = pd.read_excel(use_tg_gates)
@@ -27,7 +29,10 @@ def generate_list_of_relevant_chemicals(use_tg_gates, use_tox21, user_defined_da
     return list_of_relevant_chemicals
 
 
-def find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemicals):
+def find_relevant_chemicals(use_mesh_terms: str,
+                            list_of_relevant_chemicals: list[str],
+                            chemicals: list[str]) -> list[str]:
+    """Find chemical names that are in the list of relevant chemicals."""
     relevant_chemicals = []
     for chemical in chemicals:
         if chemical.name.lower() in list_of_relevant_chemicals:
@@ -37,7 +42,10 @@ def find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemical
     return relevant_chemicals
 
 
-def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals, relevant_chemicals, chemical) -> None:
+def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals: list[str],
+                                                relevant_chemicals: list[str],
+                                                chemical: str) -> None:
+    """Try to match MeSH terms generated from chemical name to relevant chemicals."""
     if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
         for term in mesh_terms:
             if term in list_of_relevant_chemicals:
@@ -75,7 +83,14 @@ def try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals, rele
     required=True,
     help="Use MeSH terms to normalize chemical names (yes/no)",
 )
-def main(email, use_tg_gates, use_tox21, user_defined_database, query, literature_database, use_mesh_terms) -> None:
+def cli(email: str,
+        use_tg_gates: str,
+        use_tox21: str,
+        user_defined_database: str,
+        query: str,
+        literature_database: str,
+        use_mesh_terms: str) -> None:
+    """Identify relevant chemicals in abstracts from literature databases."""
     Entrez.email = email
     list_of_relevant_chemicals = generate_list_of_relevant_chemicals(use_tg_gates, use_tox21, user_defined_database)
     if literature_database == "pubmed":
@@ -84,20 +99,21 @@ def main(email, use_tg_gates, use_tox21, user_defined_database, query, literatur
         abstracts = EuropePMC(query).get_abstracts()
     result_df = pd.DataFrame(columns=["publication_id", "chemicals", "relevant_chemicals"])
     for abstract in abstracts:
-        id = abstract.publication_id
+        publication_id = abstract.publication_id
         chemicals = Spacy().find_chemical(abstract.text)
         chemicals = [chem.trimmed_name for chem in chemicals if chem.name]
         relevant_chemicals = find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemicals)
-        result_df.loc[len(result_df)] = [id, {chemical.name for chemical in chemicals}, set(relevant_chemicals)]
-
+        result_df.loc[len(result_df)] = [publication_id,
+                                         {chemical.name for chemical in chemicals},
+                                         set(relevant_chemicals)]
     result_df.to_excel(
-        f"src/aoptk/application/{literature_database}_testing_purposes_use_mesh_terms_{use_mesh_terms}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        f"src/aoptk/application/{literature_database}_testing_purposes_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
         index=False,
     )
 
     output_df = result_df[result_df["relevant_chemicals"].apply(len) > 0]
     output_df.to_excel(
-        f"src/aoptk/application/{literature_database}_identified_chemicals_use_mesh_terms_{use_mesh_terms}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        f"src/aoptk/application/{literature_database}_identified_chemicals_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
         index=False,
     )
 
@@ -113,10 +129,6 @@ def main(email, use_tg_gates, use_tox21, user_defined_database, query, literatur
     )
 
     grouped_df.to_excel(
-        f"src/aoptk/application/{literature_database}_grouped_chemicals_use_mesh_terms_{use_mesh_terms}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+        f"src/aoptk/application/{literature_database}_grouped_chemicals_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
         index=False,
     )
-
-
-if __name__ == "__main__":
-    main()
