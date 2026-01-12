@@ -1,3 +1,4 @@
+# ruff: noqa: PLR0913
 from __future__ import annotations
 import sys
 import time

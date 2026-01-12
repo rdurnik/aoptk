@@ -1,3 +1,4 @@
+# ruff: noqa: PLR0913
 from __future__ import annotations
 from datetime import datetime
 import click
@@ -72,7 +73,7 @@ def try_to_match_mesh_term_to_relevant_chemical(
     "--query",
     type=str,
     required=True,
-    default='("liver") AND ("fibrotic" OR "fibrosis") AND ("spheroid*" OR "organoid*" OR "multicellular" OR "coculture*" OR "in vitro model") AND ("1900/01/01"[PDAT] : "2025/07/25"[PDAT])',
+    default='("liver") AND ("fibrotic" OR "fibrosis") AND ("spheroid*" OR "organoid*" OR "multicellular" OR "coculture*" OR "in vitro model") AND ("1900/01/01"[PDAT] : "2025/07/25"[PDAT])',  # noqa: E501
     help="Search term for PubMed or Europe PMC",
 )
 @click.option(
