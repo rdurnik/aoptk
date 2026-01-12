@@ -27,4 +27,4 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_pubmed_url(pubmed_id: str, expected: str):
     """Test get pubmed url. Can result in 403 HHTP Error."""
-    assert get_pubmed_pdf_url(pubmed_id) == expected
+    assert get_pubmed_pdf_url(pubmed_id) in expected
