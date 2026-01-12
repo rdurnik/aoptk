@@ -20,8 +20,8 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
 @pytest.mark.parametrize(
     ("pubmed_id", "expected"),
     [
-        ("41107038", "https://gut.bmj.com/content/gutjnl/75/2/326.full.pdf"),
-        ("26733159", "https://www.degruyter.com/document/doi/10.1515/hsz-2015-0265/pdf"),
+        ("41107038", ["https://gut.bmj.com/content/gutjnl/75/2/326.full.pdf", "https://gut.bmj.com/content/75/2/326.full.pd", "https://gut.bmj.com/content/gutjnl/early/2025/10/16/gutjnl-2025-336400.full.pdf"]),
+        ("26733159", ["https://www.degruyter.com/document/doi/10.1515/hsz-2015-0265/pdf"]),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
