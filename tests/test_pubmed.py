@@ -35,6 +35,15 @@ def test_get_publication_count():
 
 
 @pytest.mark.xfail(raises=HTTPError)
+def test_raises_query_too_large_error():
+    """QueryTooLargeError is raised  when result count >= maximum_results."""
+    with pytest.raises(QueryTooLargeError) as exc_info:
+        PubMed("cancer")
+    assert exc_info.value.count >= PubMed.maximum_results
+    assert exc_info.value.maximum == PubMed.maximum_results
+
+
+@pytest.mark.xfail(raises=HTTPError)
 def test_too_many_results():
     """Raises SystemExit for too many results."""
     with pytest.raises(QueryTooLargeError):
