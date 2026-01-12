@@ -26,6 +26,19 @@ def test_get_abstract_not_empty():
     assert actual is not None
 
 
+def test_get_publication_count_calls_read_and_closes(mocker):
+    """get_publication_count calls Entrez.read and closes handle properly."""
+    mock_handle = mocker.MagicMock()
+    mock_record = {"Count": "75"}
+    mocker.patch("aoptk.literature.databases.pubmed.Entrez.esearch", return_value=mock_handle)
+    mock_read = mocker.patch("aoptk.literature.databases.pubmed.Entrez.read", return_value=mock_record)
+    mocker.patch.object(PubMed, "get_id_list", return_value=[])
+    count = PubMed("test").get_publication_count()
+    mock_read.assert_called()
+    mock_handle.close.assert_called()
+    assert count == 75
+
+
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_count():
     """Get publication count returns correct number."""
