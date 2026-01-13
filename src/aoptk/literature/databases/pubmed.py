@@ -42,9 +42,9 @@ class PubMed(GetAbstract):
             handle.close()
             for article in records.get("PubmedArticle", []):
                 pmid = str(article["MedlineCitation"]["PMID"])
-                if abstract_obj := article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", []):
-                    abstract_text = "".join(abstract_obj)
-                    abstracts.append(Abstract(text=abstract_text, publication_id=pmid))
+                abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
+                abstract_text = "".join(abstract_obj) if abstract_obj else ""
+                abstracts.append(Abstract(text=abstract_text, publication_id=pmid))
         return abstracts
 
     def get_publications_metadata(self) -> list[PublicationMetadata]:
@@ -80,7 +80,7 @@ class PubMed(GetAbstract):
         if abstract_obj := record["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]:
             abstract_text = "".join(abstract_obj)
             return Abstract(text=abstract_text, publication_id=pmid)
-        return None
+        return Abstract(text="", publication_id=pmid)
 
     def get_publication_metadata(self, pmid: str) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""

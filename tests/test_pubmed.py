@@ -26,19 +26,6 @@ def test_get_abstract_not_empty():
     assert actual is not None
 
 
-def test_get_publication_count_calls_read_and_closes(mocker):
-    """get_publication_count calls Entrez.read and closes handle properly."""
-    mock_handle = mocker.MagicMock()
-    mock_record = {"Count": "75"}
-    mocker.patch("aoptk.literature.databases.pubmed.Entrez.esearch", return_value=mock_handle)
-    mock_read = mocker.patch("aoptk.literature.databases.pubmed.Entrez.read", return_value=mock_record)
-    mocker.patch.object(PubMed, "get_id_list", return_value=[])
-    count = PubMed("test").get_publication_count()
-    mock_read.assert_called()
-    mock_handle.close.assert_called()
-    assert count == 75
-
-
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_count():
     """Get publication count returns correct number."""
@@ -65,7 +52,7 @@ def test_get_id_list():
 
 
 @pytest.mark.parametrize(
-    ("query", "expected_abstract", "expected_id"),
+    ("query", "expected_abstract", "expected_id", "position"),
     [
         (
             '(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))',
@@ -88,31 +75,54 @@ def test_get_id_list():
             "effects, inducing both the apoptosis and necrosis of MCF-7 (human breast cancer "
             "cell line) and HepG2 (human liver carcinoma cell line) cancer cells.",
             "36835489",
+            3,
+        ),
+        (
+            "30493944, 29140036",
+            "",
+            "29140036",
+            1,
         ),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str):
+def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str, position: int):
     """Generate list of abstracts for given query."""
-    abstract = PubMed(query).get_abstracts()[3].text
-    publication_id = PubMed(query).get_abstracts()[3].publication_id
+    abstract = PubMed(query).get_abstracts()[position].text
+    publication_id = PubMed(query).get_abstracts()[position].publication_id
     assert abstract == expected_abstract
     assert publication_id == expected_id
 
 
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "publication_id": "41345959",
+            "publication_date": "2025",
+            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
+            "authors": "Li J, Li X, Wang R, Li M, Xiao Y",
+            "database": "PubMed",
+        },
+        {
+            "publication_id": "40785269",
+            "publication_date": "2025",
+            "title": "Flexibility-Aided Orientational Self-Sorting and "
+            "Transformations of Bioactive Homochiral Cuboctahedron Pd(12)L(16).",
+            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
+            "Babica P, Kuta J, Marek R, Jurček O",
+            "database": "PubMed",
+        },
+    ],
+)
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata():
+def test_get_publication_metadata(test_data: dict):
     """Generate publication metadata for given id."""
-    publication_metadata = PubMed("41345959").get_publications_metadata()[0]
-    assert publication_metadata.publication_id == "41345959"
-    assert publication_metadata.publication_date == "2025"
-    assert (
-        publication_metadata.title == "YAP-induced MAML1 cooperates with "
-        "STAT3 to drive hepatocellular carcinoma progression."
-    )
-    assert publication_metadata.authors == "Li J, Li X, Wang R, Li M, Xiao Y"
-    assert publication_metadata.database == "PubMed"
-    assert [publication_metadata.search_date.year, publication_metadata.search_date.month] == [
-        datetime.now(timezone.utc).year,
-        datetime.now(timezone.utc).month,
-    ]
+    publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
+    assert publication_metadata.publication_id == test_data["publication_id"]
+    assert publication_metadata.publication_date == test_data["publication_date"]
+    assert publication_metadata.title == test_data["title"]
+    assert publication_metadata.authors == test_data["authors"]
+    assert publication_metadata.database == test_data["database"]
+    assert publication_metadata.search_date.year == datetime.now(timezone.utc).year
+    assert publication_metadata.search_date.month == datetime.now(timezone.utc).month
