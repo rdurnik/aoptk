@@ -44,6 +44,28 @@ def test_find_chemical_not_empty():
         ("CCl4 and thioacetamide were tested for hepatotoxicity.", ["ccl4", "thioacetamide"]),
         ("Liver fibrosis and cancer were studied.", []),
         ("Thioacetamide (TAA) was used to induce liver fibrosis.", ["thioacetamide"]),
+        ("Mice were subjected to carbon tetrachloride-induced liver fibrosis.", ["carbon tetrachloride"]),
+        ("Fibrosis was suppressed by treatment with N-acetyl-L-cysteine", ["n-acetyl-l-cysteine"]),
+        (
+            " Here, we demonstrate the utility of bioprinted tissue constructs comprising primary "
+            "hepatocytes, hepatic stellate cells, and endothelial cells to model methotrexate- and "
+            "thioacetamide-induced liver injury leading to fibrosis.",
+            ["methotrexate"],
+        ),
+        (
+            "Finally, administration of recombinant IL1RN (interleukin 1 receptor antagonist) "
+            "to carbon tetrachloride-exposed atg5(-/-) mice blunted liver injury and fibrosis.",
+            ["carbon tetrachloride"],
+        ),
+        (
+            "Female mice (C57Blc) were induced by 4 injections of peritoneal carbon-tetrachloride within 10 days",
+            ["carbon-tetrachloride"],
+        ),
+        (
+            "Transforming growth factor-alpha secreted from ethanol-exposed hepatocytes"
+            " contributes to development of alcoholic hepatic fibrosis.",
+            ["ethanol"],
+        ),
     ],
 )
 def test_find_chemical_chemical(sentence: str, expected: list[str]):

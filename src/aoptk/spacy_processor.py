@@ -14,6 +14,20 @@ if TYPE_CHECKING:
 class Spacy(FindChemical, SentenceGenerator):
     """Process text using Spacy package."""
 
+    descriptive_suffixes: ClassVar[list[str]] = [
+        "induced",
+        "mediated",
+        "associated",
+        "related",
+        "dependent",
+        "treated",
+        "exposed",
+        "caused",
+        "driven",
+        "linked",
+        "based",
+    ]
+
     _models: ClassVar[dict[str, object]] = {}
     _mesh_terms_config: ClassVar[dict[str, bool | str]] = {"resolve_abbreviations": True, "linker_name": "mesh"}
 
@@ -33,7 +47,46 @@ class Spacy(FindChemical, SentenceGenerator):
     def find_chemical(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""
         doc = self.nlp(sentence)
-        return [Chemical(name=ent.text.lower()) for ent in doc.ents if ent.label_ == "CHEMICAL"]
+        chemicals = []
+        for ent in doc.ents:
+            if ent.label_ == "CHEMICAL":
+                trimmed_name = self._trim_name(ent.text.lower())
+                chemicals.append(Chemical(name=trimmed_name))
+        return chemicals
+
+    def _trim_name(self, name: str) -> str:
+        """Return the chemical name with non-chemical suffixes after dashes trimmed.
+
+        - Preserves legitimate hyphenated chemical names (e.g., "n-acetyl-l-cysteine").
+        - Trims descriptors starting after a dash when the first token is a known suffix
+          (e.g., "carbon tetrachloride-induced ..." -> "carbon tetrachloride").
+        - Removes a trailing dash at the end of the name.
+        """
+        name = self._remove_trailing_dash(name.strip())
+        if "-" not in name:
+            return name
+        parts = name.split("-")
+        idx = self._first_descriptive_suffix_index(parts)
+        return "-".join(parts[:idx]).strip() if idx is not None else name
+
+    def _remove_trailing_dash(self, name: str) -> str:
+        """Remove a trailing dash from `name` if present, preserving valid hyphenations."""
+        return name[:-1].strip() if name.endswith("-") else name
+
+    def _first_descriptive_suffix_index(self, parts: list[str]) -> int | None:
+        """Return index of first descriptive suffix segment in `parts`, else None.
+
+        `parts` is the dash-split of the name; index 0 is the base chemical segment.
+        """
+        return next(
+            (i for i, part in enumerate(parts[1:], start=1) if self._first_token_is_descriptive_suffix(part)),
+            None,
+        )
+
+    def _first_token_is_descriptive_suffix(self, part: str) -> bool:
+        """Check whether the first token of a dash-separated `part` is a descriptive suffix."""
+        token = part.strip().split()[0] if part.strip() else ""
+        return token in self.descriptive_suffixes
 
     def tokenize(self, text: str) -> list[Sentence]:
         """Use spaCy to generate sentences."""

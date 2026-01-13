@@ -19,14 +19,6 @@ class Chemical:
         """Return the chemical's name."""
         return self._name
 
-    @property
-    def trimmed_name(self) -> str:
-        """Return a Chemical with - trimmed from the name."""
-        if "-" in self._name:
-            trimmed_name = self._name.rsplit("-", 1)[0].strip() if self._name.endswith("-") else self._name
-            return Chemical(name=trimmed_name)
-        return self
-
     def __str__(self) -> str:
         """Return a human-friendly string for the chemical (its name)."""
         return self._name
