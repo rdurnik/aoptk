@@ -38,7 +38,6 @@ class EuropePMC(GetAbstract, GetPDF):
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
 
-        self.id_list = self.get_id_list()
         self._session = requests.Session()
         self._session.headers.update(self.headers)
         retry_strategy = Retry(
@@ -49,6 +48,8 @@ class EuropePMC(GetAbstract, GetPDF):
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
+
+        self.id_list = self.get_id_list()
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
@@ -153,7 +154,7 @@ class EuropePMC(GetAbstract, GetPDF):
             "cursorMark": cursor_mark,
             "resultType": result_type,
         }
-        response = requests.get(url, params=params, timeout=self.timeout)
+        response = self._session.get(url, params=params, timeout=self.timeout)
         response.raise_for_status()
         return response.json()
 
