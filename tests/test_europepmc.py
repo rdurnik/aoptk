@@ -196,7 +196,7 @@ def test_generate_abstract_for_given_id(publication_id: str, expected_abstract: 
 
 
 @pytest.mark.parametrize(
-    ("query", "expected_abstract", "expected_id"),
+    ("query", "expected_abstract", "expected_id", "position"),
     [
         (
             "TITLE_ABS:(liver cancer AND hepg2 AND thioacetamide) AND (FIRST_PDATE:[2018 TO 2019])",
@@ -219,29 +219,54 @@ def test_generate_abstract_for_given_id(publication_id: str, expected_abstract: 
             "by Nrf2, directing it towards cell survival signals in normal liver cells providing more "
             "protection for body against tumor.",
             "30784932",
+            0,
+        ),
+        (
+            "PMC5594291 OR PMC5596756",
+            "",
+            "PMC5596756",
+            1,
         ),
     ],
 )
-def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str):
+@pytest.mark.xfail(raises=HTTPError)
+def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str, position: int):
     """Generate list of abstracts for given query."""
-    abstract = EuropePMC(query).get_abstracts()[0].text
-    publication_id = EuropePMC(query).get_abstracts()[0].publication_id
+    abstract = EuropePMC(query).get_abstracts()[position].text
+    publication_id = EuropePMC(query).get_abstracts()[position].publication_id
     assert abstract == expected_abstract
     assert publication_id == ID(expected_id)
 
 
-def test_get_publication_metadata():
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "publication_id": "41345959",
+            "publication_date": "2025",
+            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
+            "authors": "Li J, Li X, Wang R, Li M, Xiao Y.",
+            "database": "Europe PMC",
+        },
+        {
+            "publication_id": "40785269",
+            "publication_date": "2025",
+            "title": "Flexibility-Aided Orientational Self-Sorting and Transformations of Bioactive "
+            "Homochiral Cuboctahedron Pd&lt;sub&gt;12&lt;/sub&gt;L&lt;sub&gt;16&lt;/sub&gt;.",
+            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
+            "Babica P, Kuta J, Marek R, Jurček O.",
+            "database": "Europe PMC",
+        },
+    ],
+)
+@pytest.mark.xfail(raises=HTTPError)
+def test_get_publication_metadata(test_data: dict):
     """Generate publication metadata for given id."""
-    publication_metadata = EuropePMC("PMC12696947").get_publications_metadata()[0]
-    assert publication_metadata.publication_id == "41345959"
-    assert publication_metadata.publication_date == "2025"
-    assert (
-        publication_metadata.title == "YAP-induced MAML1 cooperates with STAT3 "
-        "to drive hepatocellular carcinoma progression."
-    )
-    assert publication_metadata.authors == "Li J, Li X, Wang R, Li M, Xiao Y."
-    assert publication_metadata.database == "Europe PMC"
-    assert [publication_metadata.search_date.year, publication_metadata.search_date.month] == [
-        datetime.now(timezone.utc).year,
-        datetime.now(timezone.utc).month,
-    ]
+    publication_metadata = EuropePMC(test_data["publication_id"]).get_publications_metadata()[0]
+    assert publication_metadata.publication_id == test_data["publication_id"]
+    assert publication_metadata.publication_date == test_data["publication_date"]
+    assert publication_metadata.title == test_data["title"]
+    assert publication_metadata.authors == test_data["authors"]
+    assert publication_metadata.database == test_data["database"]
+    assert publication_metadata.search_date.year == datetime.now(timezone.utc).year
+    assert publication_metadata.search_date.month == datetime.now(timezone.utc).month

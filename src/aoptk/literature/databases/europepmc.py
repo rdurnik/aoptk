@@ -132,7 +132,7 @@ class EuropePMC(GetAbstract, GetPDF):
 
         if results:
             return Abstract(results[0].get("abstractText", ""), ID(publication_id))
-        return None
+        return Abstract("", ID(publication_id))
 
     def call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
         """Call the EuropePMC web api to query the search.
