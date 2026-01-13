@@ -235,7 +235,7 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     abstract = EuropePMC(query).get_abstracts()[position].text
     publication_id = EuropePMC(query).get_abstracts()[position].publication_id
     assert abstract == expected_abstract
-    assert publication_id == ID(expected_id)
+    assert publication_id == expected_id
 
 
 @pytest.mark.parametrize(
