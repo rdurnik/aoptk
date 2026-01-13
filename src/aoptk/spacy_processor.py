@@ -6,12 +6,13 @@ from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence import Sentence
 from aoptk.sentence_generator import SentenceGenerator
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 
 if TYPE_CHECKING:
     from scispacy.linking import EntityLinker
 
 
-class Spacy(FindChemical, SentenceGenerator):
+class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
     """Process text using Spacy package."""
 
     descriptive_suffixes: ClassVar[list[str]] = [
@@ -97,6 +98,22 @@ class Spacy(FindChemical, SentenceGenerator):
             s = Sentence(sent_text)
             sentences.append(s)
         return sentences
+    
+    def normalize_chemical(self, chemical: Chemical) -> Chemical:
+        """Normalize the chemical name."""
+
+        # def try_to_match_mesh_term_to_relevant_chemical(
+        #     list_of_relevant_chemicals: list[str],
+        #     relevant_chemicals: list[str],
+        #     chemical: str,
+        # ) -> None:
+        #     """Try to match MeSH terms generated from chemical name to relevant chemicals."""
+        #     if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
+        #         for term in mesh_terms:
+        #             if term in list_of_relevant_chemicals:
+        #                 relevant_chemicals.append(term)
+        #                 break
+        pass
 
     def generate_mesh_terms(self, text: str) -> list[str]:
         """Generate MeSH terms from the given text using Scispacy entity linking."""
