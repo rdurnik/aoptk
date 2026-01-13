@@ -13,11 +13,24 @@ class Chemical:
             name: The canonical name of the chemical.
         """
         self._name = name
+        self._synonyms: set[str] = set([name])
+    
+    @property
+    def synonyms(self) -> set[str]:
+        return self._synonyms
+
+    @synonyms.setter
+    def synonyms(self, value: set[str]):
+        self._synonyms = value
+        self._synonyms.add(self._name)
 
     @property
     def name(self) -> str:
         """Return the chemical's name."""
         return self._name
+
+    def similar(self, other: 'Chemical') -> bool:
+        return not self.synonyms.isdisjoint(other.synonyms)
 
     def __str__(self) -> str:
         """Return a human-friendly string for the chemical (its name)."""
