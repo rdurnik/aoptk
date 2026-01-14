@@ -8,6 +8,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
@@ -15,7 +16,7 @@ from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.utils import get_pubmed_pdf_url
 
 
-class EuropePMC(GetAbstract, GetPDF):
+class EuropePMC(GetAbstract, GetPDF, GetID):
     """Class to get PDFs from EuropePMC based on a query."""
 
     page_size = 1000
@@ -49,7 +50,7 @@ class EuropePMC(GetAbstract, GetPDF):
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
 
-        self.id_list = self.get_id_list()
+        self.id_list = self.get_id()
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
@@ -73,7 +74,7 @@ class EuropePMC(GetAbstract, GetPDF):
             if publication_metadata is not None
         ]
 
-    def get_id_list(self) -> list[str]:
+    def get_id(self) -> list[str]:
         """Get a list of publication IDs from EuropePMC based on the query."""
         cursor_mark = "*"
         id_list = []

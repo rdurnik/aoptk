@@ -2,9 +2,14 @@ from __future__ import annotations
 import os
 from datetime import datetime
 from datetime import timezone
+from typing import TYPE_CHECKING
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_id import GetID
+
+if TYPE_CHECKING:
+    from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")
@@ -19,7 +24,7 @@ class QueryTooLargeError(Exception):
         super().__init__(f"Query returned {count} results. Maximum allowed is {maximum - 1}.")
 
 
-class PubMed(GetAbstract):
+class PubMed(GetAbstract, GetID):
     """Class to get data from PubMed based on a query."""
 
     maximum_results = 10000
@@ -27,7 +32,7 @@ class PubMed(GetAbstract):
 
     def __init__(self, query: str):
         self._query = query
-        self.id_list = self.get_id_list()
+        self.id_list = self.get_id()
         self.publication_count = self.get_publication_count()
         if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
@@ -64,7 +69,7 @@ class PubMed(GetAbstract):
         handle.close()
         return int(record.get("Count", 0))
 
-    def get_id_list(self) -> list[str]:
+    def get_id(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
         handle = Entrez.esearch(db="pubmed", term=self._query, retmax=self.maximum_results)
         record = Entrez.read(handle)

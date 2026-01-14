@@ -44,9 +44,9 @@ def test_raises_query_too_large_error():
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_id_list():
-    """Get publication count returns correct number."""
-    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_id_list()
+def test_get_id():
+    """Test that get_id returns correct IDs."""
+    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_id()
     expected = ["36835489", "37913737", "37891562", "36838959"]
     assert sorted(actual) == sorted(expected)
 
