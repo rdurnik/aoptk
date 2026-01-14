@@ -1,4 +1,6 @@
 from __future__ import annotations
+from datetime import datetime
+from datetime import timezone
 from pathlib import Path
 from typing import ClassVar
 import requests
@@ -6,13 +8,15 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
+from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.utils import get_pubmed_pdf_url
 
 
-class EuropePMC(GetAbstract, GetPDF):
+class EuropePMC(GetAbstract, GetPDF, GetID):
     """Class to get PDFs from EuropePMC based on a query."""
 
     page_size = 1000
@@ -35,7 +39,6 @@ class EuropePMC(GetAbstract, GetPDF):
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
 
-        self.id_list = self.get_id_list()
         self._session = requests.Session()
         self._session.headers.update(self.headers)
         retry_strategy = Retry(
@@ -46,6 +49,8 @@ class EuropePMC(GetAbstract, GetPDF):
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
+
+        self.id_list = self.get_id()
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
@@ -59,7 +64,17 @@ class EuropePMC(GetAbstract, GetPDF):
             if abstract is not None
         ]
 
-    def get_id_list(self) -> list[str]:
+    def get_publications_metadata(self) -> list[PublicationMetadata]:
+        """Retrieve Publication metadata based on the query."""
+        return [
+            publication_metadata
+            for publication_metadata in (
+                self.get_publication_metadata(publication_id) for publication_id in self.id_list
+            )
+            if publication_metadata is not None
+        ]
+
+    def get_id(self) -> list[ID]:
         """Get a list of publication IDs from EuropePMC based on the query."""
         cursor_mark = "*"
         id_list = []
@@ -89,7 +104,7 @@ class EuropePMC(GetAbstract, GetPDF):
 
     def get_pdf(self, publication_id: str) -> PDF | None:
         """Retrieve the PDF for a given publication ID."""
-        response = requests.get(
+        response = self._session.get(
             f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
             stream=True,
             timeout=self.timeout,
@@ -118,8 +133,8 @@ class EuropePMC(GetAbstract, GetPDF):
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            return Abstract(results[0].get("abstractText", ""), ID(publication_id))
-        return None
+            return Abstract(results[0].get("abstractText", ""), publication_id=ID(publication_id))
+        return Abstract("", publication_id=ID(publication_id))
 
     def call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
         """Call the EuropePMC web api to query the search.
@@ -140,9 +155,33 @@ class EuropePMC(GetAbstract, GetPDF):
             "cursorMark": cursor_mark,
             "resultType": result_type,
         }
-        response = requests.get(url, params=params, timeout=self.timeout)
+        response = self._session.get(url, params=params, timeout=self.timeout)
         response.raise_for_status()
         return response.json()
+
+    def get_publication_metadata(self, publication_id: str) -> PublicationMetadata:
+        """Return abstract from Europe PMC for a given publication ID."""
+        cursor_mark = "*"
+
+        json_data = self.call_api(cursor_mark, "core", publication_id)
+        results = json_data.get("resultList", {}).get("result", [])
+
+        if results:
+            publication_id = results[0].get("id")
+            publication_date = results[0].get("pubYear") or "Unknown"
+            title = results[0].get("title")
+            authors = results[0].get("authorString", "")
+            database = "Europe PMC"
+            search_date = datetime.now(timezone.utc)
+            return PublicationMetadata(
+                publication_id=publication_id,
+                publication_date=publication_date,
+                title=title,
+                authors=authors,
+                database=database,
+                search_date=search_date,
+            )
+        return None
 
 
 def _get_publication_id(result: dict) -> str | None:

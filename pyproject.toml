@@ -9,7 +9,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 authors = [
-    { name = "Robin Durník", email = "rdurnik@gmail.com" }
+    { name = "Robin Durník", email = "rdurnik@gmail.com" },
+    { name = "Helge Hecht", email = "helge.hecht@recetox.muni.cz" }
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
@@ -33,7 +34,8 @@ dependencies = [
     "biopython",
     "transformers",
     "torch",
-    "openpyxl"
+    "openpyxl",
+    "click>=8.1"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
@@ -42,6 +44,10 @@ name = "aoptk"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
 version = "0.1.0"
+
+[project.scripts]
+chemical-identifier = "aoptk.application.chemical_identifier:cli"
+publication-tracker = "aoptk.application.publication_tracker:cli"
 
 [project.optional-dependencies]
 dev = [
@@ -124,7 +130,8 @@ ignore = [
     "D104", # Missing public package docstring
     "D105", # Missing docstring in magic method
     "D107", # Missing docstring in `__init__`
-    "S314", # Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents
+    "S314", # Using `xml` to parse untrusted data is known to be vulnerable to XML attacks; use `defusedxml` equivalents,
+    "TC"
 ]
 pydocstyle.convention = "google"
 

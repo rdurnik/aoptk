@@ -1,3 +1,5 @@
+from datetime import datetime
+from datetime import timezone
 from urllib.error import HTTPError
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
@@ -33,14 +35,24 @@ def test_get_publication_count():
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_too_many_results():
-    """Raises SystemExit for too many results."""
-    with pytest.raises(QueryTooLargeError):
-        PubMed("cancer").get_abstracts()
+def test_raises_query_too_large_error():
+    """QueryTooLargeError is raised  when result count >= maximum_results."""
+    with pytest.raises(QueryTooLargeError) as exc_info:
+        PubMed("cancer")
+    assert exc_info.value.count >= PubMed.maximum_results
+    assert exc_info.value.maximum == PubMed.maximum_results
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_get_id():
+    """Test that get_id returns correct IDs."""
+    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_id()
+    expected = ["36835489", "37913737", "37891562", "36838959"]
+    assert sorted(actual) == sorted(expected)
 
 
 @pytest.mark.parametrize(
-    ("query", "expected_abstract", "expected_id"),
+    ("query", "expected_abstract", "expected_id", "position"),
     [
         (
             '(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))',
@@ -63,13 +75,54 @@ def test_too_many_results():
             "effects, inducing both the apoptosis and necrosis of MCF-7 (human breast cancer "
             "cell line) and HepG2 (human liver carcinoma cell line) cancer cells.",
             "36835489",
+            3,
+        ),
+        (
+            "30493944, 29140036",
+            "",
+            "29140036",
+            1,
         ),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str):
+def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str, position: int):
     """Generate list of abstracts for given query."""
-    abstract = PubMed(query).get_abstracts()[3].text
-    publication_id = PubMed(query).get_abstracts()[3].publication_id
+    abstract = PubMed(query).get_abstracts()[position].text
+    publication_id = PubMed(query).get_abstracts()[position].publication_id
     assert abstract == expected_abstract
     assert publication_id == expected_id
+
+
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "publication_id": "41345959",
+            "publication_date": "2025",
+            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
+            "authors": "Li J, Li X, Wang R, Li M, Xiao Y",
+            "database": "PubMed",
+        },
+        {
+            "publication_id": "40785269",
+            "publication_date": "2025",
+            "title": "Flexibility-Aided Orientational Self-Sorting and "
+            "Transformations of Bioactive Homochiral Cuboctahedron Pd(12)L(16).",
+            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
+            "Babica P, Kuta J, Marek R, Jurček O",
+            "database": "PubMed",
+        },
+    ],
+)
+@pytest.mark.xfail(raises=HTTPError)
+def test_get_publication_metadata(test_data: dict):
+    """Generate publication metadata for given id."""
+    publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
+    assert publication_metadata.publication_id == test_data["publication_id"]
+    assert publication_metadata.publication_date == test_data["publication_date"]
+    assert publication_metadata.title == test_data["title"]
+    assert publication_metadata.authors == test_data["authors"]
+    assert publication_metadata.database == test_data["database"]
+    assert publication_metadata.search_date.year == datetime.now(timezone.utc).year
+    assert publication_metadata.search_date.month == datetime.now(timezone.utc).month
