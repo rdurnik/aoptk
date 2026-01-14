@@ -14,5 +14,8 @@ class PubChemSynonyms(NormalizeChemical):
         for _, row in self._synonyms.iterrows():
             heading = row.loc["heading"]
             if heading == chemical.name or chemical.name in row.loc["synonyms"]:
-                return Chemical(heading)
+                chemical.heading = heading
+                chemical.synonyms.clear()
+                chemical.synonyms.update(row.loc["synonyms"])
+                return chemical
         return chemical

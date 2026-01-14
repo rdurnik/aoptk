@@ -1,9 +1,12 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from aoptk.chemical import Chemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
+
+if TYPE_CHECKING:
+    from aoptk.chemical import Chemical
 
 
 class PubChemAPI(NormalizeChemical):
@@ -23,10 +26,16 @@ class PubChemAPI(NormalizeChemical):
         self._session.mount("https://", adapter)
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
-        """Use PubChem API to normalize chemical names."""
+        """
+        Use the PubChem API to normalize a chemical name.
+
+        This method may modify the given ``chemical`` instance in-place by
+        updating its ``heading`` attribute when a title is found in PubChem.
+        The same ``chemical`` instance that is passed in is returned.
+        """
         if title_name := self._find_title_in_pubchem(chemical.name):
-            return Chemical(name=title_name)
-        return Chemical(name=chemical.name)
+            chemical.heading = title_name
+        return chemical
 
     def _find_title_in_pubchem(self, chemical_name: str) -> str | None:
         """Find the title chemical name from PubChem."""

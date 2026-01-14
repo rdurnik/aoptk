@@ -35,4 +35,5 @@ def test_normalize_chemical_not_empty():
 )
 def test_normalize_chemical(chemical_name: str, expected: str):
     """Test normalize_chemical method with various entities."""
-    assert PubChemAPI().normalize_chemical(Chemical(chemical_name)) == expected
+    actual = PubChemAPI().normalize_chemical(Chemical(chemical_name))
+    assert actual == expected

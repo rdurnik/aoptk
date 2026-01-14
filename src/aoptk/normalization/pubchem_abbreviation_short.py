@@ -1,6 +1,9 @@
 from __future__ import annotations
-from aoptk.chemical import Chemical
+from typing import TYPE_CHECKING
 from aoptk.normalization.pubchem_api import PubChemAPI
+
+if TYPE_CHECKING:
+    from aoptk.chemical import Chemical
 
 
 class PubChemAbbreviationShort(PubChemAPI):
@@ -16,7 +19,7 @@ class PubChemAbbreviationShort(PubChemAPI):
         """Return a full-form of a chemical name if the original name is short."""
         if self.is_short(chemical.name):
             return super().normalize_chemical(chemical)
-        return Chemical(chemical.name)
+        return chemical
 
     def is_short(self, chemical: str) -> bool:
         """Check if the chemical name is short."""
