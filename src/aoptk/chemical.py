@@ -105,6 +105,20 @@ class Chemical:
         return this_name == other_name
 
     def __eq_object(self, other: object) -> bool:
+        """Private helper to compare a Chemical to a non-Chemical object.
+
+        This is called from :meth:`__eq__` when ``other`` is not a
+        :class:`Chemical`. The method compares the string representation of
+        ``other`` to this instance's heading (when present) and name.
+
+        Args:
+            other (object): Object to compare. Its ``str()`` value is used
+                for the comparison.
+
+        Returns:
+            bool: ``True`` if the string representation of ``other`` equals
+            the chemical's heading (if set) or name, ``False`` otherwise.
+        """
         heading_equal = self.heading == str(other) if self.heading else False
         name_equal = self.name == str(other)
         return heading_equal or name_equal
