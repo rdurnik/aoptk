@@ -16,7 +16,6 @@ classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -49,7 +48,7 @@ version = "0.1.1"
 chemical-identifier = "aoptk.application.chemical_identifier:cli"
 publication-tracker = "aoptk.application.publication_tracker:cli"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "build",  # build is not only used in publishing (below), but also in the template's test suite
     "bump-my-version",
