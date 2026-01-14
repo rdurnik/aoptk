@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import pytest
+from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
 from aoptk.spacy_processor import Spacy
@@ -195,3 +196,25 @@ def test_generate_mesh_terms(chemical: str, expected_mesh_terms: list[str]):
     """Test that generate_mesh_terms method generates MeSH terms."""
     actual = Spacy().generate_mesh_terms(chemical)
     assert actual == expected_mesh_terms
+
+
+@pytest.mark.parametrize(
+    ("chemical", "relevant_chemicals", "normalized_chemical"),
+    [
+        ("paracetamol", ["acetaminophen"], "acetaminophen"),
+        ("acetaminophen", ["paracetamol", "acetaminophen"], "paracetamol"),
+        ("thioacetamide", ["ethanethioamide", "thiacetamid"], "ethanethioamide"),
+        ("thioacetamide", ["carbon tetrachloride", "ethanol", "methanol"], "thioacetamide"),
+        ("thioacetamide", [], "thioacetamide"),
+        ("something_without_mesh_terms", ["acetaminophen"], "something_without_mesh_terms"),
+        (
+            "something_without_mesh_terms",
+            ["something_without_mesh_terms", "carbon tetrachloride"],
+            "something_without_mesh_terms",
+        ),
+    ],
+)
+def test_normalize_chemical(chemical: str, relevant_chemicals: list[str], normalized_chemical: str):
+    """Test that normalize_chemical method normalizes chemical names."""
+    actual = Spacy().normalize_chemical(Chemical(name=chemical), relevant_chemicals)
+    assert actual.name == normalized_chemical
