@@ -104,7 +104,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
 
     def get_pdf(self, publication_id: str) -> PDF | None:
         """Retrieve the PDF for a given publication ID."""
-        response = requests.get(
+        response = self._session.get(
             f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
             stream=True,
             timeout=self.timeout,
