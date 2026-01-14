@@ -10,6 +10,74 @@ from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.databases.pubmed import PubMed
 
 
+@click.command()
+@click.option(
+    "--read_publications_database_path",
+    type=str,
+    required=True,
+    help="Provide path to the database of read publications",
+)
+@click.option("--master_table_path", type=str, required=True, help="Provide path to the master table")
+@click.option("--search_code", type=str, required=True, help="Provide search code to track this search")
+@click.option("--email", type=str, required=False, help="Email address to follow PubMed - NCBI guidelines")
+@click.option(
+    "--query",
+    type=str,
+    required=True,
+    help="Search term for PubMed or Europe PMC",
+)
+@click.option(
+    "--literature_database",
+    type=click.Choice(["pubmed", "europepmc"]),
+    required=True,
+    help="Database to search: PubMed or Europe PMC",
+)
+def cli(
+    read_publications_database_path: str,
+    master_table_path: str,
+    email: str,
+    search_code: str,
+    query: str,
+    literature_database: str,
+) -> None:
+    """Generate publications to read and update master table search codes."""
+    database_with_ids = generate_database_with_ids(query, literature_database, email)
+
+    metadata = database_with_ids.get_publications_metadata()
+
+    metadata_df = convert_metadata_structures_to_df(
+        search_code,
+        query,
+        literature_database,
+        metadata,
+    )
+
+    generate_publications_to_read(read_publications_database_path, search_code, metadata_df)
+    update_master_table_search_codes(master_table_path, search_code, metadata_df)
+
+
+def generate_database_with_ids(query: str, literature_database: str, email: str) -> EuropePMC | PubMed | None:
+    """Generate an object with IDs from the specified literature database.
+
+    Args:
+        query (str): Search term for PubMed or Europe PMC.
+        literature_database (str): Database to search: PubMed or Europe PMC.
+        email (str): Email address to follow PubMed - NCBI guidelines.
+    """
+    if literature_database == "pubmed":
+        Entrez.email = email
+        pubmed = PubMed(query)
+        ids = pubmed.get_id()
+        pubmed.id_list = ids
+        return pubmed
+    if literature_database == "europepmc":
+        europepmc = EuropePMC(query)
+        ids = europepmc.get_id()
+        europepmc.id_list = ids
+        return europepmc
+    return None
+
+
 def convert_metadata_structures_to_df(
     search_code: str,
     query: str,
@@ -107,44 +175,3 @@ def get_column_index(header: list[str], col_name: str) -> int:
         return header.index(col_name)
     except ValueError:
         sys.exit(1)
-
-
-@click.command()
-@click.option("--database_path", type=str, required=True, help="Provide path to the database of read publications")
-@click.option("--master_table_path", type=str, required=True, help="Provide path to the master table")
-@click.option("--email", type=str, required=True, help="Email address to follow PubMed - NCBI guidelines")
-@click.option("--search_code", type=str, required=True, help="Provide search code to track this search")
-@click.option(
-    "--query",
-    type=str,
-    required=True,
-    help="Search term for PubMed or Europe PMC",
-)
-@click.option(
-    "--literature_database",
-    type=click.Choice(["pubmed", "europepmc"]),
-    required=True,
-    help="Database to search: PubMed or Europe PMC",
-)
-def cli(
-    database_path: str,
-    master_table_path: str,
-    email: str,
-    search_code: str,
-    query: str,
-    literature_database: str,
-) -> None:
-    """Generate publications to read and update master table search codes."""
-    Entrez.email = email
-    if literature_database == "europepmc":
-        publications_metadata = EuropePMC(query).get_publications_metadata()
-    elif literature_database == "pubmed":
-        publications_metadata = PubMed(query).get_publications_metadata()
-    publications_metadata_df = convert_metadata_structures_to_df(
-        search_code,
-        query,
-        literature_database,
-        publications_metadata,
-    )
-    generate_publications_to_read(database_path, search_code, publications_metadata_df)
-    update_master_table_search_codes(master_table_path, search_code, publications_metadata_df)
