@@ -2,15 +2,11 @@ from __future__ import annotations
 import os
 from datetime import datetime
 from datetime import timezone
-from typing import TYPE_CHECKING
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.id import ID
-
-if TYPE_CHECKING:
-    from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")
