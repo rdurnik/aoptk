@@ -98,7 +98,7 @@ class Chemical:
             other (Chemical): Chemical to compare.
 
         Returns:
-            bool: Ih headings are present, is true if heading matches. Otherwise use given name instead.
+            bool: If headings are present, is true if heading matches. Otherwise use given name instead.
         """
         this_name = self.heading if self.heading else self.name
         other_name = other.heading if other.heading else other.name
