@@ -31,8 +31,8 @@ def test_get_publication_data_not_empty():
     ],
 )
 def test_return_id_list(query: str, expected: list[str]):
-    """Test that get_id_list() returns expected publication IDs."""
-    actual = EuropePMC(query).get_id_list()
+    """Test that get_id() returns expected publication IDs."""
+    actual = EuropePMC(query).get_id()
     assert actual == expected
 
 
@@ -106,7 +106,7 @@ def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_
         sut = sut.abstracts_only()
     if remove_reviews:
         sut = sut.remove_reviews()
-    actual = sut.get_id_list()
+    actual = sut.get_id()
     assert actual == expected
 
 
