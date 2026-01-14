@@ -199,22 +199,16 @@ def test_generate_mesh_terms(chemical: str, expected_mesh_terms: list[str]):
 
 
 @pytest.mark.parametrize(
-    ("chemical", "relevant_chemicals", "normalized_chemical"),
+    ("chemical", "normalized_chemical"),
     [
-        ("paracetamol", ["acetaminophen"], "acetaminophen"),
-        ("acetaminophen", ["paracetamol", "acetaminophen"], "paracetamol"),
-        ("thioacetamide", ["ethanethioamide", "thiacetamid"], "ethanethioamide"),
-        ("thioacetamide", ["carbon tetrachloride", "ethanol", "methanol"], "thioacetamide"),
-        ("thioacetamide", [], "thioacetamide"),
-        ("something_without_mesh_terms", ["acetaminophen"], "something_without_mesh_terms"),
-        (
-            "something_without_mesh_terms",
-            ["something_without_mesh_terms", "carbon tetrachloride"],
-            "something_without_mesh_terms",
-        ),
+        ("paracetamol", "acetaminophen"),
+        ("acetaminophen", "paracetamol"),
+        ("thioacetamide", "ethanethioamide"),
+        ("thioacetamide", "thioacetamide"),
+        ("something_without_mesh_terms", "something_without_mesh_terms"),
     ],
 )
-def test_normalize_chemical(chemical: str, relevant_chemicals: list[str], normalized_chemical: str):
+def test_normalize_chemical(chemical: str, normalized_chemical: str):
     """Test that normalize_chemical method normalizes chemical names."""
-    actual = Spacy().normalize_chemical(Chemical(name=chemical), relevant_chemicals)
-    assert actual.name == normalized_chemical
+    actual = Spacy().normalize_chemical(Chemical(name=chemical))
+    assert actual.similar(Chemical(normalized_chemical))

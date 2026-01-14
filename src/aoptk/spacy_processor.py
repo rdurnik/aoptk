@@ -100,17 +100,15 @@ class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
             sentences.append(s)
         return sentences
 
-    def normalize_chemical(self, chemical: Chemical, relevant_chemicals: list[str]) -> Chemical:
+    def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Normalize the chemical name.
 
         Generate MeSh terms for the given chemical name and return the first relevant chemical.
         """
         if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
-            for chemical_name in relevant_chemicals:
-                if chemical_name in mesh_terms:
-                    return Chemical(name=chemical_name)
-            return Chemical(name=chemical.name)
-        return Chemical(name=chemical.name)
+            chemical.synonyms.clear()
+            chemical.synonyms.update(mesh_terms)
+        return chemical
 
     def generate_mesh_terms(self, text: str) -> list[str]:
         """Generate MeSH terms from the given text using Scispacy entity linking."""
