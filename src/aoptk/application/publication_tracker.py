@@ -100,32 +100,11 @@ def convert_metadata_structures_to_df(
     ]
 
 
-def generate_publications_to_read(database_path: str, search_code: str, publications_metadata_df: list[list]) -> None:
+def generate_publications_to_read(database_path: str, search_code: str, metadata_df: list[list]) -> None:
     """Generate publications to read based on existing database of read publications."""
     read_publications = pd.read_excel(database_path)
-    updated_read_publications = pd.concat(
-        [
-            read_publications,
-            pd.DataFrame(
-                publications_metadata_df,
-                columns=[
-                    "id",
-                    "year_publication",
-                    "authors",
-                    "title",
-                    "search_term",
-                    "search_code",
-                    "search_date",
-                    "database",
-                ],
-            ),
-        ],
-        ignore_index=True,
-    )
-    updated_read_publications.to_excel("src/aoptk/application/updated_read_publications.xlsx", index=False)
-
     existing_ids = set(read_publications["id"].dropna().astype(str))
-    to_read_data = [row for row in publications_metadata_df if str(row[0]) not in existing_ids]
+    to_read_data = [row for row in metadata_df if str(row[0]) not in existing_ids]
 
     df_to_read_data = pd.DataFrame(
         to_read_data,
@@ -137,7 +116,7 @@ def generate_publications_to_read(database_path: str, search_code: str, publicat
 def update_master_table_search_codes(
     master_table_path: str,
     search_code: str,
-    publications_metadata_df: list[list],
+    metadata_df: list[list],
 ) -> None:
     """Update master table with new search codes."""
     master_wb = load_workbook(master_table_path)
@@ -146,9 +125,9 @@ def update_master_table_search_codes(
     master_id_col = get_column_index(header, "ID")
     master_search_code = get_column_index(header, "Search code")
     master_id_map = create_map_of_ids_from_master_table(master_ws, master_id_col)
-    to_read_publications_id = [str(row[0]) for row in publications_metadata_df if row[0] is not None]
+    to_read_publications_id = [str(row[0]) for row in metadata_df if row[0] is not None]
     common_ids_to_read_publications_master = set(to_read_publications_id).intersection(master_id_map.keys())
-    for row in publications_metadata_df:
+    for row in metadata_df:
         row_id = str(row[0])
         if row_id in common_ids_to_read_publications_master:
             for excel_row_idx in master_id_map[row_id]:
