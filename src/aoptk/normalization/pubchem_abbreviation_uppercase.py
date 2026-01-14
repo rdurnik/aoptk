@@ -1,6 +1,9 @@
 from __future__ import annotations
-from aoptk.chemical import Chemical
+from typing import TYPE_CHECKING
 from aoptk.normalization.pubchem_api import PubChemAPI
+
+if TYPE_CHECKING:
+    from aoptk.chemical import Chemical
 
 
 class PubChemAbbreviationUppercase(PubChemAPI):
@@ -13,7 +16,7 @@ class PubChemAbbreviationUppercase(PubChemAPI):
         """Return a full-form of a chemical name if the original name is in uppercase."""
         if self.is_uppercase(chemical.name):
             return super().normalize_chemical(chemical)
-        return Chemical(chemical.name)
+        return chemical
 
     def is_uppercase(self, chemical: str) -> bool:
         """Check if the chemical name is uppercase."""
