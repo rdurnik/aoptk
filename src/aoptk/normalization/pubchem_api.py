@@ -1,9 +1,12 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-from aoptk.chemical import Chemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
+
+if TYPE_CHECKING:
+    from aoptk.chemical import Chemical
 
 
 class PubChemAPI(NormalizeChemical):

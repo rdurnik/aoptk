@@ -16,6 +16,6 @@ class MeshTerms(NormalizeChemical):
             if heading == chemical.name or chemical.name in row.loc["mesh_terms"]:
                 chemical.heading = heading
                 chemical.synonyms.clear()
-                chemical.synonyms.update(row.loc['mesh_terms'])
+                chemical.synonyms.update(row.loc["mesh_terms"])
                 return chemical
         return chemical

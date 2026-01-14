@@ -1,6 +1,9 @@
 from __future__ import annotations
-from aoptk.chemical import Chemical
+from typing import TYPE_CHECKING
 from aoptk.normalization.pubchem_api import PubChemAPI
+
+if TYPE_CHECKING:
+    from aoptk.chemical import Chemical
 
 
 class PubChemAbbreviationUppercase(PubChemAPI):
