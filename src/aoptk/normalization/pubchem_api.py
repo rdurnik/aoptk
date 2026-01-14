@@ -26,7 +26,13 @@ class PubChemAPI(NormalizeChemical):
         self._session.mount("https://", adapter)
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
-        """Use PubChem API to normalize chemical names."""
+        """
+        Use the PubChem API to normalize a chemical name.
+
+        This method may modify the given ``chemical`` instance in-place by
+        updating its ``heading`` attribute when a title is found in PubChem.
+        The same ``chemical`` instance that is passed in is returned.
+        """
         if title_name := self._find_title_in_pubchem(chemical.name):
             chemical.heading = title_name
         return chemical
