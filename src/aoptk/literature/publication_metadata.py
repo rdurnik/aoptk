@@ -1,12 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
-
-if __name__ == "__main__":
-    from typing import TYPE_CHECKING
-
-    if TYPE_CHECKING:
-        from datetime import datetime
-        from aoptk.literature.id import ID
+from datetime import datetime
+from aoptk.literature.id import ID
 
 
 @dataclass

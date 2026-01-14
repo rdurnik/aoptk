@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 import click
 import pandas as pd
 from Bio import Entrez
@@ -34,11 +35,18 @@ from aoptk.spacy_processor import Spacy
     default=None,
     help="Email address to follow PubMed - NCBI guidelines",
 )
+@click.option(
+    "--outdir", "-o",
+    type=str,
+    required=True,
+    help="Output directory."
+)
 def cli(
     query: str,
     literature_database: str,
     chemical_database: str,
     email: str,
+    outdir: str
 ) -> None:
     """Identify relevant chemicals in abstracts from literature databases.
 
@@ -64,7 +72,7 @@ def cli(
             set(relevant_chemicals),
         ]
 
-    export_results_as_xlsx(literature_database, result_df)
+    export_results_as_xlsx(result_df, outdir)
 
 
 def generate_database_with_ids(query: str, literature_database: str, email: str) -> EuropePMC | PubMed | None:
@@ -118,7 +126,7 @@ def match_chemicals_with_loose_equality(
     return relevant_chemicals
 
 
-def export_results_as_xlsx(literature_database: str, result_df: pd.DataFrame) -> None:
+def export_results_as_xlsx(result_df: pd.DataFrame, outdir: str) -> None:
     """Export results as Excel files.
 
     Args:
@@ -127,7 +135,7 @@ def export_results_as_xlsx(literature_database: str, result_df: pd.DataFrame) ->
     """
     chemicals_per_publication_df = result_df[result_df["chemicals"].apply(len) > 0]
     chemicals_per_publication_df.to_excel(
-        f"src/aoptk/application/{literature_database}_chemicals_per_publication.xlsx",
+        Path(outdir) / "chemicals_per_publication.xlsx",
         index=False,
     )
 
@@ -142,6 +150,6 @@ def export_results_as_xlsx(literature_database: str, result_df: pd.DataFrame) ->
         .sort_values("publication_count", ascending=False)
     )
     publications_per_chemical.to_excel(
-        f"src/aoptk/application/{literature_database}_publications_per_chemical.xlsx",
+        Path(outdir) / "publications_per_chemical.xlsx",
         index=False,
     )
