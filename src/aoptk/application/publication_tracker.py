@@ -1,8 +1,7 @@
 # ruff: noqa: PLR0913
 from __future__ import annotations
-from pathlib import Path
-import sys
 import time
+from pathlib import Path
 import click
 import pandas as pd
 from Bio import Entrez
@@ -33,21 +32,8 @@ from aoptk.literature.databases.pubmed import PubMed
     required=True,
     help="Database to search: PubMed or Europe PMC",
 )
-@click.option(
-    "--outdir", "-o",
-    type=str,
-    required=True,
-    help="Output directory."
-)
-def cli(
-    read: str,
-    master: str,
-    email: str,
-    code: str,
-    query: str,
-    database: str,
-    outdir: str
-) -> None:
+@click.option("--outdir", "-o", type=str, required=True, help="Output directory.")
+def cli(read: str, master: str, email: str, code: str, query: str, database: str, outdir: str) -> None:
     """Generate publications to read and update master table search codes."""
     if database == "pubmed":
         Entrez.email = email
@@ -55,8 +41,9 @@ def cli(
     elif database == "europepmc":
         db = EuropePMC(query)
     else:
-        raise ValueError('Unknown database.')
-    
+        msg = "Unknown database."
+        raise ValueError(msg)
+
     metadata = convert_metadata_structures_to_df(
         code,
         query,
@@ -103,7 +90,7 @@ def update_master_table_search_codes(
     master_table_path: str,
     search_code: str,
     metadata_df: pd.DataFrame,
-    outdir: str
+    outdir: str,
 ) -> None:
     """Update master table with new search codes."""
     master_wb = load_workbook(master_table_path)
@@ -112,7 +99,7 @@ def update_master_table_search_codes(
     master_id_col = header.index("ID")
     master_search_code = header.index("Search code")
     master_id_map = create_map_of_ids_from_master_table(master_ws, master_id_col)
-    to_read_publications_id = metadata_df['id'].astype(str)
+    to_read_publications_id = metadata_df["id"].astype(str)
     common_ids_to_read_publications_master = set(to_read_publications_id).intersection(master_id_map.keys())
     for row in metadata_df:
         row_id = str(row[0])

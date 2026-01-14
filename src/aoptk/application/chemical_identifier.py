@@ -35,19 +35,8 @@ from aoptk.spacy_processor import Spacy
     default=None,
     help="Email address to follow PubMed - NCBI guidelines",
 )
-@click.option(
-    "--outdir", "-o",
-    type=str,
-    required=True,
-    help="Output directory."
-)
-def cli(
-    query: str,
-    literature_database: str,
-    chemical_database: str,
-    email: str,
-    outdir: str
-) -> None:
+@click.option("--outdir", "-o", type=str, required=True, help="Output directory.")
+def cli(query: str, literature_database: str, chemical_database: str, email: str, outdir: str) -> None:
     """Identify relevant chemicals in abstracts from literature databases.
 
     Args:
@@ -55,6 +44,7 @@ def cli(
         literature_database (str): Database to search: PubMed or Europe PMC.
         chemical_database (str): Path to the user-defined chemical database in Excel.
         email (str): Email address to follow PubMed - NCBI guidelines.
+        outdir (str): Output directory.
     """
     database_with_ids = generate_database_with_ids(query, literature_database, email)
 
@@ -130,8 +120,9 @@ def export_results_as_xlsx(result_df: pd.DataFrame, outdir: str) -> None:
     """Export results as Excel files.
 
     Args:
-        literature_database (str): Database used: PubMed or Europe PMC.
         result_df (pd.DataFrame): DataFrame containing publication IDs and chemicals.
+        outdir (str): Output directory.
+
     """
     chemicals_per_publication_df = result_df[result_df["chemicals"].apply(len) > 0]
     chemicals_per_publication_df.to_excel(
