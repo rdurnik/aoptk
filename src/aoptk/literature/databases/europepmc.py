@@ -74,7 +74,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
             if publication_metadata is not None
         ]
 
-    def get_id(self) -> list[str]:
+    def get_id(self) -> list[ID]:
         """Get a list of publication IDs from EuropePMC based on the query."""
         cursor_mark = "*"
         id_list = []
