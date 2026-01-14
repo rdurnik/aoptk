@@ -13,7 +13,7 @@ class PubChemAbbreviationUppercase(PubChemAPI):
         """Return a full-form of a chemical name if the original name is in uppercase."""
         if self.is_uppercase(chemical.name):
             return super().normalize_chemical(chemical)
-        return Chemical(chemical.name)
+        return chemical
 
     def is_uppercase(self, chemical: str) -> bool:
         """Check if the chemical name is uppercase."""

@@ -14,5 +14,8 @@ class MeshTerms(NormalizeChemical):
         for _, row in self._mesh_terms.iterrows():
             heading = row.loc["heading"]
             if heading == chemical.name or chemical.name in row.loc["mesh_terms"]:
-                return Chemical(heading)
+                chemical.heading = heading
+                chemical.synonyms.clear()
+                chemical.synonyms.update(row.loc['mesh_terms'])
+                return chemical
         return chemical

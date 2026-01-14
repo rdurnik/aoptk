@@ -25,8 +25,8 @@ class PubChemAPI(NormalizeChemical):
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Use PubChem API to normalize chemical names."""
         if title_name := self._find_title_in_pubchem(chemical.name):
-            return Chemical(name=title_name)
-        return Chemical(name=chemical.name)
+            chemical.heading = title_name
+        return chemical
 
     def _find_title_in_pubchem(self, chemical_name: str) -> str | None:
         """Find the title chemical name from PubChem."""
