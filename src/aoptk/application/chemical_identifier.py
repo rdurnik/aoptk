@@ -1,79 +1,18 @@
-# ruff: noqa: PLR0913
 from __future__ import annotations
-from datetime import datetime
 import click
 import pandas as pd
 from Bio import Entrez
+from aoptk.chemical import Chemical
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.spacy_processor import Spacy
 
 
-def generate_list_of_relevant_chemicals(use_tg_gates: str, use_tox21: str, user_defined_database: str) -> list[str]:
-    """Generate a list of relevant chemicals from Excel file."""
-    list_of_relevant_chemicals = []
-    if use_tg_gates:
-        relevant_chemicals_database = pd.read_excel(use_tg_gates)
-        list_of_relevant_chemicals.extend(
-            relevant_chemicals_database["chemical_name"].astype(str).str.lower().unique().tolist(),
-        )
-    if use_tox21:
-        relevant_chemicals_database = pd.read_excel(use_tox21)
-        list_of_relevant_chemicals.extend(
-            relevant_chemicals_database["chemical_name"].astype(str).str.lower().unique().tolist(),
-        )
-    if user_defined_database:
-        relevant_chemicals_database = pd.read_excel(user_defined_database)
-        list_of_relevant_chemicals.extend(
-            relevant_chemicals_database["chemical_name"].astype(str).str.lower().unique().tolist(),
-        )
-    return list_of_relevant_chemicals
-
-
-def find_relevant_chemicals(
-    use_mesh_terms: str,
-    list_of_relevant_chemicals: list[str],
-    chemicals: list[str],
-) -> list[str]:
-    """Find chemical names that are in the list of relevant chemicals."""
-    relevant_chemicals = []
-    for chemical in chemicals:
-        if chemical.name.lower() in list_of_relevant_chemicals:
-            relevant_chemicals.append(chemical.name)
-        elif use_mesh_terms == "yes":
-            try_to_match_mesh_term_to_relevant_chemical(list_of_relevant_chemicals, relevant_chemicals, chemical)
-    return relevant_chemicals
-
-
-def try_to_match_mesh_term_to_relevant_chemical(
-    list_of_relevant_chemicals: list[str],
-    relevant_chemicals: list[str],
-    chemical: str,
-) -> None:
-    """Try to match MeSH terms generated from chemical name to relevant chemicals."""
-    if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
-        for term in mesh_terms:
-            if term in list_of_relevant_chemicals:
-                relevant_chemicals.append(term)
-                break
-
-
 @click.command()
-@click.option("--use_tg_gates", type=str, required=False, help="Use TG-GATES chemical database (yes/no)")
-@click.option("--use_tox21", type=str, required=False, help="Use Tox21 chemical database (yes/no)")
-@click.option(
-    "--user_defined_database",
-    type=str,
-    default=None,
-    required=False,
-    help="Path to the user-defined chemical database in Excel (optional)",
-)
-@click.option("--email", type=str, required=True, help="Email address to follow PubMed - NCBI guidelines")
 @click.option(
     "--query",
     type=str,
     required=True,
-    default='("liver") AND ("fibrotic" OR "fibrosis") AND ("spheroid*" OR "organoid*" OR "multicellular" OR "coculture*" OR "in vitro model") AND ("1900/01/01"[PDAT] : "2025/07/25"[PDAT])',  # noqa: E501
     help="Search term for PubMed or Europe PMC",
 )
 @click.option(
@@ -83,52 +22,118 @@ def try_to_match_mesh_term_to_relevant_chemical(
     help="Database to search: PubMed or Europe PMC",
 )
 @click.option(
-    "--use_mesh_terms",
-    type=click.Choice(["yes", "no"]),
+    "--chemical_database",
+    type=str,
     required=True,
-    help="Use MeSH terms to normalize chemical names (yes/no)",
+    help="Path to the user-defined chemical database in Excel (optional)",
+)
+@click.option(
+    "--email",
+    type=str,
+    required=False,
+    default=None,
+    help="Email address to follow PubMed - NCBI guidelines",
 )
 def cli(
-    email: str,
-    use_tg_gates: str,
-    use_tox21: str,
-    user_defined_database: str,
     query: str,
     literature_database: str,
-    use_mesh_terms: str,
+    chemical_database: str,
+    email: str,
 ) -> None:
-    """Identify relevant chemicals in abstracts from literature databases."""
-    Entrez.email = email
-    list_of_relevant_chemicals = generate_list_of_relevant_chemicals(use_tg_gates, use_tox21, user_defined_database)
-    if literature_database == "pubmed":
-        abstracts = PubMed(query).get_abstracts()
-    elif literature_database == "europepmc":
-        abstracts = EuropePMC(query).get_abstracts()
-    result_df = pd.DataFrame(columns=["publication_id", "chemicals", "relevant_chemicals"])
+    """Identify relevant chemicals in abstracts from literature databases.
+
+    Args:
+        query (str): Search term for PubMed or Europe PMC.
+        literature_database (str): Database to search: PubMed or Europe PMC.
+        chemical_database (str): Path to the user-defined chemical database in Excel.
+        email (str): Email address to follow PubMed - NCBI guidelines.
+    """
+    database_with_ids = generate_database_with_ids(query, literature_database, email)
+
+    abstracts = database_with_ids.get_abstracts()
+
+    list_of_relevant_chemicals = generate_relevant_chemicals(chemical_database)
+    result_df = pd.DataFrame(columns=["publication_id", "chemicals"])
     for abstract in abstracts:
-        publication_id = abstract.publication_id
         chemicals = Spacy().find_chemical(abstract.text)
-        chemicals = [chem.trimmed_name for chem in chemicals if chem.name]
-        relevant_chemicals = find_relevant_chemicals(use_mesh_terms, list_of_relevant_chemicals, chemicals)
+        normalized_chemicals = [Spacy().normalize_chemical(chem) for chem in chemicals]
+        relevant_chemicals = match_chemicals_with_loose_equality(list_of_relevant_chemicals, normalized_chemicals)
+
         result_df.loc[len(result_df)] = [
-            publication_id,
-            {chemical.name for chemical in chemicals},
+            abstract.publication_id.id_str,
             set(relevant_chemicals),
         ]
-    result_df.to_excel(
-        f"src/aoptk/application/{literature_database}_testing_purposes_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
+
+    export_results_as_xlsx(literature_database, result_df)
+
+
+def generate_database_with_ids(query: str, literature_database: str, email: str) -> EuropePMC | PubMed | None:
+    """Generate an object with IDs from the specified literature database.
+
+    Args:
+        query (str): Search term for PubMed or Europe PMC.
+        literature_database (str): Database to search: PubMed or Europe PMC.
+        email (str): Email address to follow PubMed - NCBI guidelines.
+    """
+    if literature_database == "pubmed":
+        Entrez.email = email
+        pubmed = PubMed(query)
+        ids = pubmed.get_id()
+        pubmed.id_list = ids
+        return pubmed
+    if literature_database == "europepmc":
+        europepmc = EuropePMC(query)
+        ids = europepmc.get_id()
+        europepmc.id_list = ids
+        return europepmc
+    return None
+
+
+def generate_relevant_chemicals(chemical_database: str) -> list[Chemical]:
+    """Generate a list of relevant chemicals from Excel file.
+
+    Args:
+        chemical_database (str): Path to the user-defined chemical database in Excel.
+    """
+    relevant_chemicals_database = pd.read_excel(chemical_database)
+    return [Chemical(name) for name in relevant_chemicals_database["chemical_name"].astype(str).str.lower().unique()]
+
+
+def match_chemicals_with_loose_equality(
+    list_of_relevant_chemicals: list[Chemical],
+    normalized_chemicals: list[Chemical],
+) -> list[str]:
+    """Match normalized chemicals with relevant chemicals using loose equality.
+
+    Args:
+        list_of_relevant_chemicals (list[Chemical]): List of relevant chemicals.
+        normalized_chemicals (list[Chemical]): List of normalized chemicals from abstracts.
+    """
+    relevant_chemicals = []
+    for chemical in normalized_chemicals:
+        for relevant_chemical in list_of_relevant_chemicals:
+            if chemical.similar(relevant_chemical):
+                relevant_chemicals.append(chemical.name)
+                break
+    return relevant_chemicals
+
+
+def export_results_as_xlsx(literature_database: str, result_df: pd.DataFrame) -> None:
+    """Export results as Excel files.
+
+    Args:
+        literature_database (str): Database used: PubMed or Europe PMC.
+        result_df (pd.DataFrame): DataFrame containing publication IDs and chemicals.
+    """
+    chemicals_per_publication_df = result_df[result_df["chemicals"].apply(len) > 0]
+    chemicals_per_publication_df.to_excel(
+        f"src/aoptk/application/{literature_database}_chemicals_per_publication.xlsx",
         index=False,
     )
 
-    output_df = result_df[result_df["relevant_chemicals"].apply(len) > 0]
-    output_df.to_excel(
-        f"src/aoptk/application/{literature_database}_identified_chemicals_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
-        index=False,
-    )
-
-    exploded_df = output_df.explode("relevant_chemicals")
-    grouped_df = (
-        exploded_df.groupby("relevant_chemicals")
+    exploded_chemicals_per_publication_df = chemicals_per_publication_df.explode("chemicals")
+    publications_per_chemical = (
+        exploded_chemicals_per_publication_df.groupby("chemicals")
         .agg(
             publication_count=("publication_id", "count"),
             publication_id=("publication_id", list),
@@ -136,8 +141,7 @@ def cli(
         .reset_index()
         .sort_values("publication_count", ascending=False)
     )
-
-    grouped_df.to_excel(
-        f"src/aoptk/application/{literature_database}_grouped_chemicals_use_mesh_terms_{use_mesh_terms}_{datetime.now(datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}.xlsx",
+    publications_per_chemical.to_excel(
+        f"src/aoptk/application/{literature_database}_publications_per_chemical.xlsx",
         index=False,
     )
