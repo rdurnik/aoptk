@@ -7,6 +7,7 @@ from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
+from aoptk.literature.id import ID
 
 if TYPE_CHECKING:
     from aoptk.literature.id import ID
@@ -49,7 +50,7 @@ class PubMed(GetAbstract, GetID):
                 pmid = str(article["MedlineCitation"]["PMID"])
                 abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
                 abstract_text = "".join(abstract_obj) if abstract_obj else ""
-                abstracts.append(Abstract(text=abstract_text, publication_id=pmid))
+                abstracts.append(Abstract(text=abstract_text, publication_id=ID(pmid)))
         return abstracts
 
     def get_publications_metadata(self) -> list[PublicationMetadata]:
@@ -84,8 +85,8 @@ class PubMed(GetAbstract, GetID):
         abstract_text = ""
         if abstract_obj := record["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]:
             abstract_text = "".join(abstract_obj)
-            return Abstract(text=abstract_text, publication_id=pmid)
-        return Abstract(text="", publication_id=pmid)
+            return Abstract(text=abstract_text, publication_id=ID(pmid))
+        return Abstract(text="", publication_id=ID(pmid))
 
     def get_publication_metadata(self, pmid: str) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
