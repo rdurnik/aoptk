@@ -14,6 +14,19 @@ def thioacetamide() -> Chemical:
     return Chemical("thioacetamide")
 
 
+@pytest.fixture
+def paracetamol() -> Chemical:
+    """Fixture to create paracetamol chemical."""
+    return Chemical("Paracetamol")
+
+
+@pytest.fixture
+def paracetamol_normalized(paracetamol: Chemical) -> Chemical:
+    """Fixture to create normalized paracetamol."""
+    paracetamol.heading = "acetaminophen"
+    return paracetamol
+
+
 def test_str(acetaminophen: Chemical):
     """Test __str__ function."""
     assert str(acetaminophen) == "acetaminophen"
@@ -25,24 +38,35 @@ def test_eq(acetaminophen: Chemical, thioacetamide: Chemical):
     assert acetaminophen == "acetaminophen"
 
 
+def test_eq_heading(acetaminophen: Chemical, paracetamol_normalized: Chemical):
+    """Test whether __eq__ respects heading and name order."""
+    assert acetaminophen == paracetamol_normalized
+
+
+def test_eq_similarity_synonyms(acetaminophen: Chemical, paracetamol: Chemical):
+    """Test that chemicals with synonym matching given name are similar but not equal."""
+    acetaminophen.synonyms.add("Paracetamol")
+    assert acetaminophen != paracetamol
+    assert acetaminophen.similar(paracetamol)
+
+
 def test_name(acetaminophen: Chemical):
     """Test name."""
     assert acetaminophen.name == "acetaminophen"
 
 
-def test_name_is_in_synonyms(acetaminophen: Chemical):
-    """ Testing if synonyms is not empty and has at least the given name. """
-    assert 'acetaminophen' in acetaminophen.synonyms
+def test_synonyms(acetaminophen: Chemical):
+    """Test if synonyms can be manipulated correctly."""
+    synonyms = {"Paracetamol", "4-Acetamidophenol", "103-90-2", "Tylenol"}
+    acetaminophen.synonyms.update(synonyms)
 
-def test_synonyms_set(acetaminophen: Chemical):
-    synonyms = set(['Paracetamol', '4-Acetamidophenol', '103-90-2', 'Tylenol'])
-    acetaminophen.synonyms = synonyms
+    assert acetaminophen.synonyms == synonyms
 
-    assert acetaminophen.synonyms == synonyms.union(['acetaminophen'])
 
 def test_similarity(acetaminophen: Chemical):
-    paracetamol = Chemical('Paracetamol')
-    assert acetaminophen.similar(paracetamol) == False
+    """Test chemical similarity."""
+    paracetamol = Chemical("Paracetamol")
+    assert not acetaminophen.similar(paracetamol)
 
-    acetaminophen.synonyms.add('Paracetamol')
+    acetaminophen.synonyms.add("Paracetamol")
     assert acetaminophen.similar(paracetamol)
