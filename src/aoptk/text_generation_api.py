@@ -13,6 +13,8 @@ from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 
 class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator):
     role: str = "user"
+    temperature: float = 0
+    top_p: float = 1
     load_dotenv()
     client: None = None
 
@@ -21,14 +23,10 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         model: str = "gpt-oss-120b",
         url: str = "https://llm.ai.e-infra.cz/v1",
         api_key: str = os.getenv("CERIT_API_KEY"),
-        temperature: float = 0,
-        top_p: float = 1,
     ):
         self.model = model
         self.url = url
         self.api_key = api_key
-        self.temperature = temperature
-        self.top_p = top_p
         if self.client is None:
             self.client = OpenAI(
                 base_url=self.url,
