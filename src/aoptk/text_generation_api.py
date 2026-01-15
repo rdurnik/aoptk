@@ -43,6 +43,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         """Classify the relationship between a chemical and an effect."""
         completion = self.client.chat.completions.create(
             model="gpt-oss-120b",
+            temperature=0,
+            top_p=1,
             messages=[
                 {
                     "role": self.role,
@@ -82,35 +84,27 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 Context:
                                 {text}
                                 """
-
                 },
             ],
         )
         if answer := completion.choices[0].message.content.strip().lower():
-            if answer == "positive":
-                return Relationship(relationship="positive", chemical=chemical, effect=effect)
-            if answer == "negative":
-                return Relationship(relationship="negative", chemical=chemical, effect=effect)
-            if answer == "inhibitory":
-                return Relationship(relationship="inhibitory", chemical=chemical, effect=effect)
-            if answer == "non-inhibitory":
-                return Relationship(relationship="non-inhibitory", chemical=chemical, effect=effect)
+            return self._select_relationship_type(answer, chemical, effect)
         return None
 
-    # write some function to get the message - it will be useful for testing purposes
-
-    # def _select_relationship_type(self, top_label: str, classes_verbalized: list[str]) -> str | None:
-    #     """Select the relationship type based on the top label."""
-    #     if answer == classes_verbalized[0]:
-    #         return "positive"
-    #     if top_label == classes_verbalized[1]:
-    #         return "negative"
-    #     return None
+    def _select_relationship_type(self, answer: str, chemical: Chemical, effect: Effect) -> Relationship | None:
+        """Select the relationship type based on the top label."""
+        if answer == "positive":
+                return Relationship(relationship="positive", chemical=chemical, effect=effect)
+        if answer == "negative":
+            return Relationship(relationship="negative", chemical=chemical, effect=effect)
+        return None
 
     def find_chemical(self, text: str) -> list[Chemical]:
         """Find chemicals in the given text."""
         completion = self.client.chat.completions.create(
             model="gpt-oss-120b",
+            temperature=0,
+            top_p=1,
             messages=[
                 {
                     "role": self.role,
@@ -141,6 +135,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     def translate_abbreviation(self, text: str) -> str:
         completion = self.client.chat.completions.create(
             model="gpt-oss-120b",
+            temperature=0,
+            top_p=1,
             messages=[
                 {
                     "role": self.role,
@@ -185,6 +181,17 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                     4. GRAMMAR:
                                     - Preserve the original meaning, tense, and sentence structure.
                                     - Only modify the expanded terms.
+
+                                    5. CHARACTER ENCODING:
+                                    - Use ONLY standard ASCII punctuation characters.
+                                    - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
+                                    - Use regular apostrophes (') NOT Unicode prime symbols (′).
+                                    
+                                    6. FORMATTING RULES:
+                                    - When expanding abbreviations in lists, maintain the original parentheses structure.
+                                    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B and expanded-C)"
+                                    - Do NOT change parentheses to commas or other punctuation.
+                                    - Preserve all original punctuation except the abbreviations being expanded.
 
                                     OUTPUT:
                                     - Return ONLY the rewritten text.
