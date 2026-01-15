@@ -3,15 +3,17 @@ import os
 from itertools import product
 from dotenv import load_dotenv
 from openai import OpenAI
+from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
-from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 
 
 class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator):
+    """Text generation API using OpenAI."""
+
     role: str = "user"
     temperature: float = 0
     top_p: float = 1
@@ -34,7 +36,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             )
 
     def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
-        """Find relationships between chemicals and effects."""
+        """Find relationships between chemicals and effects.
+
+        Args:
+            text (str): The input text.
+            chemicals (list[Chemical]): List of chemical entities.
+            effects (list[Effect]): List of effect entities.
+        """
         relationships = []
         for chemical, effect in product(chemicals, effects):
             if relationship := self._classify_relationship(text, chemical, effect):
@@ -42,7 +50,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         return relationships
 
     def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
-        """Classify the relationship between a chemical and an effect."""
+        """Classify the relationship between a chemical and an effect.
+
+        Args:
+            text (str): The input text.
+            chemical (Chemical): The chemical entity.
+            effect (Effect): The effect entity.
+        """
         completion = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
@@ -50,15 +64,16 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                   "content": f"""
+                    "content": f"""
                                 You are performing a STRICT text-based classification task.
 
                                 Rules:
                                 1. Use ONLY the information explicitly stated in the Context.
                                 2. Do NOT use biological knowledge, assumptions, or inferred relationships.
                                 3. Do NOT assume causal chains or indirect effects.
-                                4. Ignore inhibitory relationships completely. 
-                                - If the Context says the chemical inhibits or does not inhibit the effect, treat it as if no relationship exists.
+                                4. Ignore inhibitory relationships completely.
+                                - If the Context says the chemical inhibits or does not inhibit the effect,
+                                treat it as if no relationship exists.
 
                                 Effect synonyms:
                                 - Treat common synonyms or equivalent terms as the same effect.
@@ -85,24 +100,34 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
                                 Context:
                                 {text}
-                                """
+                                """,
                 },
             ],
         )
-        if answer := completion.choices[0].message.content.strip().lower():
-            return self._select_relationship_type(answer, chemical, effect)
+        if response := completion.choices[0].message.content.strip().lower():
+            return self._select_relationship_type(response, chemical, effect)
         return None
 
-    def _select_relationship_type(self, answer: str, chemical: Chemical, effect: Effect) -> Relationship | None:
-        """Select the relationship type based on the top label."""
-        if answer == "positive":
-                return Relationship(relationship="positive", chemical=chemical, effect=effect)
-        if answer == "negative":
+    def _select_relationship_type(self, response: str, chemical: Chemical, effect: Effect) -> Relationship | None:
+        """Select the relationship type based on the top label.
+
+        Args:
+            response (str): The response from the model indicating the relationship type.
+            chemical (Chemical): The chemical entity.
+            effect (Effect): The effect entity.
+        """
+        if response == "positive":
+            return Relationship(relationship="positive", chemical=chemical, effect=effect)
+        if response == "negative":
             return Relationship(relationship="negative", chemical=chemical, effect=effect)
         return None
 
     def find_chemical(self, text: str) -> list[Chemical]:
-        """Find chemicals in the given text."""
+        """Find chemicals in the given text.
+
+        Args:
+            text (str): The input text to search for chemicals.
+        """
         completion = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
@@ -111,7 +136,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 {
                     "role": self.role,
                     "content": f"""
-                                You are an entity extraction assistant. Your task is to extract chemical entities from the given text.
+                                You are an entity extraction assistant. Your task is to extract
+                                chemical entities from the given text.
 
                                 A chemical entity includes:
                                 - Full chemical names (e.g., acetaminophen, thioacetamide)
@@ -119,13 +145,15 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 - Short chemical codes commonly used in scientific writing
 
                                 Instructions:
-                                1. Only return chemical names. Do NOT include any extra text, explanations, or punctuation.
-                                2. Separate chemical names **exactly** with " ; " (space-semicolon-space). No trailing or leading separators.
+                                1. Only return chemical names. Do NOT include any extra text, explanations,
+                                or punctuation.
+                                2. Separate chemical names **exactly** with " ; " (space-semicolon-space).
+                                No trailing or leading separators.
                                 3. If the text contains no chemicals, return an empty string.
 
                                 Context:
                                 {text}
-                                """
+                                """,
                 },
             ],
         )
@@ -135,6 +163,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
 
     def translate_abbreviation(self, text: str) -> str:
+        """Translate abbreviations in the given text to their full forms.
+
+        Args:
+            text (str): The input text containing abbreviations.
+        """
         completion = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
@@ -151,7 +184,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                     SCOPE:
                                     - Expand ONLY:
                                     1) Chemical entities (chemicals, compounds, pollutants)
-                                    2) Biological effects or processes (e.g., cell activation, toxicity, fibrosis-related events)
+                                    2) Biological effects or processes (e.g., cell activation, toxicity,
+                                    fibrosis-related events)
                                     - Do NOT expand:
                                     - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
                                     - Genes or proteins unless they describe an effect
@@ -185,20 +219,24 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                     - Only modify the expanded terms.
 
                                     5. CAPITALIZATION:
-                                    - If an abbreviation appears at the start of a sentence, capitalize the first letter of its expansion.
+                                    - If an abbreviation appears at the start of a sentence, capitalize the
+                                    first letter of its expansion.
                                     - Example: "TAA was studied..." → "Thioacetamide was studied..."
-                                    - Otherwise, preserve the original capitalization style of the surrounding text.
-
+                                    - Otherwise, preserve the original capitalization style of the
+                                    surrounding text.
                                     6. CHARACTER ENCODING:
                                     - Use ONLY standard ASCII punctuation characters.
                                     - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
                                     - Use regular apostrophes (') NOT Unicode prime symbols (′).
-                                    
+
                                     7. FORMATTING RULES:
-                                    - When expanding abbreviations in lists, maintain the original parentheses structure.
-                                    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B and expanded-C)"
+                                    - When expanding abbreviations in lists, maintain the original
+                                    parentheses structure.
+                                    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
+                                    and expanded-C)"
                                     - Do NOT change parentheses to commas or other punctuation.
-                                    - Preserve all original punctuation except the abbreviations being expanded.
+                                    - Preserve all original punctuation except the abbreviations being
+                                    expanded.
 
                                     OUTPUT:
                                     - Return ONLY the rewritten text.

@@ -1,11 +1,13 @@
-from aoptk.text_generation_api import TextGenerationAPI
-from aoptk.find_chemical import FindChemical
-from aoptk.relationships.find_relationship import FindRelationships
+from __future__ import annotations
+import pytest
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
+from aoptk.find_chemical import FindChemical
+from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
-import pytest
+from aoptk.text_generation_api import TextGenerationAPI
+
 
 def test_can_create():
     """Can create ScispacyFindChemical instance."""
@@ -25,15 +27,18 @@ def test_find_chemical_not_empty():
     actual = TextGenerationAPI().find_chemical("")
     assert actual is not None
 
+
 def test_find_relationships_not_empty():
     """Test that find_relationships method returns a non-empty result."""
     actual = TextGenerationAPI().find_relationships("", chemicals=[], effects=[])
     assert actual is not None
 
+
 def test_translate_abbreviation_not_empty():
     """Test that translate_abbreviation method returns a non-empty result."""
     actual = TextGenerationAPI().translate_abbreviation("")
     assert actual is not None
+
 
 @pytest.mark.parametrize(
     ("text", "expected"),
@@ -77,14 +82,20 @@ def test_find_chemical_chemical(text: str, expected: list[str]):
     ("text", "expected"),
     [
         ("TAA was studied for its effect on liver cells.", "Thioacetamide was studied for its effect on liver cells."),
-        ("The liver MTs were exposed to a known profibrotic chemical, thioacetamide (TAA) and three representative environmental chemicals (TCDD, benzo[a]pyrene (BaP) and PCB126).", 
-         "The liver MTs were exposed to a known profibrotic chemical, thioacetamide and three representative environmental chemicals (2,3,7,8-tetrachlorodibenzo-p-dioxin, benzo[a]pyrene and 3,3',4,4',5-pentachlorobiphenyl)."),
+        (
+            "The liver MTs were exposed to a known profibrotic chemical, thioacetamide (TAA) and three representative "
+            "environmental chemicals (TCDD, benzo[a]pyrene (BaP) and PCB126).",
+            "The liver MTs were exposed to a known profibrotic chemical, thioacetamide and three representative "
+            "environmental chemicals (2,3,7,8-tetrachlorodibenzo-p-dioxin, "
+            "benzo[a]pyrene and 3,3',4,4',5-pentachlorobiphenyl).",
+        ),
     ],
 )
 def test_translate_abbreviations(text: str, expected: list[str]):
     """Test that find_chemical method finds chemicals in text."""
     actual = TextGenerationAPI().translate_abbreviation(text)
     assert actual == expected
+
 
 @pytest.mark.parametrize(
     ("text", "chemicals", "effects", "expected_relationships"),
