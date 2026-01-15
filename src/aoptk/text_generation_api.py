@@ -224,6 +224,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                     - Example: "TAA was studied..." → "Thioacetamide was studied..."
                                     - Otherwise, preserve the original capitalization style of the
                                     surrounding text.
+                                    
                                     6. CHARACTER ENCODING:
                                     - Use ONLY standard ASCII punctuation characters.
                                     - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
