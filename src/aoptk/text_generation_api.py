@@ -21,10 +21,14 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         model: str = "gpt-oss-120b",
         url: str = "https://llm.ai.e-infra.cz/v1",
         api_key: str = os.getenv("CERIT_API_KEY"),
+        temperature: float = 0,
+        top_p: float = 1,
     ):
         self.model = model
         self.url = url
         self.api_key = api_key
+        self.temperature = temperature
+        self.top_p = top_p
         if self.client is None:
             self.client = OpenAI(
                 base_url=self.url,
@@ -42,9 +46,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
         """Classify the relationship between a chemical and an effect."""
         completion = self.client.chat.completions.create(
-            model="gpt-oss-120b",
-            temperature=0,
-            top_p=1,
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
             messages=[
                 {
                     "role": self.role,
@@ -102,9 +106,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     def find_chemical(self, text: str) -> list[Chemical]:
         """Find chemicals in the given text."""
         completion = self.client.chat.completions.create(
-            model="gpt-oss-120b",
-            temperature=0,
-            top_p=1,
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
             messages=[
                 {
                     "role": self.role,
@@ -134,9 +138,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
     def translate_abbreviation(self, text: str) -> str:
         completion = self.client.chat.completions.create(
-            model="gpt-oss-120b",
-            temperature=0,
-            top_p=1,
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
             messages=[
                 {
                     "role": self.role,
@@ -182,12 +186,17 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                     - Preserve the original meaning, tense, and sentence structure.
                                     - Only modify the expanded terms.
 
-                                    5. CHARACTER ENCODING:
+                                    5. CAPITALIZATION:
+                                    - If an abbreviation appears at the start of a sentence, capitalize the first letter of its expansion.
+                                    - Example: "TAA was studied..." → "Thioacetamide was studied..."
+                                    - Otherwise, preserve the original capitalization style of the surrounding text.
+
+                                    6. CHARACTER ENCODING:
                                     - Use ONLY standard ASCII punctuation characters.
                                     - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
                                     - Use regular apostrophes (') NOT Unicode prime symbols (′).
                                     
-                                    6. FORMATTING RULES:
+                                    7. FORMATTING RULES:
                                     - When expanding abbreviations in lists, maintain the original parentheses structure.
                                     - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B and expanded-C)"
                                     - Do NOT change parentheses to commas or other punctuation.
