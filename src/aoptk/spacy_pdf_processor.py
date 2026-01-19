@@ -121,7 +121,10 @@ class SpacyPDF(GetPublication):
 
     def _parse_abstract(self, doc, publication_id: ID) -> Abstract:
         """Extract the abstract from the PDF text."""
-        return Abstract(text="", publication_id=publication_id)
+        page_layout, page_spans = doc._.pages[0] 
+        largest_span = max(page_spans, key=lambda span: len(span.text) if hasattr(span, 'text') else 0, default=None)
+        abstract_text = largest_span.text if largest_span else ""
+        return Abstract(text=abstract_text, publication_id=publication_id)
 
     def _extract_figure_descriptions(self, doc):
         return []
@@ -132,8 +135,10 @@ class SpacyPDF(GetPublication):
     def _extract_abbreviations(self, doc):
         return {}
     
-obj = SpacyPDF([PDF('src/aoptk/ANIE-64-e202513902 (1).pdf')]).get_publications()
+obj = SpacyPDF([PDF('src/aoptk/33387535.pdf')]).get_publications()
 
-for span in obj[0].full_text:
-    print("----------------------")
-    print(span)
+# for span in obj[0].full_text:
+#     print("----------------------")
+#     print(span)
+
+print(obj[0].abstract.text)
