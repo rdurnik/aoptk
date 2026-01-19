@@ -17,7 +17,7 @@ _USER_AGENT = f"{_TOOL_NAME}/{__version__} ({_PROJECT_URL}; mailto:{_CONTACT_EMA
 
 
 def is_europepmc_id(publication_id: str) -> bool:
-    """Check if the given publication ID is a EuropePMC ID."""
+    """Check if the given publication ID is an EuropePMC ID."""
     return bool(publication_id.startswith("PMC"))
 
 
