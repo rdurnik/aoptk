@@ -56,13 +56,15 @@ def _try_linkout_service(publication_id: str) -> str | None:
         linkout_response.raise_for_status()
         linkout_data = linkout_response.json()
 
-        if "records" in linkout_data and len(linkout_data["records"]) > 0:
-            record = linkout_data["records"][0]
+        records = linkout_data.get("records", [])
+        if records:
+            record = records[0]
             if "pmcid" in record:
                 pmc_from_linkout = record["pmcid"]
                 return f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={pmc_from_linkout}&blobtype=pdf"
-    except (requests.RequestException, ValueError, KeyError):
-        # If linkout service fails, return None
+    except (requests.RequestException, ValueError):
+        # If linkout service fails or returns invalid JSON, return None
+        # This is expected for articles not in PMC
         pass
     return None
 
@@ -106,15 +108,16 @@ def get_pubmed_pdf_url(publication_id: str) -> str:
     if pmc:
         return f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={pmc}&blobtype=pdf"
 
-    # If we have a DOI, try using it through doi.org
-    # Note: This may not always lead to a direct PDF, but it's a reasonable attempt
+    # If we have a DOI, try using NCBI's linkout service first
+    # The linkout service may provide a PMC ID that wasn't in the original metadata
     if doi:
-        # Use NCBI's linkout service which can resolve to publisher PDFs
         linkout_url = _try_linkout_service(publication_id)
         if linkout_url:
             return linkout_url
 
-        # As a last resort, return the DOI URL (may redirect to publisher page)
+        # As a last resort, return the DOI URL
+        # Note: This will redirect to the publisher's page, which may require subscription
+        # or institutional access. It is not guaranteed to provide direct PDF access.
         return f"https://doi.org/{doi}"
 
     # If we couldn't find any way to get the PDF, raise an error
