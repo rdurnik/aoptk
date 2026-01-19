@@ -1,5 +1,4 @@
 from __future__ import annotations
-import os
 import pytest
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
