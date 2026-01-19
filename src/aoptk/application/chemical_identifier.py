@@ -6,7 +6,7 @@ from Bio import Entrez
 from aoptk.chemical import Chemical
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.databases.pubmed import PubMed
-from aoptk.spacy_processor import Spacy
+from aoptk.spacy_text_processor import SpacyText
 
 
 @click.command()
@@ -53,8 +53,8 @@ def cli(query: str, literature_database: str, chemical_database: str, email: str
     list_of_relevant_chemicals = generate_relevant_chemicals(chemical_database)
     result_df = pd.DataFrame(columns=["publication_id", "chemicals"])
     for abstract in abstracts:
-        chemicals = Spacy().find_chemical(abstract.text)
-        normalized_chemicals = [Spacy().normalize_chemical(chem) for chem in chemicals]
+        chemicals = SpacyText().find_chemical(abstract.text)
+        normalized_chemicals = [SpacyText().normalize_chemical(chem) for chem in chemicals]
         relevant_chemicals = match_chemicals_with_loose_equality(list_of_relevant_chemicals, normalized_chemicals)
 
         result_df.loc[len(result_df)] = [

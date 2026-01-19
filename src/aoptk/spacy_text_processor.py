@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pydoc import text
 from typing import TYPE_CHECKING
 from typing import ClassVar
 import spacy
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from scispacy.linking import EntityLinker
 
 
-class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
+class SpacyText(FindChemical, SentenceGenerator, NormalizeChemical):
     """Process text using Spacy package."""
 
     descriptive_suffixes: ClassVar[list[str]] = [
@@ -37,14 +38,14 @@ class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
         """Initialize with a spaCy model."""
         self.model = model
         self.mesh_model = mesh_model
-        if model not in Spacy._models:
-            Spacy._models[model] = spacy.load(model)
-        self.nlp = Spacy._models[model]
-        if mesh_model not in Spacy._models:
-            Spacy._models[mesh_model] = spacy.load(mesh_model)
-        self.nlp_mesh = Spacy._models[mesh_model]
+        if model not in SpacyText._models:
+            SpacyText._models[model] = spacy.load(model)
+        self.nlp = SpacyText._models[model]
+        if mesh_model not in SpacyText._models:
+            SpacyText._models[mesh_model] = spacy.load(mesh_model)
+        self.nlp_mesh = SpacyText._models[mesh_model]
         if "scispacy_linker" not in self.nlp_mesh.pipe_names:
-            self.nlp_mesh.add_pipe("scispacy_linker", config=Spacy._mesh_terms_config)
+            self.nlp_mesh.add_pipe("scispacy_linker", config=SpacyText._mesh_terms_config)
 
     def find_chemical(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""
@@ -105,7 +106,7 @@ class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
 
         Generate MeSh terms for the given chemical name and return the first relevant chemical.
         """
-        if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
+        if mesh_terms := SpacyText().generate_mesh_terms(chemical.name):
             chemical.synonyms.clear()
             chemical.synonyms.update(mesh_terms)
         return chemical
