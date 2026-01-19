@@ -25,10 +25,15 @@ def _fetch_article_metadata(publication_id: str) -> ET.Element:
         "db": "pubmed",
         "id": publication_id,
         "retmode": "xml",
+        "tool": "aoptk",
+        "email": "support@aoptk.org",
+    }
+    headers = {
+        "User-Agent": "aoptk/0.1.3 (https://github.com/rdurnik/aoptk; mailto:support@aoptk.org)",
     }
 
     try:
-        response = requests.get(url, params=params, timeout=20)
+        response = requests.get(url, params=params, headers=headers, timeout=20)
         response.raise_for_status()
     except requests.RequestException as e:
         msg = f"Failed to fetch article metadata: {e}"
@@ -51,8 +56,12 @@ def _try_linkout_service(publication_id: str) -> str | None:
         str | None: EuropePMC URL if PMC ID found, None otherwise
     """
     linkout_url = f"https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids={publication_id}&format=json"
+    headers = {
+        "User-Agent": "aoptk/0.1.3 (https://github.com/rdurnik/aoptk; mailto:support@aoptk.org)",
+    }
+
     try:
-        linkout_response = requests.get(linkout_url, timeout=10)
+        linkout_response = requests.get(linkout_url, headers=headers, timeout=10)
         linkout_response.raise_for_status()
         linkout_data = linkout_response.json()
 
