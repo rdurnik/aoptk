@@ -28,7 +28,7 @@ dependencies = [
     "metapub",
     "requests",
     "scispacy",
-    "spacy>=3.0.0",
+    "spacy>=3.0.0,<3.8.0",
     "bs4",
     "biopython",
     "transformers",
@@ -41,17 +41,17 @@ keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data 
 license = {file = "LICENSE"}
 name = "aoptk"
 readme = {file = "README.md", content-type = "text/markdown"}
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 version = "0.1.1"
 
 [project.scripts]
 chemical-identifier = "aoptk.application.chemical_identifier:cli"
 publication-tracker = "aoptk.application.publication_tracker:cli"
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "build",  # build is not only used in publishing (below), but also in the template's test suite
-    "bump-my-version",
+    "bumpversion",
     "coverage [toml]",
     "pytest",
     "pytest-cov",
@@ -59,7 +59,6 @@ dev = [
     "sphinx",
     "sphinx_rtd_theme",
     "sphinx-autoapi",
-    "tox",
     "myst_parser",
     "jupyter",
     "ipykernel"
@@ -92,16 +91,6 @@ testpaths = ["tests"]
 branch = true
 source = ["src/aoptk"]
 command_line = "-m pytest"
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py38,py39,py310,py311,py312
-skip_missing_interpreters = true
-[testenv]
-commands = pytest
-extras = dev
-"""
 
 [tool.ruff]
 line-length = 120
@@ -148,7 +137,7 @@ force-single-line = true
 no-lines-before = ["future","standard-library","third-party","first-party","local-folder"]
 
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "0.1.1"
 
 [[tool.bumpversion.files]]
 filename = "src/aoptk/__init__.py"
