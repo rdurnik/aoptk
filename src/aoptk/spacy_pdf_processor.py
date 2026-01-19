@@ -127,8 +127,12 @@ class SpacyPDF(GetPublication):
         return Abstract(text=abstract_text, publication_id=publication_id)
 
     def _extract_figure_descriptions(self, doc):
-        return []
-
+        figure_descriptions = []
+        for span in doc.spans["layout"]:
+            if span.label_ == "caption":
+                figure_descriptions.append(span.text)                
+        return figure_descriptions
+    
     def _extract_tables(self, doc):
         return []
 
@@ -141,4 +145,4 @@ obj = SpacyPDF([PDF('src/aoptk/33387535.pdf')]).get_publications()
 #     print("----------------------")
 #     print(span)
 
-print(obj[0].abstract.text)
+print(obj[0].figure_descriptions)
