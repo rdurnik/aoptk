@@ -74,9 +74,6 @@ publishing = [
     "twine",
     "wheel",
 ]
-models = [
-    "en-ner-bc5cdr-md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz",
-]
 
 [project.urls]
 Repository = "https://github.com/rdurnik/aoptk"
