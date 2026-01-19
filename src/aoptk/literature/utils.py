@@ -2,6 +2,19 @@ from xml.etree import ElementTree as ET
 import requests
 from requests import HTTPError
 
+# Tool and contact information for NCBI API requests
+_TOOL_NAME = "aoptk"
+_CONTACT_EMAIL = "support@aoptk.org"
+_PROJECT_URL = "https://github.com/rdurnik/aoptk"
+
+# Try to get version from package, fallback to a default if not available
+try:
+    from aoptk import __version__
+except ImportError:
+    __version__ = "unknown"
+
+_USER_AGENT = f"{_TOOL_NAME}/{__version__} ({_PROJECT_URL}; mailto:{_CONTACT_EMAIL})"
+
 
 def is_europepmc_id(publication_id: str) -> bool:
     """Check if the given publication ID is a EuropePMC ID."""
@@ -25,11 +38,11 @@ def _fetch_article_metadata(publication_id: str) -> ET.Element:
         "db": "pubmed",
         "id": publication_id,
         "retmode": "xml",
-        "tool": "aoptk",
-        "email": "support@aoptk.org",
+        "tool": _TOOL_NAME,
+        "email": _CONTACT_EMAIL,
     }
     headers = {
-        "User-Agent": "aoptk/0.1.3 (https://github.com/rdurnik/aoptk; mailto:support@aoptk.org)",
+        "User-Agent": _USER_AGENT,
     }
 
     try:
@@ -57,7 +70,7 @@ def _try_linkout_service(publication_id: str) -> str | None:
     """
     linkout_url = f"https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?ids={publication_id}&format=json"
     headers = {
-        "User-Agent": "aoptk/0.1.3 (https://github.com/rdurnik/aoptk; mailto:support@aoptk.org)",
+        "User-Agent": _USER_AGENT,
     }
 
     try:
