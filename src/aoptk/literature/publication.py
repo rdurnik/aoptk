@@ -9,7 +9,7 @@ class Publication:
 
     id: ID
     abstract: Abstract
-    full_text: str
+    full_text: str | list[str]
     abbreviations: dict
     tables: list
     figures: list
