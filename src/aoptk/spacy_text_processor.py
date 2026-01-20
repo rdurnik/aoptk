@@ -1,5 +1,4 @@
 from __future__ import annotations
-from pydoc import text
 from typing import TYPE_CHECKING
 from typing import ClassVar
 import spacy

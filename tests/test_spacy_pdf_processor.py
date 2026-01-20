@@ -1,16 +1,16 @@
 from __future__ import annotations
-import os
-import pytest
 import shutil
 from pathlib import Path
-from aoptk.spacy_pdf_processor import SpacyPDF
-from aoptk.literature.pdf_parser import PDFParser
-from aoptk.literature.pdf import PDF
+import pandas as pd
+import pytest
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
-import pandas as pd
+from aoptk.literature.pdf import PDF
+from aoptk.literature.pdf_parser import PDFParser
+from aoptk.spacy_pdf_processor import SpacyPDF
 
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
+
 
 def test_can_create():
     """Can create SpacyPDF instance."""
@@ -25,16 +25,36 @@ def test_implements_interface_get_publication():
 
 def test_get_publications_not_empty():
     """Test that get_publications method returns a non-empty result."""
-    actual = SpacyPDF([PDF('tests/test_pdfs/test_pdf.pdf')]).get_publications()
+    actual = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()
     assert actual is not None
+
 
 @pytest.fixture(
     params=[
-        {"id": "PMC12416454", "paragraph_number": 2, "full_text": "Natural chiral hydrophobic cavities are important for many biological functions, e.g., for recognition as parts of transport proteins or for substrate-specific transformations as parts of enzymes. To understand and mimic these natural systems and their (supra)molecular mechanisms of action, the development of their artificial counterparts (e.g., cages, macrocycles) from chiral molecules is desirable. Easing such efforts, nature readily offers convenient chiral building blocks (terpenoids, amino acids, or carbohydrates) which can be utilized. Intermolecular-interaction-mediated self-assembly together with metal coordination are essential natural processes to construct such higher-order structures and can easily be adapted in the development of artificial systems."},
+        {
+            "id": "PMC12416454",
+            "paragraph_number": 2,
+            "full_text": "Natural chiral hydrophobic "
+            "cavities are important for many biological functions, e.g., for recognition as parts "
+            "of transport proteins or for substrate-specific transformations as parts of enzymes. "
+            "To understand and mimic these natural systems and their (supra)molecular mechanisms of "
+            "action, the development of their artificial counterparts (e.g., cages, macrocycles) "
+            "from chiral molecules is desirable. Easing such efforts, nature readily offers "
+            "convenient chiral building blocks (terpenoids, amino acids, or carbohydrates) "
+            "which can be utilized. Intermolecular-interaction-mediated self-assembly together "
+            "with metal coordination are essential natural processes to construct such higher-order "
+            "structures and can easily be adapted in the development of artificial systems.",
+        },
         {
             "id": "PMC12638863",
             "paragraph_number": 5,
-            "full_text": "In  our  previous  paper  we  shed  light  on  the  impact  of  cellular  respiration  altering  the  mitochondrial temperature  in  both  health  and  disease 35 .  Moreover,  recent  studies  reported  that  Warburg  effect  in  HCC affect the mitochondrial temperature 38,39 .  Hernin, we investigated the impact of this metabolic switch on the mitochondrial temperature in HCC. Cancer cells were treated with metformin to suppress glycolysis to emulate lower metabolically active cancer cells.",
+            "full_text": "In  our  previous  paper  we  shed  light  on  the  impact "
+            " of  cellular  respiration  altering  the  mitochondrial temperature  in"
+            "  both  health  and  disease 35 .  Moreover,  recent  studies  reported "
+            " that  Warburg  effect  in  HCC affect the mitochondrial temperature 38,39"
+            " .  Hernin, we investigated the impact of this metabolic switch on the "
+            "mitochondrial temperature in HCC. Cancer cells were treated with metformin"
+            " to suppress glycolysis to emulate lower metabolically active cancer cells.",
         },
     ],
 )
@@ -80,11 +100,10 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture: d
         ),
     ],
 )
-def test_is_page_header_footer(potential_footer_header, output: bool):
+def test_is_page_header_footer(potential_footer_header: str, output: bool):
     """Test identifying page headers and footers."""
-    actual = SpacyPDF([])._is_page_header_footer(text=potential_footer_header)
+    actual = SpacyPDF([])._is_page_header_footer(text=potential_footer_header)  # noqa: SLF001
     assert actual == output
-
 
 
 @pytest.mark.parametrize(
@@ -105,9 +124,9 @@ def test_is_page_header_footer(potential_footer_header, output: bool):
         ),
     ],
 )
-def test_is_formatting(potential_formatting, output: bool):
+def test_is_formatting(potential_formatting: str, output: bool):
     """Test identifying formatting artifacts."""
-    actual = SpacyPDF([])._is_formatting(text=potential_formatting)
+    actual = SpacyPDF([])._is_formatting(text=potential_formatting)  # noqa: SLF001
     assert actual == output
 
 
@@ -132,9 +151,9 @@ def test_is_formatting(potential_formatting, output: bool):
         ),
     ],
 )
-def test_contains_email(potential_email, output: bool):
+def test_contains_email(potential_email: str, output: bool):
     """Test identifying email addresses in text."""
-    actual = SpacyPDF([])._contains_email(text=potential_email)
+    actual = SpacyPDF([])._contains_email(text=potential_email)  # noqa: SLF001
     assert actual == output
 
 
@@ -163,9 +182,9 @@ def test_contains_email(potential_email, output: bool):
         ),
     ],
 )
-def test_ends_with_sentence_terminator(text_with_terminator, output: bool):
+def test_ends_with_sentence_terminator(text_with_terminator: str, output: bool):
     """Test identifying text ending with sentence terminators."""
-    actual = SpacyPDF([])._ends_with_sentence_terminator(text=text_with_terminator)
+    actual = SpacyPDF([])._ends_with_sentence_terminator(text=text_with_terminator)  # noqa: SLF001
     assert actual == output
 
 
@@ -198,9 +217,9 @@ def test_ends_with_sentence_terminator(text_with_terminator, output: bool):
         ),
     ],
 )
-def test_ends_with_year(text_with_year, output: bool):
+def test_ends_with_year(text_with_year: str, output: bool):
     """Test identifying text ending with a year."""
-    actual = SpacyPDF([])._ends_with_year(text=text_with_year)
+    actual = SpacyPDF([])._ends_with_year(text=text_with_year)  # noqa: SLF001
     assert actual == output
 
 
@@ -280,6 +299,7 @@ def test_extract_abstract_europepmc(provide_params_extract_abstract_fixture: dic
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
 
+
 def test_extract_id():
     """Test extracting publication ID from user-provided PDF."""
     actual = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()[0].id
@@ -288,28 +308,32 @@ def test_extract_id():
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
 
+
 @pytest.fixture(
     params=[
         {
             "id": "PMC12416454",
             "figure_descriptions": [
-                'Figure 1. Coordination-driven self-assembly of L into stellated '
-                'helical octahedral Pd6 L 8 and cuboctahedral Pd12 L 16 SCCs and '
-                'their transformation reactions: a) using [Pd(ACN)4](BF4)2, b) '
-                'using Pd(NO3)2. The blue asterisk denotes chiral centres of the '
-                'steroid skeleton.', 'Figure 2. NMR characterisation of Pd6 L 8 '
-                'and Pd12L16. a) 1 HNMRspectra of L , mixture of Pd6 L 8 and '
-                'Pd12 L 16 ( RM1 ), Pd6 L 8 ( RM2 3:2 ), and Pd12 L 16 ( RM2 ) '
-                'in [D6]-DMSO at 298.2 K and 700 MHz. 1 HDOSY NMR spectra of b) '
-                'Pd12 L 16 ( RM2 ) and c) Pd6 L 8 ( RM2 3:2 ) ([D6]-DMSO, 303.2 '
-                'K and 700 MHz).', 'Figure 3. Computational models and cartoon '
-                'representations. a) PdC24 L 4 building subunit, b) Pd6 L 8, c) '
-                'Pd12 L 16, and d) nomenclatures used for the triangular panel.', 
-                'Figure 4. Structural analysis of supramolecular coordination '
-                'complexes using CD spectroscopy. a) CD spectra of ligands and '
-                'their coordination complexes in methanol at 25 °C. Interpretation'
-                ' of helical structures of b) Pd6 L 8 or Pd12 L 16, and c) Pd3( '
-                'L d )6 , following the C24-C3-Pd-C3-C24 backbone.', "Figure 5. "
+                "Figure 1. Coordination-driven self-assembly of L into stellated "
+                "helical octahedral Pd6 L 8 and cuboctahedral Pd12 L 16 SCCs and "
+                "their transformation reactions: a) using [Pd(ACN)4](BF4)2, b) "
+                "using Pd(NO3)2. The blue asterisk denotes chiral centres of the "
+                "steroid skeleton.",
+                "Figure 2. NMR characterisation of Pd6 L 8 "
+                "and Pd12L16. a) 1 HNMRspectra of L , mixture of Pd6 L 8 and "
+                "Pd12 L 16 ( RM1 ), Pd6 L 8 ( RM2 3:2 ), and Pd12 L 16 ( RM2 ) "
+                "in [D6]-DMSO at 298.2 K and 700 MHz. 1 HDOSY NMR spectra of b) "
+                "Pd12 L 16 ( RM2 ) and c) Pd6 L 8 ( RM2 3:2 ) ([D6]-DMSO, 303.2 "
+                "K and 700 MHz).",
+                "Figure 3. Computational models and cartoon "
+                "representations. a) PdC24 L 4 building subunit, b) Pd6 L 8, c) "
+                "Pd12 L 16, and d) nomenclatures used for the triangular panel.",
+                "Figure 4. Structural analysis of supramolecular coordination "
+                "complexes using CD spectroscopy. a) CD spectra of ligands and "
+                "their coordination complexes in methanol at 25 °C. Interpretation"
+                " of helical structures of b) Pd6 L 8 or Pd12 L 16, and c) Pd3( "
+                "L d )6 , following the C24-C3-Pd-C3-C24 backbone.",
+                "Figure 5. "
                 "Toxicological studies of the SCCs. a) Concentration-response of "
                 "HepG2 spheroid viability (ATP content) after 8 days of exposure "
                 "to Pd(NO3)2, L , Pd6 L 8, and Pd12 L 16. The asterisk (*) "
@@ -317,7 +341,7 @@ def test_extract_id():
                 "di/uniFB00erence from the solvent control. b) Relation"
                 " of spheroid viability to palladium content measured "
                 "in spheroids. ρ represents Spearman's rank correlation"
-                " coe/uniFB03cient with a P value."
+                " coe/uniFB03cient with a P value.",
             ],
         },
     ],
@@ -332,6 +356,7 @@ def provide_params_extract_figure_descriptions(request: pytest.FixtureRequest):
     yield data
     if Path(europepmc.storage).exists():
         shutil.rmtree(europepmc.storage)
+
 
 def test_extract_figure_descriptions(provide_params_extract_figure_descriptions: dict):
     """Test extracting figure descriptions from EuropePMC PDFs."""
@@ -350,20 +375,22 @@ def test_extract_figure_descriptions(provide_params_extract_figure_descriptions:
     params=[
         {
             "id": "PMC12663392",
-            "table": pd.DataFrame({
-            "Usage": [
-                "pRR-PGRN C126f",
-                "pRR-PGRN C126r",
-                "pRR PGRN W386f",
-                "pRR PGRN W386r"
-            ],
-            "Sequence": [
-                "TCGACTGCCATCCAGTGCCCTGATAGTCAGTTCGAATGCCCGA",
-                "CTAGTCGGGCATTCGAACTGACTATCAGGGCACTGGATGGCAG",
-                "TCGACCCTGCTGCCAACTCACGTCTGGGGAGTGGGGCA",
-                "CTAGTGCCCCACTCCCCAGACGTGAGTTGGCAGCAGGG"
-            ]
-        })
+            "table": pd.DataFrame(
+                {
+                    "Usage": [
+                        "pRR-PGRN C126f",
+                        "pRR-PGRN C126r",
+                        "pRR PGRN W386f",
+                        "pRR PGRN W386r",
+                    ],
+                    "Sequence": [
+                        "TCGACTGCCATCCAGTGCCCTGATAGTCAGTTCGAATGCCCGA",
+                        "CTAGTCGGGCATTCGAACTGACTATCAGGGCACTGGATGGCAG",
+                        "TCGACCCTGCTGCCAACTCACGTCTGGGGAGTGGGGCA",
+                        "CTAGTGCCCCACTCCCCAGACGTGAGTTGGCAGCAGGG",
+                    ],
+                },
+            ),
         },
     ],
 )
@@ -378,11 +405,13 @@ def provide_params_extract_tables(request: pytest.FixtureRequest):
     if Path(europepmc.storage).exists():
         shutil.rmtree(europepmc.storage)
 
+
 def test_extract_tables(provide_params_extract_tables: dict):
     """Test extracting tables from EuropePMC PDFs."""
     actual = SpacyPDF(provide_params_extract_tables["europepmc"].pdfs()).get_publications()
     expected = provide_params_extract_tables["table"].reset_index(drop=True)
+    number_of_tables = 5
     pd.testing.assert_frame_equal(actual[0].tables[2].reset_index(drop=True), expected, check_like=True)
-    assert len(actual[0].tables) == 5
+    assert len(actual[0].tables) == number_of_tables
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)

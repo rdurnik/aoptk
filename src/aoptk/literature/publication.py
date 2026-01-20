@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
