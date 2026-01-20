@@ -136,7 +136,9 @@ class SpacyPDF(PymupdfParser, PDFParser):
         return Abstract(text=abstract_text, publication_id=publication_id)
 
     def _extract_figure_descriptions(self, doc: object) -> list[str]:
+        """Extract figure descriptions from the PDF."""
         return [span.text for span in doc.spans["layout"] if span.label_ == "caption"]
 
     def _extract_tables(self, doc: object) -> list[pd.DataFrame]:
+        """Extract tables from the PDF."""
         return [table._.data for table in doc._.tables]
