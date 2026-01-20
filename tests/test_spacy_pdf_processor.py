@@ -61,6 +61,54 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture: d
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
 
+
+@pytest.mark.parametrize(
+    ("potential_footer_header", "output"),
+    [
+        (
+            "doi.org/10.1002/anie.202513902",
+            True,
+        ),
+        (
+            "Durnik et al.",
+            True,
+        ),
+        (
+            "HepG2 cells were used in this study.",
+            False,
+        ),
+    ],
+)
+def test_is_page_header_footer(potential_footer_header, output: bool):
+    """Test identifying page headers and footers."""
+    actual = SpacyPDF([])._is_page_header_footer(text=potential_footer_header)
+    assert actual == output
+
+
+@pytest.mark.parametrize(
+    ("potential_formatting", "output"),
+    [
+        (
+            "GLYPH<c=20,font=/HTQHQB+TimesNewRomanPS-ItalicMT"
+            ">GLYPH<c=20,font=/HTQHQB+TimesNewRomanPS-ItalicMT"
+            ">GLYPH<c=19,font=/HTQHQB+TimesNewRomanPS-ItalicMT"
+            ">GLYPH<c=25,font=/HTQHQB+TimesNewRomanPS-ItalicMT"
+            ">GLYPH<c=26,font=/HTQHQB+TimesNewRomanPS-ItalicMT"
+            ">GLYPH<c=28,font=/HTQHQB+TimesNewRomanPS-ItalicMT>",
+            True,
+        ),
+        (
+            "This is normal text without any artifacts.",
+            False,
+        ),
+    ],
+)
+def test_is_formatting(potential_formatting, output: bool):
+    """Test identifying formatting artifacts."""
+    actual = SpacyPDF([])._is_formatting(text=potential_formatting)
+    assert actual == output
+
+
 @pytest.fixture(
     params=[
         {

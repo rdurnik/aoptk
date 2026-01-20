@@ -88,12 +88,11 @@ class SpacyPDF(PDFParser):
         """Check if text looks like a running page header."""
         return (
         len(text) < max_text_length
-        and any(indicator in text for indicator in running_header_indicators) or re.search(doi_pattern, text))
+        and any(indicator in text for indicator in running_header_indicators) or bool(re.search(doi_pattern, text)))
     
     def _is_formatting(self, 
                        text: str, 
-                       formatting_indicators: list[str] = ["GLYPH<c=", 
-                                                           "http",]
+                       formatting_indicators: list[str] = ["GLYPH<c="]
                         ) -> bool:
         """Check if text looks like formatting artifacts."""
         return any(indicator in text for indicator in formatting_indicators)
