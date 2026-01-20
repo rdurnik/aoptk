@@ -10,11 +10,12 @@ from aoptk.literature.id import ID
 from aoptk.literature.abstract import Abstract
 from spacy_layout import spaCyLayout
 from aoptk.literature.pdf_parser import PDFParser
+from aoptk.literature.pymupdf_parser import PymupdfParser
 import re
 
 
 
-class SpacyPDF(PDFParser):
+class SpacyPDF(PymupdfParser, PDFParser):
     """Process PDF using Spacy package."""
 
     _models: ClassVar[dict[str, object]] = {}
@@ -44,7 +45,7 @@ class SpacyPDF(PDFParser):
         abstract = self._parse_abstract(doc, publication_id)
         full_text = self._parse_full_text(doc)
         abbreviations = self._extract_abbreviations(doc)
-        figures = []  # PymupdfParser._extract_figures(pdf)
+        figures = self._extract_figures(pdf)
         figure_descriptions = self._extract_figure_descriptions(doc)
         tables = self._extract_tables(doc)
         return Publication(
@@ -137,3 +138,6 @@ class SpacyPDF(PDFParser):
 
     def _extract_abbreviations(self, doc):
         return {}
+    
+obj = SpacyPDF([PDF('src/aoptk/33387535.pdf')]).get_publications()
+print(obj[0].figure_descriptions)

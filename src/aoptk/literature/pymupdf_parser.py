@@ -258,5 +258,5 @@ class PymupdfParser(PDFParser):
             img_file.write(figure_bytes)
 
     def _figure_large_enough(self, figure_bytes: bytes) -> bool:
-        """Check if the figure is larger than 10 KB."""
-        return len(figure_bytes) > 10 * 1024
+        """Check if the figure is larger than 50 KB."""
+        return len(figure_bytes) > 50 * 1024
