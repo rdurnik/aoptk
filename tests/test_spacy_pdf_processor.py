@@ -7,17 +7,9 @@ from aoptk.spacy_pdf_processor import SpacyPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.databases.europepmc import EuropePMC
+from aoptk.literature.id import ID
 
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
-
-IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
-
-
-pytestmark = pytest.mark.skipif(
-    IN_GITHUB_ACTIONS,
-    reason="Skip in Github Actions to save energy consumption (large model download required).",
-)
-
 
 def test_can_create():
     """Can create SpacyPDF instance."""
@@ -66,5 +58,77 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture: d
         .full_text[provide_params_extract_full_text_fixture["paragraph_number"]]
     )
     assert actual == provide_params_extract_full_text_fixture["full_text"]
+    if Path(output_dir).exists():
+        shutil.rmtree(output_dir)
+
+@pytest.fixture(
+    params=[
+        {
+            "id": ID("PMC12416454"),
+            "expected_abstract": "The rational design and "
+            "selective self-assembly of ﬂexible and unsymmetric"
+            " ligands into large coordination complexes is an"
+            " eminent challenge in supramolecular coordination"
+            " chemistry. Here, we present the coordination-driven"
+            " self-assembly of natural ursodeoxycholic-bile-acid-derived"
+            " unsymmetric tris-pyridyl ligand (L) resulting in "
+            "the selective and switchable formation of chiral "
+            "stellated Pd6L8 and Pd12L16 cages. The selectivity "
+            "of the cage originates in the adaptivity and ﬂexibility "
+            "of the arms of the ligand bearing pyridyl moieties. The "
+            "interspeciﬁc transformations can be controlled by changes"
+            " in the reaction conditions. The orientational self-sorting "
+            "of L into a single constitutional isomer of each cage,"
+            " i.e., homochiral quadruple and octuple right-handed "
+            "helical species, was conﬁrmed by a combination of"
+            " molecular modelling and circular dichroism. The "
+            "cages, derived from natural amphiphilic transport "
+            "molecules, mediate the higher cellular uptake and "
+            "increase the anticancer activity of bioactive "
+            "palladium cations as determined in studies using "
+            "in vitro 3D spheroids of the human hepatic cells HepG2.",
+        },
+        {
+            "id": ID("PMC12181427"),
+            "expected_abstract": "This study explores the potential of six novel "
+            "thiophene derivative thin films (THIOs) for reducing cancer cell adhesion"
+            " and enhancing controlled drug release on inert glass substrates. Thiophene"
+            " derivatives 3a–c and 5a–c were synthesized and characterized using IR, 1H NMR,"
+            " 13C NMR, and elemental analysis before being spin-coated onto glass to form thin"
+            " films. SEM analysis and roughness measurements were used to assess their "
+            "structural and functional properties. Biological evaluations demonstrated "
+            "that the films significantly reduced HepG2 liver cancer cell adhesion "
+            "(~ 78% decrease vs. control) and enabled controlled drug release, "
+            "validated through the Korsmeyer-Peppas model (R2 > 0.99). Theoretical"
+            " studies, including in-silico target prediction, molecular docking with"
+            " JAK1 (PDB: 4E4L), and DFT calculations, provided insights into the "
+            "electronic properties and chemical reactivity of these compounds. Notably,"
+            " compound 5b exhibited the best binding energy (-7.59 kcal/mol) within the"
+            " JAK1 pocket, aligning with its observed apoptotic behavior in cell culture."
+            " DFT calculations further revealed that 5b had the lowest calculated energy"
+            " values; -4.89 eV (HOMO) and − 3.22 eV (LUMO), and the energy gap was found to"
+            " be 1.66 eV, supporting its role in JAK1 inhibition and cancer cell adhesion"
+            " reduction. These findings underscore the promise of thiophene derivatives"
+            " in biomedical applications, potentially leading to safer surgical "
+            "procedures and more effective localized drug delivery systems.",
+        },
+    ],
+)
+def provide_params_extract_abstract_fixture(request: pytest.FixtureRequest):
+    """Provide parameters for extract abstract fixture."""
+    europepmc = EuropePMC(request.param["id"])
+    data = {
+        "europepmc": europepmc,
+        "expected_abstract": request.param["expected_abstract"],
+    }
+    yield data
+    if Path(europepmc.storage).exists():
+        shutil.rmtree(europepmc.storage)
+
+
+def test_extract_abstract_europepmc(provide_params_extract_abstract_fixture: dict):
+    """Test extracting abstract from EuropePMC PDFs."""
+    actual = SpacyPDF(provide_params_extract_abstract_fixture["europepmc"].pdfs()).get_publications()[0].abstract
+    assert actual == provide_params_extract_abstract_fixture["expected_abstract"]
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
