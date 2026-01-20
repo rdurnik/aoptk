@@ -61,20 +61,12 @@ class SpacyPDF(PymupdfParser, PDFParser):
         accumulated_text = ""
 
         for span in doc.spans["layout"]:
-            if (
-                self._is_page_header_footer(span.text)
-                or self._is_formatting(accumulated_text)
-                or self._contains_email(span.text)
-                or span.label_ != "text"
-            ):
+            if self._should_skip_span(span):
                 continue
 
-            if accumulated_text:
-                accumulated_text += " " + span.text
-            else:
-                accumulated_text = span.text
+            accumulated_text = self._append_text(accumulated_text, span.text)
 
-            if self._ends_with_sentence_terminator(accumulated_text) or self._ends_with_year(accumulated_text):
+            if self._is_span_boundary(accumulated_text):
                 merged_spans.append(accumulated_text)
                 accumulated_text = ""
 
@@ -82,6 +74,23 @@ class SpacyPDF(PymupdfParser, PDFParser):
             merged_spans.append(accumulated_text)
 
         return merged_spans
+
+    def _should_skip_span(self, span: object) -> bool:
+        """Check if span should be skipped based on various criteria."""
+        return (
+            span.label_ != "text"
+            or self._is_page_header_footer(span.text)
+            or self._is_formatting(span.text)
+            or self._contains_email(span.text)
+        )
+
+    def _append_text(self, accumulated: str, new_text: str) -> str:
+        """Append new text to accumulated text with proper spacing."""
+        return f"{accumulated} {new_text}" if accumulated else new_text
+
+    def _is_span_boundary(self, text: str) -> bool:
+        """Check if text marks the end of a span."""
+        return self._ends_with_sentence_terminator(text) or self._ends_with_year(text)
 
     def _is_page_header_footer(
         self,
