@@ -9,12 +9,12 @@ from pathlib import Path
 from aoptk.literature.id import ID
 from aoptk.literature.abstract import Abstract
 from spacy_layout import spaCyLayout
-from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.pdf_parser import PDFParser
 import re
 
 
 
-class SpacyPDF(GetPublication):
+class SpacyPDF(PDFParser):
     """Process PDF using Spacy package."""
 
     _models: ClassVar[dict[str, object]] = {}
@@ -138,11 +138,3 @@ class SpacyPDF(GetPublication):
 
     def _extract_abbreviations(self, doc):
         return {}
-    
-obj = SpacyPDF([PDF('src/aoptk/33387535.pdf')]).get_publications()
-
-# for span in obj[0].full_text:
-#     print("----------------------")
-#     print(span)
-
-print(obj[0].figure_descriptions)

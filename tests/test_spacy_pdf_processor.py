@@ -4,7 +4,7 @@ import pytest
 import shutil
 from pathlib import Path
 from aoptk.spacy_pdf_processor import SpacyPDF
-from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.pdf import PDF
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
@@ -18,8 +18,8 @@ def test_can_create():
 
 
 def test_implements_interface_get_publication():
-    """SpacyPDF implements GetPublication interface."""
-    assert issubclass(SpacyPDF, GetPublication)
+    """SpacyPDF implements PDFParser interface."""
+    assert issubclass(SpacyPDF, PDFParser)
 
 
 def test_get_publications_not_empty():
@@ -29,7 +29,7 @@ def test_get_publications_not_empty():
 
 @pytest.fixture(
     params=[
-        {"id": "PMC12416454", "paragraph_number": 3, "full_text": "Natural chiral hydrophobic cavities are important for many biological functions, e.g., for recognition as parts of transport proteins or for substrate-specific transformations as parts of enzymes. To understand and mimic these natural systems and their (supra)molecular mechanisms of action, the development of their artificial counterparts (e.g., cages, macrocycles) from chiral molecules is desirable. Easing such efforts, nature readily offers convenient chiral building blocks (terpenoids, amino acids, or carbohydrates) which can be utilized. Intermolecular-interaction-mediated self-assembly together with metal coordination are essential natural processes to construct such higher-order structures and can easily be adapted in the development of artificial systems."},
+        {"id": "PMC12416454", "paragraph_number": 2, "full_text": "Natural chiral hydrophobic cavities are important for many biological functions, e.g., for recognition as parts of transport proteins or for substrate-specific transformations as parts of enzymes. To understand and mimic these natural systems and their (supra)molecular mechanisms of action, the development of their artificial counterparts (e.g., cages, macrocycles) from chiral molecules is desirable. Easing such efforts, nature readily offers convenient chiral building blocks (terpenoids, amino acids, or carbohydrates) which can be utilized. Intermolecular-interaction-mediated self-assembly together with metal coordination are essential natural processes to construct such higher-order structures and can easily be adapted in the development of artificial systems."},
         {
             "id": "PMC12638863",
             "paragraph_number": 5,
@@ -65,51 +65,55 @@ def test_extract_full_text_europepmc(provide_params_extract_full_text_fixture: d
     params=[
         {
             "id": ID("PMC12416454"),
-            "expected_abstract": "The rational design and "
-            "selective self-assembly of ﬂexible and unsymmetric"
-            " ligands into large coordination complexes is an"
-            " eminent challenge in supramolecular coordination"
-            " chemistry. Here, we present the coordination-driven"
-            " self-assembly of natural ursodeoxycholic-bile-acid-derived"
-            " unsymmetric tris-pyridyl ligand (L) resulting in "
-            "the selective and switchable formation of chiral "
-            "stellated Pd6L8 and Pd12L16 cages. The selectivity "
-            "of the cage originates in the adaptivity and ﬂexibility "
-            "of the arms of the ligand bearing pyridyl moieties. The "
-            "interspeciﬁc transformations can be controlled by changes"
+            "expected_abstract": "Abstract: The rational design and "
+            "selective self-assembly of flexible and unsymmetric ligands"
+            " into large coordination complexes is an eminent challenge "
+            "in supramolecular coordination chemistry. Here, we present "
+            "the coordination-driven self-assembly of natural "
+            "ursodeoxycholic-bile-acid-derived unsymmetric tris -pyridyl "
+            "ligand ( L ) resulting in the selective and switchable formation "
+            "of chiral stellated Pd6 L 8 and Pd12 L 16 cages. The selectivity"
+            " of the cage originates in the adaptivity and flexibility of "
+            "the arms of the ligand bearing pyridyl moieties. The "
+            "interspecific transformations can be controlled by changes"
             " in the reaction conditions. The orientational self-sorting "
-            "of L into a single constitutional isomer of each cage,"
-            " i.e., homochiral quadruple and octuple right-handed "
-            "helical species, was conﬁrmed by a combination of"
-            " molecular modelling and circular dichroism. The "
-            "cages, derived from natural amphiphilic transport "
-            "molecules, mediate the higher cellular uptake and "
-            "increase the anticancer activity of bioactive "
-            "palladium cations as determined in studies using "
-            "in vitro 3D spheroids of the human hepatic cells HepG2.",
+            "of L into a single constitutional isomer of each cage, i.e., "
+            "homochiral quadruple and octuple right-handed helical species, "
+            "was confirmed by a combination of molecular modelling and circular "
+            "dichroism. The cages, derived from natural amphiphilic "
+            "transport molecules, mediate the higher cellular uptake "
+            "and increase the anticancer activity of bioactive palladium "
+            "cations as determined in studies using in vitro 3D spheroids"
+            " of the human hepatic cells HepG2.",
         },
         {
             "id": ID("PMC12181427"),
-            "expected_abstract": "This study explores the potential of six novel "
-            "thiophene derivative thin films (THIOs) for reducing cancer cell adhesion"
-            " and enhancing controlled drug release on inert glass substrates. Thiophene"
-            " derivatives 3a–c and 5a–c were synthesized and characterized using IR, 1H NMR,"
-            " 13C NMR, and elemental analysis before being spin-coated onto glass to form thin"
-            " films. SEM analysis and roughness measurements were used to assess their "
-            "structural and functional properties. Biological evaluations demonstrated "
-            "that the films significantly reduced HepG2 liver cancer cell adhesion "
-            "(~ 78% decrease vs. control) and enabled controlled drug release, "
-            "validated through the Korsmeyer-Peppas model (R2 > 0.99). Theoretical"
-            " studies, including in-silico target prediction, molecular docking with"
-            " JAK1 (PDB: 4E4L), and DFT calculations, provided insights into the "
-            "electronic properties and chemical reactivity of these compounds. Notably,"
-            " compound 5b exhibited the best binding energy (-7.59 kcal/mol) within the"
-            " JAK1 pocket, aligning with its observed apoptotic behavior in cell culture."
-            " DFT calculations further revealed that 5b had the lowest calculated energy"
-            " values; -4.89 eV (HOMO) and − 3.22 eV (LUMO), and the energy gap was found to"
-            " be 1.66 eV, supporting its role in JAK1 inhibition and cancer cell adhesion"
-            " reduction. These findings underscore the promise of thiophene derivatives"
-            " in biomedical applications, potentially leading to safer surgical "
+            "expected_abstract": "This study explores the potential of "
+            "six novel thiophene derivative thin films (THIOs) for reducing"
+            " cancer cell adhesion and enhancing controlled drug release on"
+            " inert glass substrates. Thiophene derivatives 3a-c and 5a-c"
+            " were synthesized and characterized using IR,  1 H NMR, 13"
+            " C NMR, and elemental analysis before being spin-coated "
+            "onto glass to form thin films. SEM analysis and roughness"
+            " measurements were used to assess their structural and "
+            "functional properties. Biological evaluations demonstrated"
+            " that the films significantly reduced HepG2 liver cancer "
+            "cell adhesion (~ 78% decrease vs. control) and enabled "
+            "controlled drug release, validated through the Korsmeyer-Peppas "
+            "model (R 2 > 0.99). Theoretical studies, including "
+            "in-silico target prediction, molecular docking with "
+            "JAK1 (PDB: 4E4L), and DFT calculations, provided insights"
+            " into the electronic properties and chemical reactivity of"
+            " these compounds. Notably, compound 5b exhibited the best "
+            "binding energy (-7.59 kcal/mol) within the JAK1 pocket, "
+            "aligning with its observed apoptotic behavior in cell "
+            "culture. DFT calculations further revealed that 5b had "
+            "the lowest calculated energy values; -4.89 eV (HOMO) "
+            "and - 3.22 eV (LUMO), and the energy gap was found to "
+            "be 1.66 eV, supporting its role in JAK1 inhibition and "
+            "cancer cell adhesion reduction. These findings underscore "
+            "the promise of thiophene derivatives in biomedical "
+            "applications, potentially leading to safer surgical "
             "procedures and more effective localized drug delivery systems.",
         },
     ],
@@ -128,7 +132,7 @@ def provide_params_extract_abstract_fixture(request: pytest.FixtureRequest):
 
 def test_extract_abstract_europepmc(provide_params_extract_abstract_fixture: dict):
     """Test extracting abstract from EuropePMC PDFs."""
-    actual = SpacyPDF(provide_params_extract_abstract_fixture["europepmc"].pdfs()).get_publications()[0].abstract
+    actual = SpacyPDF(provide_params_extract_abstract_fixture["europepmc"].pdfs()).get_publications()[0].abstract.text
     assert actual == provide_params_extract_abstract_fixture["expected_abstract"]
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
@@ -146,32 +150,31 @@ def test_extract_id():
         {
             "id": "PMC12416454",
             "figure_descriptions": [
-                "Figure 1. Coordination-driven self-assembly of L into "
-                "stellated helical octahedral Pd6L8 and cuboctahedral "
-                "Pd12L16 SCCs and their transformation reactions: a) using"
-                " [Pd(ACN)4](BF4)2, b) using Pd(NO3)2. The blue asterisk"
-                " denotes chiral centres of the steroid skeleton.",
-                "Figure 2. NMR characterisation of Pd6L8 and Pd12L16. a) "
-                "1H NMR spectra of L, mixture of Pd6L8 and Pd12L16 (RM1), "
-                "Pd6L8 (RM2 3:2), and Pd12L16 (RM2) in [D6]-DMSO at 298.2 K"
-                " and 700 MHz. 1H DOSY NMR spectra of b) Pd12L16 (RM2) and "
-                "c) Pd6L8 (RM2 3:2) ([D6]-DMSO, 303.2 K and 700 MHz).",
-                "Figure 3. Computational models and cartoon representations. "
-                "a) PdC24L4 building subunit, b) Pd6L8, c) Pd12L16, and d)"
-                " nomenclatures used for the triangular panel.",
-                "Figure 4. Structural analysis of supramolecular coordination"
-                " complexes using CD spectroscopy. a) CD spectra of ligands and"
-                " their coordination complexes in methanol at 25 °C. "
-                "Interpretation of helical structures of b) Pd6L8 or "
-                "Pd12L16, and c) Pd3(Ld)6, following the C24-C3-Pd-C3-C24 backbone.",
-                "Figure 5. Toxicological studies of the SCCs. a) "
-                "Concentration-response of HepG2 spheroid viability "
-                "(ATP content) after 8 days of exposure to Pd(NO3)2, "
-                "L, Pd6L8, and Pd12L16. The asterisk (*) indicates a "
-                "statistically signiﬁcant (P < 0.05) diﬀerence from the "
-                "solvent control. b) Relation of spheroid viability to "
-                "palladium content measured in spheroids. ρ represents "
-                "Spearman’s rank correlation coeﬃcient with a P value.",
+                'Figure 1. Coordination-driven self-assembly of L into stellated '
+                'helical octahedral Pd6 L 8 and cuboctahedral Pd12 L 16 SCCs and '
+                'their transformation reactions: a) using [Pd(ACN)4](BF4)2, b) '
+                'using Pd(NO3)2. The blue asterisk denotes chiral centres of the '
+                'steroid skeleton.', 'Figure 2. NMR characterisation of Pd6 L 8 '
+                'and Pd12L16. a) 1 HNMRspectra of L , mixture of Pd6 L 8 and '
+                'Pd12 L 16 ( RM1 ), Pd6 L 8 ( RM2 3:2 ), and Pd12 L 16 ( RM2 ) '
+                'in [D6]-DMSO at 298.2 K and 700 MHz. 1 HDOSY NMR spectra of b) '
+                'Pd12 L 16 ( RM2 ) and c) Pd6 L 8 ( RM2 3:2 ) ([D6]-DMSO, 303.2 '
+                'K and 700 MHz).', 'Figure 3. Computational models and cartoon '
+                'representations. a) PdC24 L 4 building subunit, b) Pd6 L 8, c) '
+                'Pd12 L 16, and d) nomenclatures used for the triangular panel.', 
+                'Figure 4. Structural analysis of supramolecular coordination '
+                'complexes using CD spectroscopy. a) CD spectra of ligands and '
+                'their coordination complexes in methanol at 25 °C. Interpretation'
+                ' of helical structures of b) Pd6 L 8 or Pd12 L 16, and c) Pd3( '
+                'L d )6 , following the C24-C3-Pd-C3-C24 backbone.', "Figure 5. "
+                "Toxicological studies of the SCCs. a) Concentration-response of "
+                "HepG2 spheroid viability (ATP content) after 8 days of exposure "
+                "to Pd(NO3)2, L , Pd6 L 8, and Pd12 L 16. The asterisk (*) "
+                "indicates a statistically significant ( P < 0.05) "
+                "di/uniFB00erence from the solvent control. b) Relation"
+                " of spheroid viability to palladium content measured "
+                "in spheroids. ρ represents Spearman's rank correlation"
+                " coe/uniFB03cient with a P value."
             ],
         },
     ],
