@@ -11,6 +11,7 @@ from aoptk.literature.abstract import Abstract
 from spacy_layout import spaCyLayout
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.pymupdf_parser import PymupdfParser
+import pandas as pd
 import re
 
 
@@ -44,7 +45,7 @@ class SpacyPDF(PymupdfParser, PDFParser):
         publication_id = ID(Path(pdf.path).stem)
         abstract = self._parse_abstract(doc, publication_id)
         full_text = self._parse_full_text(doc)
-        abbreviations = self._extract_abbreviations(doc)
+        abbreviations = {}
         figures = self._extract_figures(pdf)
         figure_descriptions = self._extract_figure_descriptions(doc)
         tables = self._extract_tables(doc)
@@ -133,11 +134,11 @@ class SpacyPDF(PymupdfParser, PDFParser):
                 figure_descriptions.append(span.text)                
         return figure_descriptions
     
-    def _extract_tables(self, doc):
-        return []
-
-    def _extract_abbreviations(self, doc):
-        return {}
+    def _extract_tables(self, doc: object) -> list[pd.DataFrame]:
+        tables = []
+        for table in doc._.tables:
+            tables.append(table._.data)
+        return tables
     
-obj = SpacyPDF([PDF('src/aoptk/33387535.pdf')]).get_publications()
-print(obj[0].figure_descriptions)
+obj = SpacyPDF([PDF('src/aoptk/41598_2025_Article_26703.pdf')]).get_publications()
+print(obj[0].tables[2])

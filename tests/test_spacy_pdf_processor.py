@@ -8,6 +8,7 @@ from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.pdf import PDF
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
+import pandas as pd
 
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
 
@@ -341,5 +342,47 @@ def test_extract_figure_descriptions(provide_params_extract_figure_descriptions:
     )
     expected = provide_params_extract_figure_descriptions["figure_descriptions"]
     assert actual == expected
+    if Path(output_dir).exists():
+        shutil.rmtree(output_dir)
+
+
+@pytest.fixture(
+    params=[
+        {
+            "id": "PMC12663392",
+            "table": pd.DataFrame({
+            "Usage": [
+                "pRR-PGRN C126f",
+                "pRR-PGRN C126r",
+                "pRR PGRN W386f",
+                "pRR PGRN W386r"
+            ],
+            "Sequence": [
+                "TCGACTGCCATCCAGTGCCCTGATAGTCAGTTCGAATGCCCGA",
+                "CTAGTCGGGCATTCGAACTGACTATCAGGGCACTGGATGGCAG",
+                "TCGACCCTGCTGCCAACTCACGTCTGGGGAGTGGGGCA",
+                "CTAGTGCCCCACTCCCCAGACGTGAGTTGGCAGCAGGG"
+            ]
+        })
+        },
+    ],
+)
+def provide_params_extract_tables(request: pytest.FixtureRequest):
+    """Provide parameters for extract tables fixture."""
+    europepmc = EuropePMC(request.param["id"])
+    data = {
+        "europepmc": europepmc,
+        "table": request.param["table"],
+    }
+    yield data
+    if Path(europepmc.storage).exists():
+        shutil.rmtree(europepmc.storage)
+
+def test_extract_tables(provide_params_extract_tables: dict):
+    """Test extracting tables from EuropePMC PDFs."""
+    actual = SpacyPDF(provide_params_extract_tables["europepmc"].pdfs()).get_publications()
+    expected = provide_params_extract_tables["table"].reset_index(drop=True)
+    pd.testing.assert_frame_equal(actual[0].tables[2].reset_index(drop=True), expected, check_like=True)
+    assert len(actual[0].tables) == 5
     if Path(output_dir).exists():
         shutil.rmtree(output_dir)
