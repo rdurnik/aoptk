@@ -18,21 +18,20 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
 
 
 @pytest.mark.parametrize(
-    ("pubmed_id", "expected_doi"),
+    ("pubmed_id", "expected"),
     [
-        ("41107038", "10.1136/gutjnl-2025-336400"),
-        ("26733159", "10.1515/hsz-2015-0265"),
+        (
+            "41107038",
+            [
+                "https://gut.bmj.com/content/gutjnl/75/2/326.full.pdf",
+                "https://gut.bmj.com/content/75/2/326.full.pdf",
+                "https://gut.bmj.com/content/gutjnl/early/2025/10/16/gutjnl-2025-336400.full.pdf",
+            ],
+        ),
+        ("26733159", ["https://www.degruyter.com/document/doi/10.1515/hsz-2015-0265/pdf"]),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_pubmed_url(pubmed_id: str, expected_doi: str):
-    """Test get pubmed url.
-
-    This test is marked as xfail because it requires network access to NCBI APIs,
-    which may not be available in all testing environments. The function should
-    return a DOI URL in the format https://doi.org/{doi} as a fallback when
-    direct publisher PDF links are not available.
-    """
-    url = get_pubmed_pdf_url(pubmed_id)
-    # The function should return either a PMC URL or a DOI URL
-    assert url.startswith("https://europepmc.org/") or url == f"https://doi.org/{expected_doi}"
+def test_get_pubmed_url(pubmed_id: str, expected: str):
+    """Test get pubmed url. Can result in 403 HHTP Error."""
+    assert get_pubmed_pdf_url(pubmed_id) in expected

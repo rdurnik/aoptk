@@ -91,13 +91,59 @@ def _try_linkout_service(publication_id: str) -> str | None:
     return None
 
 
+def _construct_publisher_pdf_url(doi: str, _article: ET.Element) -> str | None:  # noqa: PLR0911
+    """Attempt to construct a publisher-specific PDF URL from DOI and article metadata.
+
+    Args:
+        doi: The DOI of the article
+        _article: The PubmedArticle XML element (reserved for future use)
+
+    Returns:
+        str | None: Publisher-specific PDF URL if constructable, None otherwise
+    """
+    if not doi:
+        return None
+
+    # Try De Gruyter pattern (works for many publishers)
+    if "10.1515/" in doi:
+        return f"https://www.degruyter.com/document/doi/{doi}/pdf"
+
+    # Try BMJ pattern
+    if "10.1136/" in doi:
+        # For gut.bmj.com, try the pattern with doi suffix
+        doi_suffix = doi.split("/")[-1] if "/" in doi else doi
+        return f"https://gut.bmj.com/content/gutjnl/{doi_suffix}.full.pdf"
+
+    # Try Elsevier/ScienceDirect pattern
+    if "10.1016/" in doi:
+        return f"https://www.sciencedirect.com/science/article/pii/{doi.split('/')[-1]}/pdfft"
+
+    # Try Wiley pattern
+    if "10.1002/" in doi or "10.1111/" in doi:
+        return f"https://onlinelibrary.wiley.com/doi/pdfdirect/{doi}"
+
+    # Try Springer pattern
+    if "10.1007/" in doi:
+        return f"https://link.springer.com/content/pdf/{doi}.pdf"
+
+    # Try Nature pattern
+    if "10.1038/" in doi:
+        return f"https://www.nature.com/articles/{doi.split('/')[-1]}.pdf"
+
+    # Try Oxford Academic pattern
+    if "10.1093/" in doi:
+        return f"https://academic.oup.com/pdfaccess/article/{doi}/pdf"
+
+    return None
+
+
 def get_pubmed_pdf_url(publication_id: str) -> str:
     """Get the PubMed PDF URL for a given publication ID.
 
     This function attempts to find a PDF URL for a given PubMed ID by:
     1. Fetching article metadata from NCBI E-utilities API
     2. Extracting the DOI and/or PMC ID
-    3. Attempting to construct a PDF URL from available metadata
+    3. Attempting to construct a publisher-specific PDF URL from available metadata
 
     Args:
         publication_id: The PubMed ID (PMID) to look up
@@ -130,16 +176,18 @@ def get_pubmed_pdf_url(publication_id: str) -> str:
     if pmc:
         return f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={pmc}&blobtype=pdf"
 
-    # If we have a DOI, try using NCBI's linkout service first
-    # The linkout service may provide a PMC ID that wasn't in the original metadata
-    if doi:
-        linkout_url = _try_linkout_service(publication_id)
-        if linkout_url:
-            return linkout_url
+    # Try NCBI's linkout service to find a PMC ID
+    linkout_url = _try_linkout_service(publication_id)
+    if linkout_url:
+        return linkout_url
 
-        # As a last resort, return the DOI URL
-        # Note: This will redirect to the publisher's page, which may require subscription
-        # or institutional access. It is not guaranteed to provide direct PDF access.
+    # Try to construct publisher-specific PDF URL
+    if doi:
+        publisher_url = _construct_publisher_pdf_url(doi, article)
+        if publisher_url:
+            return publisher_url
+
+        # Fallback to DOI URL as last resort
         return f"https://doi.org/{doi}"
 
     # If we couldn't find any way to get the PDF, raise an error
