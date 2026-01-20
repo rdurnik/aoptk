@@ -85,6 +85,7 @@ def test_is_page_header_footer(potential_footer_header, output: bool):
     assert actual == output
 
 
+
 @pytest.mark.parametrize(
     ("potential_formatting", "output"),
     [
@@ -106,6 +107,99 @@ def test_is_page_header_footer(potential_footer_header, output: bool):
 def test_is_formatting(potential_formatting, output: bool):
     """Test identifying formatting artifacts."""
     actual = SpacyPDF([])._is_formatting(text=potential_formatting)
+    assert actual == output
+
+
+@pytest.mark.parametrize(
+    ("potential_email", "output"),
+    [
+        (
+            "Contact us at info@example.com for more details.",
+            True,
+        ),
+        (
+            "Email: john.doe@university.edu",
+            True,
+        ),
+        (
+            "This text has no email address.",
+            False,
+        ),
+        (
+            "Not an email: user@",
+            False,
+        ),
+    ],
+)
+def test_contains_email(potential_email, output: bool):
+    """Test identifying email addresses in text."""
+    actual = SpacyPDF([])._contains_email(text=potential_email)
+    assert actual == output
+
+
+@pytest.mark.parametrize(
+    ("text_with_terminator", "output"),
+    [
+        (
+            "This is a complete sentence.",
+            True,
+        ),
+        (
+            "Is this a question?",
+            True,
+        ),
+        (
+            "What an exclamation!",
+            True,
+        ),
+        (
+            "This sentence has no terminator",
+            False,
+        ),
+        (
+            "Sentence with trailing spaces.   ",
+            True,
+        ),
+    ],
+)
+def test_ends_with_sentence_terminator(text_with_terminator, output: bool):
+    """Test identifying text ending with sentence terminators."""
+    actual = SpacyPDF([])._ends_with_sentence_terminator(text=text_with_terminator)
+    assert actual == output
+
+
+@pytest.mark.parametrize(
+    ("text_with_year", "output"),
+    [
+        (
+            "Published in 2024",
+            True,
+        ),
+        (
+            "The study was conducted in 1999",
+            True,
+        ),
+        (
+            "This has no year at the end",
+            False,
+        ),
+        (
+            "Year 2024 is in the middle of text",
+            False,
+        ),
+        (
+            "Only three digits 123",
+            False,
+        ),
+        (
+            "Year with spaces 2024   ",
+            True,
+        ),
+    ],
+)
+def test_ends_with_year(text_with_year, output: bool):
+    """Test identifying text ending with a year."""
+    actual = SpacyPDF([])._ends_with_year(text=text_with_year)
     assert actual == output
 
 
