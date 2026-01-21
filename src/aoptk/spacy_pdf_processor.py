@@ -60,6 +60,12 @@ class SpacyPDF(PymupdfParser, PDFParser):
         merged_spans = []
         accumulated_text = ""
 
+        # Different parsing for the first page
+        _, first_page_spans = doc._.pages[0]
+        for span in first_page_spans:
+            if span.label_ == "text":
+                merged_spans.append(span.text)
+
         for span in doc.spans["layout"]:
             if self._should_skip_span(span):
                 continue
