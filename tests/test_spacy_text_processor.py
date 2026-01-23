@@ -1,12 +1,11 @@
 from __future__ import annotations
-import os
 import pytest
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
 from aoptk.spacy_text_processor import SpacyText
 
-IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
+IN_GITHUB_ACTIONS = False
 
 
 pytestmark = pytest.mark.skipif(
