@@ -126,11 +126,7 @@ class SpacyPDF(PymupdfParser):
         Args:
             span (object): The text span object.
         """
-        return (
-            span.label_ != "text"
-            or self._is_page_header_footer(span.text)
-            or self._is_formatting(span.text)
-        )
+        return span.label_ != "text" or self._is_page_header_footer(span.text) or self._is_formatting(span.text)
 
     def _append_text(self, accumulated: str, new_text: str) -> str:
         """Append new text to accumulated text with proper spacing.
