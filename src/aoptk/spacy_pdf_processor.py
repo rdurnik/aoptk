@@ -8,7 +8,6 @@ from spacy_layout import spaCyLayout
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
-from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
 from aoptk.literature.pymupdf_parser import PymupdfParser
 
