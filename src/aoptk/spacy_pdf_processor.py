@@ -13,7 +13,7 @@ from aoptk.literature.publication import Publication
 from aoptk.literature.pymupdf_parser import PymupdfParser
 
 
-class SpacyPDF(PymupdfParser, PDFParser):
+class SpacyPDF(PymupdfParser):
     """Process PDF using Spacy package."""
 
     _models: ClassVar[dict[str, object]] = {}
@@ -131,7 +131,6 @@ class SpacyPDF(PymupdfParser, PDFParser):
             span.label_ != "text"
             or self._is_page_header_footer(span.text)
             or self._is_formatting(span.text)
-            or self._contains_email(span.text)
         )
 
     def _append_text(self, accumulated: str, new_text: str) -> str:
@@ -186,15 +185,6 @@ class SpacyPDF(PymupdfParser, PDFParser):
         if formatting_indicators is None:
             formatting_indicators = ["GLYPH<c="]
         return any(indicator in text for indicator in formatting_indicators)
-
-    def _contains_email(self, text: str) -> bool:
-        """Check if text contains an email address.
-
-        Args:
-            text (str): The text to check.
-        """
-        email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-        return bool(re.search(email_pattern, text))
 
     def _ends_with_sentence_terminator(
         self,

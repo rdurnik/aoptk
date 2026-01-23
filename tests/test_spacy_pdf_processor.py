@@ -6,7 +6,7 @@ import pytest
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
-from aoptk.literature.pdf_parser import PDFParser
+from aoptk.literature.pymupdf_parser import PymupdfParser
 from aoptk.spacy_pdf_processor import SpacyPDF
 
 output_dir = "/home/rdurnik/aoptk/tests/figure_storage"
@@ -18,9 +18,9 @@ def test_can_create():
     assert actual is not None
 
 
-def test_implements_interface_get_publication():
-    """SpacyPDF implements PDFParser interface."""
-    assert issubclass(SpacyPDF, PDFParser)
+def test_implements_pymupdfparser():
+    """SpacyPDF implements PymupdfParser interface."""
+    assert issubclass(SpacyPDF, PymupdfParser)
 
 
 def test_get_publications_not_empty():
@@ -128,33 +128,6 @@ def test_is_page_header_footer(potential_footer_header: str, output: bool):
 def test_is_formatting(potential_formatting: str, output: bool):
     """Test identifying formatting artifacts."""
     actual = SpacyPDF([])._is_formatting(text=potential_formatting)  # noqa: SLF001
-    assert actual == output
-
-
-@pytest.mark.parametrize(
-    ("potential_email", "output"),
-    [
-        (
-            "Contact us at info@example.com for more details.",
-            True,
-        ),
-        (
-            "Email: john.doe@university.edu",
-            True,
-        ),
-        (
-            "This text has no email address.",
-            False,
-        ),
-        (
-            "Not an email: user@",
-            False,
-        ),
-    ],
-)
-def test_contains_email(potential_email: str, output: bool):
-    """Test identifying email addresses in text."""
-    actual = SpacyPDF([])._contains_email(text=potential_email)  # noqa: SLF001
     assert actual == output
 
 
