@@ -99,10 +99,10 @@ def update_master_table_search_codes(
     master_id_col = header.index("ID")
     master_search_code = header.index("Search code")
     master_id_map = create_map_of_ids_from_master_table(master_ws, master_id_col)
-    to_read_publications_id = metadata_df["id"].astype(str)
-    common_ids_to_read_publications_master = set(to_read_publications_id).intersection(master_id_map.keys())
-    for row in metadata_df:
-        row_id = str(row[0])
+    publications_id = metadata_df["id"].astype(str)
+    common_ids_to_read_publications_master = set(publications_id).intersection(master_id_map.keys())
+    for row in metadata_df.itertuples(index=False):
+        row_id = str(row.id)
         if row_id in common_ids_to_read_publications_master:
             for excel_row_idx in master_id_map[row_id]:
                 cell = master_ws.cell(row=excel_row_idx, column=master_search_code + 1)
