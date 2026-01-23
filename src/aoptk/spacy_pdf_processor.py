@@ -57,29 +57,37 @@ class SpacyPDF(PymupdfParser, PDFParser):
         )
 
     def _parse_full_text(self, doc: object) -> list[str]:
-        merged_spans = []
-        accumulated_text = ""
+        first_page_spans = self._extract_first_page_spans(doc)
+        remaining_pages_spans = self._extract_remaining_pages_spans(doc)
 
-        # Different parsing for the first page
-        _, first_page_spans = doc._.pages[0]
-        for span in first_page_spans:
+        return first_page_spans + remaining_pages_spans
+
+    def _extract_first_page_spans(self, doc: object) -> list[str]:
+        first_page_spans = []
+        _, page_spans = doc._.pages[0]
+        for span in page_spans:
             if span.label_ == "text":
-                merged_spans.append(span.text)
+                first_page_spans.append(span.text)
+        return first_page_spans
+    
+    def _extract_remaining_pages_spans(self, doc: object) -> list[str]:
+        remaining_pages_spans = []
+        remaining_pages = doc._.pages[1:]
+        if accumulated_text := self._extract_accumulated_text_across_pages(remaining_pages_spans, remaining_pages):
+            remaining_pages_spans.append(accumulated_text)
+        return remaining_pages_spans
 
-        for span in doc.spans["layout"]:
-            if self._should_skip_span(span):
-                continue
-
-            accumulated_text = self._append_text(accumulated_text, span.text)
-
-            if self._is_span_boundary(accumulated_text):
-                merged_spans.append(accumulated_text)
-                accumulated_text = ""
-
-        if accumulated_text:
-            merged_spans.append(accumulated_text)
-
-        return merged_spans
+    def _extract_accumulated_text_across_pages(self, remaining_pages_spans, remaining_pages):
+        accumulated_text = ""
+        for _, page_spans in remaining_pages:
+            for span in page_spans:
+                if self._should_skip_span(span):
+                    continue
+                accumulated_text = self._append_text(accumulated_text, span.text)
+                if self._is_span_boundary(accumulated_text):
+                    remaining_pages_spans.append(accumulated_text)
+                    accumulated_text = ""
+        return accumulated_text
 
     def _should_skip_span(self, span: object) -> bool:
         """Check if span should be skipped based on various criteria."""
@@ -96,8 +104,8 @@ class SpacyPDF(PymupdfParser, PDFParser):
 
     def _is_span_boundary(self, text: str) -> bool:
         """Check if text marks the end of a span."""
-        return self._ends_with_sentence_terminator(text) or self._ends_with_year(text)
-
+        return self._ends_with_sentence_terminator(text) or self._has_digit_at_the_end(text)
+    
     def _is_page_header_footer(
         self,
         text: str,
@@ -134,20 +142,26 @@ class SpacyPDF(PymupdfParser, PDFParser):
     ) -> bool:
         """Check if text ends with sentence-ending punctuation."""
         if sentence_terminators is None:
-            sentence_terminators = [".", "!", "?"]
+            sentence_terminators = [".", "!", "?", "]"]
         stripped = text.rstrip()
         return stripped[-1] in sentence_terminators
-
-    def _ends_with_year(self, text: str, year_length: int = 4) -> bool:
-        """Check if text ends with a year (four-digit number)."""
+    
+    def _has_digit_at_the_end(self, text: str) -> bool:
+        """Check if text is a digit."""
         stripped = text.rstrip()
-        return len(stripped) >= year_length and stripped[-year_length:].isdigit()
+        return stripped[-1].isdigit()
 
     def _parse_abstract(self, doc: object, publication_id: ID) -> Abstract:
         """Extract the abstract from the PDF text."""
         _, page_spans = doc._.pages[0]
         largest_span = max(page_spans, key=lambda span: len(span.text) if hasattr(span, "text") else 0, default=None)
         abstract_text = largest_span.text if largest_span else ""
+        if not self._ends_with_sentence_terminator(largest_span.text):
+            rest_of_the_abstract = next(
+                (span.text for span in page_spans if span != largest_span and self._ends_with_sentence_terminator(span.text)),
+                ""
+            )
+            abstract_text += " " + rest_of_the_abstract
         return Abstract(text=abstract_text, publication_id=publication_id)
 
     def _extract_figure_descriptions(self, doc: object) -> list[str]:

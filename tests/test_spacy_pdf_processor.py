@@ -33,21 +33,22 @@ def test_get_publications_not_empty():
     params=[
         {
             "id": "PMC12416454",
-            "paragraph_number": 2,
-            "full_text": "Natural chiral hydrophobic "
-            "cavities are important for many biological functions, e.g., for recognition as parts "
-            "of transport proteins or for substrate-specific transformations as parts of enzymes. "
-            "To understand and mimic these natural systems and their (supra)molecular mechanisms of "
-            "action, the development of their artificial counterparts (e.g., cages, macrocycles) "
-            "from chiral molecules is desirable. Easing such efforts, nature readily offers "
-            "convenient chiral building blocks (terpenoids, amino acids, or carbohydrates) "
-            "which can be utilized. Intermolecular-interaction-mediated self-assembly together "
-            "with metal coordination are essential natural processes to construct such higher-order "
-            "structures and can easily be adapted in the development of artificial systems.",
+            "paragraph_number": 15,
+            "full_text": "More than three decades after the first discovery, "
+            "most of these metallo-supramolecular complexes are achiral and "
+            "symmetric. Several approaches have been employed to construct "
+            "low-symmetry, unsymmetric, or chiral coordination complexes using "
+            "unsymmetric bidentate ligands, [10] a combination of multiple "
+            "symmetric ligands (heteroleptic complexes), [11,12] or even "
+            "single-type symmetric ligands. [13-16] However, unlike natural "
+            "systems, the presence of stereogenic carbons in the structure "
+            "of ligands is rare, mostly limited to the peripheral areas of "
+            "ligands and their resulting complexes, [17] e.g., using peptides,"
+            " [18,19] pentasaccharide, [20] or short alkyl chains. [21]",
         },
         {
             "id": "PMC12638863",
-            "paragraph_number": 5,
+            "paragraph_number": 35,
             "full_text": "In  our  previous  paper  we  shed  light  on  the  impact "
             " of  cellular  respiration  altering  the  mitochondrial temperature  in"
             "  both  health  and  disease 35 .  Moreover,  recent  studies  reported "
@@ -180,6 +181,16 @@ def test_contains_email(potential_email: str, output: bool):
             "Sentence with trailing spaces.   ",
             True,
         ),
+        (
+            "A sentence but there is a reference "
+            "at the end. [12]",
+            True,
+        ),
+        (
+            "A sentence but there is a reference "
+            "at the end 12,13.",
+            True,
+        ),
     ],
 )
 def test_ends_with_sentence_terminator(text_with_terminator: str, output: bool):
@@ -187,41 +198,28 @@ def test_ends_with_sentence_terminator(text_with_terminator: str, output: bool):
     actual = SpacyPDF([])._ends_with_sentence_terminator(text=text_with_terminator)  # noqa: SLF001
     assert actual == output
 
-
 @pytest.mark.parametrize(
-    ("text_with_year", "output"),
+    ("text_with_digit", "output"),
     [
         (
             "Published in 2024",
             True,
         ),
         (
-            "The study was conducted in 1999",
-            True,
-        ),
-        (
-            "This has no year at the end",
+            "Published in 2024.",
             False,
         ),
         (
-            "Year 2024 is in the middle of text",
-            False,
-        ),
-        (
-            "Only three digits 123",
-            False,
-        ),
-        (
-            "Year with spaces 2024   ",
+            "A sentence but there is a reference "
+            "at the end. 12,13",
             True,
         ),
     ],
 )
-def test_ends_with_year(text_with_year: str, output: bool):
-    """Test identifying text ending with a year."""
-    actual = SpacyPDF([])._ends_with_year(text=text_with_year)  # noqa: SLF001
+def test_has_digit_at_the_end(text_with_digit: str, output: bool):
+    """Test identifying text ending with sentence terminators."""
+    actual = SpacyPDF([])._has_digit_at_the_end(text=text_with_digit)  # noqa: SLF001
     assert actual == output
-
 
 @pytest.fixture(
     params=[
@@ -277,6 +275,39 @@ def test_ends_with_year(text_with_year: str, output: bool):
             "the promise of thiophene derivatives in biomedical "
             "applications, potentially leading to safer surgical "
             "procedures and more effective localized drug delivery systems.",
+        },
+        {
+            "id": ID("PMC12805873"),
+            "expected_abstract": "Abstract. Liver cancer is a highly aggressive "
+            "cancer and the regulatory roles of microRNAs (miRs) in its progression "
+            "are still being explored. miR-448, which is implicated in several types "
+            "of cancer, remains to be fully characterized in liver cancer, "
+            "particularly regarding its presence in exosomes. The aim of the "
+            "present study was to examine the effects of exosomal miR-448 "
+            "(EXO-miR-448) on liver cancer cell behavior. The expression levels "
+            "of miR-448 in human liver cancer cell lines and its localization in "
+            "exosomes were analyzed using reverse transcription-quantitative PCR, "
+            "transmission electron microscopy and nanoparticle tracking analysis, "
+            "with western blotting performed to detect exosomal markers. Functional "
+            "assays were conducted to assess the effects of EXO-miR-448 on cell "
+            "proliferation, migration and invasion. The results demonstrated that"
+            " miR-448 expression was significantly downregulated in human liver "
+            "cancer cell lines (HepG2, Hep3B and SK-HEP-1) compared  with  that  "
+            "in  normal  liver  cells.  Furthermore, exosomal analysis confirmed "
+            "that miR-448 was enriched within exosomes rather than being secreted "
+            "into the supernatant. EXO-miR-448 also inhibited liver cancer cell"
+            " proliferation, migration and invasion, as demonstrated using Cell"
+            " Counting Kit-8 and Transwell assays. Bioinformatics and functional"
+            " assays further identified Ras-related protein Rab-7a (RAB7A) as a "
+            "direct downstream target of miR-448, with its overexpression rescuing "
+            "the inhibitory effects of EXO-miR-448 on cell behavior. Furthermore, "
+            "EXO-miR-448 suppressed glycolysis in liver cancer cells by targeting "
+            "RAB7A, as indicated by reduced lactate production, glucose uptake, ATP"
+            " levels and extracellular acidification rate. In conclusion, "
+            "EXO-miR-448 inhibits liver cancer cell proliferation, migration,"
+            " invasion and glycolysis by targeting RAB7A. These findings "
+            "underscore the importance of miR-448 in liver cancer biology "
+            "and support its further evaluation in future translational studies.",
         },
     ],
 )
