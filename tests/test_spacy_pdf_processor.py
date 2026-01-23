@@ -182,13 +182,11 @@ def test_contains_email(potential_email: str, output: bool):
             True,
         ),
         (
-            "A sentence but there is a reference "
-            "at the end. [12]",
+            "A sentence but there is a reference at the end. [12]",
             True,
         ),
         (
-            "A sentence but there is a reference "
-            "at the end 12,13.",
+            "A sentence but there is a reference at the end 12,13.",
             True,
         ),
     ],
@@ -197,6 +195,7 @@ def test_ends_with_sentence_terminator(text_with_terminator: str, output: bool):
     """Test identifying text ending with sentence terminators."""
     actual = SpacyPDF([])._ends_with_sentence_terminator(text=text_with_terminator)  # noqa: SLF001
     assert actual == output
+
 
 @pytest.mark.parametrize(
     ("text_with_digit", "output"),
@@ -210,8 +209,7 @@ def test_ends_with_sentence_terminator(text_with_terminator: str, output: bool):
             False,
         ),
         (
-            "A sentence but there is a reference "
-            "at the end. 12,13",
+            "A sentence but there is a reference at the end. 12,13",
             True,
         ),
     ],
@@ -220,6 +218,7 @@ def test_has_digit_at_the_end(text_with_digit: str, output: bool):
     """Test identifying text ending with sentence terminators."""
     actual = SpacyPDF([])._has_digit_at_the_end(text=text_with_digit)  # noqa: SLF001
     assert actual == output
+
 
 @pytest.fixture(
     params=[

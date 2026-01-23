@@ -57,27 +57,29 @@ class SpacyPDF(PymupdfParser, PDFParser):
         )
 
     def _parse_full_text(self, doc: object) -> list[str]:
+        """Extract the full text from the PDF."""
         first_page_spans = self._extract_first_page_spans(doc)
         remaining_pages_spans = self._extract_remaining_pages_spans(doc)
 
         return first_page_spans + remaining_pages_spans
 
     def _extract_first_page_spans(self, doc: object) -> list[str]:
-        first_page_spans = []
+        """Extract text spans from the first page of the PDF."""
         _, page_spans = doc._.pages[0]
-        for span in page_spans:
-            if span.label_ == "text":
-                first_page_spans.append(span.text)
-        return first_page_spans
-    
+        return [span.text for span in page_spans if span.label_ == "text"]
+
     def _extract_remaining_pages_spans(self, doc: object) -> list[str]:
+        """Extract text spans from the remaining pages of the PDF."""
         remaining_pages_spans = []
         remaining_pages = doc._.pages[1:]
         if accumulated_text := self._extract_accumulated_text_across_pages(remaining_pages_spans, remaining_pages):
             remaining_pages_spans.append(accumulated_text)
         return remaining_pages_spans
 
-    def _extract_accumulated_text_across_pages(self, remaining_pages_spans, remaining_pages):
+    def _extract_accumulated_text_across_pages(
+        self, remaining_pages_spans: list[object], remaining_pages: list[object]
+    ) -> str:
+        """Accumulate text across pages until a boundary is reached."""
         accumulated_text = ""
         for _, page_spans in remaining_pages:
             for span in page_spans:
@@ -105,7 +107,7 @@ class SpacyPDF(PymupdfParser, PDFParser):
     def _is_span_boundary(self, text: str) -> bool:
         """Check if text marks the end of a span."""
         return self._ends_with_sentence_terminator(text) or self._has_digit_at_the_end(text)
-    
+
     def _is_page_header_footer(
         self,
         text: str,
@@ -145,7 +147,7 @@ class SpacyPDF(PymupdfParser, PDFParser):
             sentence_terminators = [".", "!", "?", "]"]
         stripped = text.rstrip()
         return stripped[-1] in sentence_terminators
-    
+
     def _has_digit_at_the_end(self, text: str) -> bool:
         """Check if text is a digit."""
         stripped = text.rstrip()
@@ -158,8 +160,12 @@ class SpacyPDF(PymupdfParser, PDFParser):
         abstract_text = largest_span.text if largest_span else ""
         if not self._ends_with_sentence_terminator(largest_span.text):
             rest_of_the_abstract = next(
-                (span.text for span in page_spans if span != largest_span and self._ends_with_sentence_terminator(span.text)),
-                ""
+                (
+                    span.text
+                    for span in page_spans
+                    if span != largest_span and self._ends_with_sentence_terminator(span.text)
+                ),
+                "",
             )
             abstract_text += " " + rest_of_the_abstract
         return Abstract(text=abstract_text, publication_id=publication_id)
