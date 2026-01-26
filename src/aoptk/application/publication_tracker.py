@@ -51,7 +51,7 @@ def cli(read: str, master: str, email: str, code: str, query: str, database: str
         db.get_publications_metadata(),
     )
 
-    generate_publications_to_read(read, code, metadata, outdir)
+    generate_publications_to_read(read, metadata, outdir)
     update_master_table_search_codes(master, code, metadata, outdir)
 
 
@@ -78,12 +78,12 @@ def convert_metadata_structures_to_df(
     return pd.DataFrame(rows)
 
 
-def generate_publications_to_read(database_path: str, search_code: str, metadata: pd.DataFrame, outdir: str) -> None:
+def generate_publications_to_read(database_path: str, metadata: pd.DataFrame, outdir: str) -> None:
     """Generate publications to read based on existing database of read publications."""
     read_publications = pd.read_excel(database_path)
     existing_ids = read_publications["id"].dropna().astype(str)
     to_read = metadata.loc[~(metadata["id"].isin(existing_ids))]
-    to_read.to_excel(Path(outdir) / f"read_{search_code}.xlsx", index=False)
+    to_read.to_excel(Path(outdir) / "to_read.xlsx", index=False)
 
 
 def update_master_table_search_codes(
