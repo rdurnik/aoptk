@@ -51,7 +51,7 @@ def cli(read: str, master: str, email: str, code: str, query: str, database: str
         db.get_publications_metadata(),
     )
 
-    generate_publications_to_read(read, code, metadata, outdir)
+    generate_publications_to_read(read, metadata, outdir)
     update_master_table_search_codes(master, code, metadata, outdir)
 
 
