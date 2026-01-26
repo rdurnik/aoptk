@@ -83,7 +83,7 @@ def generate_publications_to_read(database_path: str, metadata: pd.DataFrame, ou
     read_publications = pd.read_excel(database_path)
     existing_ids = read_publications["id"].dropna().astype(str)
     to_read = metadata.loc[~(metadata["id"].isin(existing_ids))]
-    to_read.to_excel(Path(outdir) / f"to_read.xlsx", index=False)
+    to_read.to_excel(Path(outdir) / "to_read.xlsx", index=False)
 
 
 def update_master_table_search_codes(
