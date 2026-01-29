@@ -1,13 +1,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import ClassVar
-import spacy
 from scispacy.linking import EntityLinker
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.sentence import Sentence
 from aoptk.sentence_generator import SentenceGenerator
+from aoptk.spacy_models import SpacyModels
 
 if TYPE_CHECKING:
     from scispacy.linking import EntityLinker
@@ -30,21 +30,16 @@ class SpacyText(FindChemical, SentenceGenerator, NormalizeChemical):
         "based",
     ]
 
-    _models: ClassVar[dict[str, object]] = {}
     _mesh_terms_config: ClassVar[dict[str, bool | str]] = {"resolve_abbreviations": True, "linker_name": "mesh"}
 
     def __init__(self, model: str = "en_ner_bc5cdr_md", mesh_model: str = "en_ner_bc5cdr_md"):
         """Initialize with a spaCy model."""
         self.model = model
         self.mesh_model = mesh_model
-        if model not in SpacyText._models:
-            SpacyText._models[model] = spacy.load(model)
-        self.nlp = SpacyText._models[model]
-        if mesh_model not in SpacyText._models:
-            SpacyText._models[mesh_model] = spacy.load(mesh_model)
-        self.nlp_mesh = SpacyText._models[mesh_model]
-        if "scispacy_linker" not in self.nlp_mesh.pipe_names:
-            self.nlp_mesh.add_pipe("scispacy_linker", config=SpacyText._mesh_terms_config)
+        models = SpacyModels()
+        self.nlp = models.get_model(model)
+        self.nlp_mesh = models.get_model(mesh_model)
+        models.ensure_pipe(self.nlp_mesh, "scispacy_linker", config=SpacyText._mesh_terms_config)
 
     def find_chemical(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""
