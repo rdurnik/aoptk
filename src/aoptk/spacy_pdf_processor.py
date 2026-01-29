@@ -1,21 +1,18 @@
 from __future__ import annotations
 import re
 from pathlib import Path
-from typing import ClassVar
 import pandas as pd
-import spacy
 from spacy_layout import spaCyLayout
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.pymupdf_parser import PymupdfParser
+from aoptk.spacy_models import SpacyModels
 
 
 class SpacyPDF(PymupdfParser):
     """Process PDF using Spacy package."""
-
-    _models: ClassVar[dict[str, object]] = {}
 
     def __init__(self, pdfs: list[PDF], model: str = "en", figures_output_dir: str = "tests/figure_storage"):
         """Initialize with a spaCy model.
@@ -28,9 +25,7 @@ class SpacyPDF(PymupdfParser):
         self.pdfs = pdfs
         self.figures_output_dir = figures_output_dir
         self.model = model
-        if model not in SpacyPDF._models:
-            SpacyPDF._models[model] = spacy.blank(model)
-        self.nlp = spacy.blank(model)
+        self.nlp = SpacyModels().get_blank(model)
         self.layout = spaCyLayout(self.nlp)
 
     def get_publications(self) -> list[Publication]:
