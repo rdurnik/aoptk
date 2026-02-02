@@ -19,6 +19,141 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     top_p: float = 1
     load_dotenv()
     client: None = None
+    
+    relationship_types: dict[str, str | None] = {
+        "positive": "positive",
+        "negative": "negative",
+        "none": None,
+    }
+    
+    relationship_prompt: str = """
+                                You are performing a STRICT text-based classification task.
+
+                                Rules:
+                                1. Use ONLY the information explicitly stated in the Context.
+                                2. Do NOT use biological knowledge, assumptions, or inferred relationships.
+                                3. Do NOT assume causal chains or indirect effects.
+                                4. Ignore inhibitory relationships completely.
+                                - If the Context says the chemical inhibits or does not inhibit the effect,
+                                treat it as if no relationship exists.
+
+                                Effect synonyms:
+                                - Treat common synonyms or equivalent terms as the same effect.
+                                For example:
+                                    - "liver fibrosis" = "hepatic fibrosis"
+                                    - "heart attack" = "myocardial infarction"
+                                    - "kidney injury" = "renal injury"
+                                Always map any synonym in the Context to the target effect before evaluating.
+
+                                Relationship definition:
+                                - A relationship exists ONLY IF the Context contains a clear, explicit statement
+                                that {chemical} causes or does not cause {effect} (or its synonyms).
+                                - Do NOT count statements about inhibition or non-inhibition.
+
+                                Output:
+                                - If {chemical} explicitly causes {effect}, return:
+                                    - positive
+                                - If {chemical} explicitly does not cause {effect}, return:
+                                    - negative
+                                - In all other cases (including inhibitory statements), return:
+                                    - none
+
+                                Do NOT output anything else. No explanations, no extra text.
+
+                                Context:
+                                {text}
+                                """
+    
+    chemical_prompt: str = """
+                            You are an entity extraction assistant. Your task is to extract
+                            chemical entities from the given text.
+
+                            A chemical entity includes:
+                            - Full chemical names (e.g., acetaminophen, thioacetamide)
+                            - Chemical abbreviations or acronyms (e.g., TAA, APAP, LPS)
+                            - Short chemical codes commonly used in scientific writing
+
+                            Instructions:
+                            1. Only return chemical names. Do NOT include any extra text, explanations,
+                            or punctuation.
+                            2. Separate chemical names **exactly** with " ; " (space-semicolon-space).
+                            No trailing or leading separators.
+                            3. If the text contains no chemicals, return an empty string.
+
+                            Context:
+                            {text}
+                            """
+    
+    abbreviation_prompt: str = """You are expanding abbreviations in scientific and biomedical text.
+
+                                TASK:
+                                Rewrite the input text by replacing abbreviations with their full forms.
+
+                                SCOPE:
+                                - Expand ONLY:
+                                1) Chemical entities (chemicals, compounds, pollutants)
+                                2) Biological effects or processes (e.g., cell activation, toxicity,
+                                fibrosis-related events)
+                                - Do NOT expand:
+                                - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
+                                - Genes or proteins unless they describe an effect
+                                - Assays, methods, or analysis names (e.g., RHT)
+
+                                RULES (in priority order):
+
+                                1. CONTEXT FIRST (MANDATORY):
+                                - If an abbreviation is explicitly defined in the text
+                                    (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
+                                    "hepatic stellate cell (HSC) activation"),
+                                    you MUST use that definition.
+                                - Treat the abbreviation and full form as equivalent.
+
+                                2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
+                                - If an abbreviation is NOT defined in the text,
+                                    expand it ONLY if it has a widely accepted, unambiguous meaning
+                                    in scientific or biomedical literature.
+                                - Examples of acceptable inference:
+                                    - HSC activation → hepatic stellate cell activation
+                                    - ECM remodeling → extracellular matrix remodeling
+                                - If the expansion is uncertain or ambiguous, leave it unchanged.
+
+                                3. CONSISTENCY:
+                                - Once an abbreviation is expanded, use the full form consistently
+                                    throughout the text.
+                                - Do NOT reintroduce the abbreviation.
+
+                                4. GRAMMAR:
+                                - Preserve the original meaning, tense, and sentence structure.
+                                - Only modify the expanded terms.
+
+                                5. CAPITALIZATION:
+                                - If an abbreviation appears at the start of a sentence, capitalize the
+                                first letter of its expansion.
+                                - Example: "TAA was studied..." → "Thioacetamide was studied..."
+                                - Otherwise, preserve the original capitalization style of the
+                                surrounding text.
+
+                                6. CHARACTER ENCODING:
+                                - Use ONLY standard ASCII punctuation characters.
+                                - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
+                                - Use regular apostrophes (') NOT Unicode prime symbols (′).
+
+                                7. FORMATTING RULES:
+                                - When expanding abbreviations in lists, maintain the original
+                                parentheses structure.
+                                - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
+                                and expanded-C)"
+                                - Do NOT change parentheses to commas or other punctuation.
+                                - Preserve all original punctuation except the abbreviations being
+                                expanded.
+
+                                OUTPUT:
+                                - Return ONLY the rewritten text.
+                                - Do NOT add explanations, comments, or formatting.
+
+                                INPUT TEXT:
+                                {text}
+                                """
 
     def __init__(
         self,
@@ -64,43 +199,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                    "content": f"""
-                                You are performing a STRICT text-based classification task.
-
-                                Rules:
-                                1. Use ONLY the information explicitly stated in the Context.
-                                2. Do NOT use biological knowledge, assumptions, or inferred relationships.
-                                3. Do NOT assume causal chains or indirect effects.
-                                4. Ignore inhibitory relationships completely.
-                                - If the Context says the chemical inhibits or does not inhibit the effect,
-                                treat it as if no relationship exists.
-
-                                Effect synonyms:
-                                - Treat common synonyms or equivalent terms as the same effect.
-                                For example:
-                                    - "liver fibrosis" = "hepatic fibrosis"
-                                    - "heart attack" = "myocardial infarction"
-                                    - "kidney injury" = "renal injury"
-                                Always map any synonym in the Context to the target effect before evaluating.
-
-                                Relationship definition:
-                                - A relationship exists ONLY IF the Context contains a clear, explicit statement
-                                that {chemical} causes or does not cause {effect} (or its synonyms).
-                                - Do NOT count statements about inhibition or non-inhibition.
-
-                                Output:
-                                - If {chemical} explicitly causes {effect}, return:
-                                    - positive
-                                - If {chemical} explicitly does not cause {effect}, return:
-                                    - negative
-                                - In all other cases (including inhibitory statements), return:
-                                    - none
-
-                                Do NOT output anything else. No explanations, no extra text.
-
-                                Context:
-                                {text}
-                                """,
+                    "content": self.relationship_prompt.format(text=text, chemical=chemical.name, effect=effect.name),
                 },
             ],
         )
@@ -109,17 +208,17 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         return None
 
     def _select_relationship_type(self, response: str, chemical: Chemical, effect: Effect) -> Relationship | None:
-        """Select the relationship type based on the top label.
+        """Select the relationship type based on the response.
 
         Args:
             response (str): The response from the model indicating the relationship type.
             chemical (Chemical): The chemical entity.
             effect (Effect): The effect entity.
         """
-        if response == "positive":
-            return Relationship(relationship="positive", chemical=chemical, effect=effect)
-        if response == "negative":
-            return Relationship(relationship="negative", chemical=chemical, effect=effect)
+        if response in self.relationship_types:
+            relationship_type = self.relationship_types[response]
+            if relationship_type is not None:
+                return Relationship(relationship=relationship_type, chemical=chemical, effect=effect)
         return None
 
     def find_chemical(self, text: str) -> list[Chemical]:
@@ -135,25 +234,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                    "content": f"""
-                                You are an entity extraction assistant. Your task is to extract
-                                chemical entities from the given text.
-
-                                A chemical entity includes:
-                                - Full chemical names (e.g., acetaminophen, thioacetamide)
-                                - Chemical abbreviations or acronyms (e.g., TAA, APAP, LPS)
-                                - Short chemical codes commonly used in scientific writing
-
-                                Instructions:
-                                1. Only return chemical names. Do NOT include any extra text, explanations,
-                                or punctuation.
-                                2. Separate chemical names **exactly** with " ; " (space-semicolon-space).
-                                No trailing or leading separators.
-                                3. If the text contains no chemicals, return an empty string.
-
-                                Context:
-                                {text}
-                                """,
+                    "content": self.chemical_prompt.format(text=text),
                 },
             ],
         )
@@ -175,77 +256,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                    "content": f"""
-                                    You are expanding abbreviations in scientific and biomedical text.
-
-                                    TASK:
-                                    Rewrite the input text by replacing abbreviations with their full forms.
-
-                                    SCOPE:
-                                    - Expand ONLY:
-                                    1) Chemical entities (chemicals, compounds, pollutants)
-                                    2) Biological effects or processes (e.g., cell activation, toxicity,
-                                    fibrosis-related events)
-                                    - Do NOT expand:
-                                    - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
-                                    - Genes or proteins unless they describe an effect
-                                    - Assays, methods, or analysis names (e.g., RHT)
-
-                                    RULES (in priority order):
-
-                                    1. CONTEXT FIRST (MANDATORY):
-                                    - If an abbreviation is explicitly defined in the text
-                                        (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
-                                        "hepatic stellate cell (HSC) activation"),
-                                        you MUST use that definition.
-                                    - Treat the abbreviation and full form as equivalent.
-
-                                    2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
-                                    - If an abbreviation is NOT defined in the text,
-                                        expand it ONLY if it has a widely accepted, unambiguous meaning
-                                        in scientific or biomedical literature.
-                                    - Examples of acceptable inference:
-                                        - HSC activation → hepatic stellate cell activation
-                                        - ECM remodeling → extracellular matrix remodeling
-                                    - If the expansion is uncertain or ambiguous, leave it unchanged.
-
-                                    3. CONSISTENCY:
-                                    - Once an abbreviation is expanded, use the full form consistently
-                                        throughout the text.
-                                    - Do NOT reintroduce the abbreviation.
-
-                                    4. GRAMMAR:
-                                    - Preserve the original meaning, tense, and sentence structure.
-                                    - Only modify the expanded terms.
-
-                                    5. CAPITALIZATION:
-                                    - If an abbreviation appears at the start of a sentence, capitalize the
-                                    first letter of its expansion.
-                                    - Example: "TAA was studied..." → "Thioacetamide was studied..."
-                                    - Otherwise, preserve the original capitalization style of the
-                                    surrounding text.
-                                    
-                                    6. CHARACTER ENCODING:
-                                    - Use ONLY standard ASCII punctuation characters.
-                                    - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
-                                    - Use regular apostrophes (') NOT Unicode prime symbols (′).
-
-                                    7. FORMATTING RULES:
-                                    - When expanding abbreviations in lists, maintain the original
-                                    parentheses structure.
-                                    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
-                                    and expanded-C)"
-                                    - Do NOT change parentheses to commas or other punctuation.
-                                    - Preserve all original punctuation except the abbreviations being
-                                    expanded.
-
-                                    OUTPUT:
-                                    - Return ONLY the rewritten text.
-                                    - Do NOT add explanations, comments, or formatting.
-
-                                    INPUT TEXT:
-                                    {text}
-                                    """,
+                    "content": self.abbreviation_prompt.format(text=text),
                 },
             ],
         )
