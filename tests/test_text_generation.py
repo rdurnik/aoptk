@@ -200,7 +200,7 @@ def test_relationship_images():
     expected = [
         Relationship(
             relationship="no-inhibition",
-            chemical=Chemical(name="monomethyl phthalate"),
+            chemical=Chemical(name="dibutyl phthalate"),
             effect=Effect(name="gap junction intercellular communication"),
         ),
     ]
