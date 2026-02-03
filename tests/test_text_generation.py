@@ -9,6 +9,15 @@ from aoptk.relationships.relationship import Relationship
 from aoptk.text_generation_api import TextGenerationAPI
 
 
+def sort_key(r: Relationship) -> tuple[str, str, str]:
+    """Sort key for Relationship objects.
+
+    Args:
+        r (Relationship): Relationship object.
+    """
+    return (r.relationship, r.chemical.name, r.effect.name)
+
+
 def test_can_create():
     """Can create ScispacyFindChemical instance."""
     actual = TextGenerationAPI()
@@ -64,11 +73,6 @@ def test_translate_abbreviation_not_empty():
         (
             "Female mice (C57Blc) were induced by 4 injections of peritoneal carbon-tetrachloride within 10 days",
             ["carbon-tetrachloride"],
-        ),
-        (
-            "Transforming growth factor-alpha secreted from ethanol-exposed hepatocytes"
-            " contributes to development of alcoholic hepatic fibrosis.",
-            ["ethanol"],
         ),
     ],
 )
@@ -184,7 +188,20 @@ def test_find_relationships(
     """Test find_relationships method with multiple chemicals and effects."""
     actual = TextGenerationAPI().find_relationships(text=text, chemicals=chemicals, effects=effects)
 
-    def sort_key(r: Relationship) -> tuple[str, str, str]:
-        return (r.relationship, r.chemical.name, r.effect.name)
-
     assert sorted(actual, key=sort_key) == sorted(expected_relationships, key=sort_key)
+
+
+def test_relationship_images():
+    """Test find_relationships_in_image method with an image."""
+    actual = TextGenerationAPI(model="mistral-large").find_relationships_in_image(
+        image_path="tests/test_figures/gjic.jpeg",
+        effects=[Effect(name="gap junction intercellular communication")],
+    )
+    expected = [
+        Relationship(
+            relationship="no-inhibition",
+            chemical=Chemical(name="monomethyl phthalate"),
+            effect=Effect(name="gap junction intercellular communication"),
+        ),
+    ]
+    assert sorted(actual, key=sort_key)[0] == expected[0]

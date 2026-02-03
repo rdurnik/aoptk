@@ -1,6 +1,9 @@
 from __future__ import annotations
+import base64
 import os
 from itertools import product
+from pathlib import Path
+from typing import ClassVar
 from dotenv import load_dotenv
 from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
@@ -19,13 +22,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     top_p: float = 1
     load_dotenv()
     client: None = None
-    
-    relationship_types: dict[str, str | None] = {
+
+    relationship_types: ClassVar[dict[str, str | None]] = {
         "positive": "positive",
         "negative": "negative",
         "none": None,
     }
-    
+
     relationship_prompt: str = """
                                 You are performing a STRICT text-based classification task.
 
@@ -63,7 +66,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 Context:
                                 {text}
                                 """
-    
+
     chemical_prompt: str = """
                             You are an entity extraction assistant. Your task is to extract
                             chemical entities from the given text.
@@ -83,7 +86,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                             Context:
                             {text}
                             """
-    
+
     abbreviation_prompt: str = """You are expanding abbreviations in scientific and biomedical text.
 
                                 TASK:
@@ -154,6 +157,36 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 INPUT TEXT:
                                 {text}
                                 """
+
+    relationships_image_prompt: str = """
+                                Task:
+                                Analyze the provided image and determine whether each chemical
+                                shown inhibits {effect}.
+
+                                Instructions:
+                                - You MAY interpret plots, numerical values, ET50 values, time-course
+                                curves, and percent-of-control data.
+                                - A chemical is classified as "inhibition" if the image shows a clear and
+                                meaningful reduction in {effect} compared to vehicle/control.
+                                - A chemical is classified as "no-inhibition" if {effect} remains
+                                approximately at control levels with no meaningful reduction.
+                                - If evidence is ambiguous, classify as "unknown".
+
+                                Chemical name handling:
+                                - Translate abbreviations to full chemical names when possible.
+                                - If a full name cannot be confidently determined, keep the abbreviation.
+                                - Output chemical names in lowercase.
+
+                                Output requirements:
+                                - Output a single line per chemical.
+                                - Use the exact format:
+                                <chemical_name>: <classification>
+                                - Do NOT include explanations, comments, or extra text.
+
+                                Allowed classifications (use exactly one):
+                                - inhibition
+                                - no-inhibition
+                                - unknown"""
 
     def __init__(
         self,
@@ -262,3 +295,63 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         )
         response = completion.choices[0].message.content
         return response if response is not None else text
+
+    def find_relationships_in_image(self, image_path: str, effects: list[Effect]) -> list[Relationship]:
+        """Find relationships between chemicals and effects in an image.
+
+        Args:
+            image_path (str): Path to the image.
+            effects (list[Effect]): List of effect entities.
+        """
+        return [
+            relationship
+            for effect in effects
+            if (relationship := self._classify_relationship_in_image(image_path, effect))
+        ]
+
+    def _classify_relationship_in_image(self, image_path: str, effect: Effect) -> Relationship | None:
+        """Classify the relationship between a chemical and an effect.
+
+        Args:
+            image_path (str): Path to the image.
+            effect (Effect): The effect entity.
+        """
+        base64_image = self._encode_image(image_path)
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[
+                {
+                    "role": self.role,
+                    "content": [
+                        {"type": "text", "text": self.relationships_image_prompt.format(effect=effect.name)},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
+                    ],
+                },
+            ],
+        )
+        if response := completion.choices[0].message.content.strip().lower():
+            return self._process_image_response(response, effect)
+        return None
+
+    def _encode_image(self, image_path: str) -> str:
+        with Path(image_path).open("rb") as image_file:
+            return base64.b64encode(image_file.read()).decode("utf-8")
+
+    def _process_image_response(self, response: str, effect: Effect) -> Relationship | None:
+        for line in response.splitlines():
+            if ":" in line:
+                chem_name, classification = line.split(":", 1)
+                chem_name = chem_name.strip().lower()
+                classification = classification.strip().lower()
+                chemical = Chemical(name=chem_name)
+                if classification == "inhibition":
+                    relationship_type = "inhibition"
+                elif classification == "no-inhibition":
+                    relationship_type = "no-inhibition"
+                else:
+                    continue
+                return Relationship(relationship=relationship_type, chemical=chemical, effect=effect)
+        return None
