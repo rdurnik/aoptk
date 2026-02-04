@@ -59,16 +59,14 @@ class SpacyText(FindChemical, SentenceGenerator, NormalizeChemical):
           (e.g., "carbon tetrachloride-induced ..." -> "carbon tetrachloride").
         - Removes a trailing dash at the end of the name.
         """
-        name = self._remove_trailing_dash(name.strip())
+        name = name.rstrip("-")
+
         if "-" not in name:
             return name
+
         parts = name.split("-")
         idx = self._first_descriptive_suffix_index(parts)
         return "-".join(parts[:idx]).strip() if idx is not None else name
-
-    def _remove_trailing_dash(self, name: str) -> str:
-        """Remove a trailing dash from `name` if present, preserving valid hyphenations."""
-        return name[:-1].strip() if name.endswith("-") else name
 
     def _first_descriptive_suffix_index(self, parts: list[str]) -> int | None:
         """Return index of first descriptive suffix segment in `parts`, else None.
@@ -88,12 +86,7 @@ class SpacyText(FindChemical, SentenceGenerator, NormalizeChemical):
     def tokenize(self, text: str) -> list[Sentence]:
         """Use spaCy to generate sentences."""
         doc = self.nlp(text)
-        sentences = []
-        for sent in doc.sents:
-            sent_text = sent.text.strip()
-            s = Sentence(sent_text)
-            sentences.append(s)
-        return sentences
+        return [Sentence(sent.text.strip()) for sent in doc.sents]
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Normalize the chemical name.

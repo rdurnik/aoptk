@@ -9,6 +9,9 @@ from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.pymupdf_parser import PymupdfParser
 from aoptk.spacy_models import SpacyModels
+from aoptk.text_utils import contains_any
+from aoptk.text_utils import end_of_span
+from aoptk.text_utils import ends
 
 
 class SpacyPDF(PymupdfParser):
@@ -24,9 +27,7 @@ class SpacyPDF(PymupdfParser):
         """
         self.pdfs = pdfs
         self.figures_output_dir = figures_output_dir
-        self.model = model
-        self.nlp = SpacyModels().get_model(f"blank:{model}")
-        self.layout = spaCyLayout(self.nlp)
+        self.layout = spaCyLayout(SpacyModels().get_model(f"blank:{model}"))
 
     def get_publications(self) -> list[Publication]:
         """Get a list of publications."""
@@ -49,8 +50,9 @@ class SpacyPDF(PymupdfParser):
         full_text = self._parse_full_text(doc)
         abbreviations = {}
         figures = self._extract_figures(pdf)
-        figure_descriptions = self._extract_figure_descriptions(doc)
-        tables = self._extract_tables(doc)
+        figure_descriptions = _extract_figure_descriptions(doc)
+        tables = _extract_tables(doc)
+
         return Publication(
             id=publication_id,
             abstract=abstract,
@@ -110,7 +112,7 @@ class SpacyPDF(PymupdfParser):
                 if self._should_skip_span(span):
                     continue
                 accumulated_text = self._append_text(accumulated_text, span.text)
-                if self._is_span_boundary(accumulated_text):
+                if end_of_span(accumulated_text):
                     remaining_pages_spans.append(accumulated_text)
                     accumulated_text = ""
         return accumulated_text
@@ -121,7 +123,7 @@ class SpacyPDF(PymupdfParser):
         Args:
             span (object): The text span object.
         """
-        return span.label_ != "text" or self._is_page_header_footer(span.text) or self._is_formatting(span.text)
+        return span.label_ != "text" or self._is_page_header_footer(span.text) or contains_any(span.text, ["GLYPH<c="])
 
     def _append_text(self, accumulated: str, new_text: str) -> str:
         """Append new text to accumulated text with proper spacing.
@@ -131,14 +133,6 @@ class SpacyPDF(PymupdfParser):
             new_text (str): The new text to append.
         """
         return f"{accumulated} {new_text}" if accumulated else new_text
-
-    def _is_span_boundary(self, text: str) -> bool:
-        """Check if text marks the end of a span.
-
-        Args:
-            text (str): The text to check.
-        """
-        return self._ends_with_sentence_terminator(text) or self._has_digit_at_the_end(text)
 
     def _is_page_header_footer(
         self,
@@ -157,49 +151,9 @@ class SpacyPDF(PymupdfParser):
         """
         if running_header_indicators is None:
             running_header_indicators = ["et al."]
-        return (
-            len(text) < max_text_length and any(indicator in text for indicator in running_header_indicators)
-        ) or bool(re.search(doi_pattern, text))
-
-    def _is_formatting(
-        self,
-        text: str,
-        formatting_indicators: list[str] | None = None,
-    ) -> bool:
-        """Check if text looks like formatting artifacts.
-
-        Args:
-            text (str): The text to check.
-            formatting_indicators (list[str] | None): Indicators of formatting artifacts.
-        """
-        if formatting_indicators is None:
-            formatting_indicators = ["GLYPH<c="]
-        return any(indicator in text for indicator in formatting_indicators)
-
-    def _ends_with_sentence_terminator(
-        self,
-        text: str,
-        sentence_terminators: list[str] | None = None,
-    ) -> bool:
-        """Check if text ends with sentence-ending punctuation.
-
-        Args:
-            text (str): The text to check.
-            sentence_terminators (list[str] | None): List of sentence terminators.
-        """
-        if sentence_terminators is None:
-            sentence_terminators = [".", "!", "?", "]"]
-        stripped = text.rstrip()
-        return stripped[-1] in sentence_terminators
-
-    def _has_digit_at_the_end(self, text: str) -> bool:
-        """Check if text is a digit.
-
-        Args:
-            text (str): The text to check.
-        """
-        stripped = text.rstrip()
-        return stripped[-1].isdigit()
+        return (len(text) < max_text_length and contains_any(text, running_header_indicators)) or bool(
+            re.search(doi_pattern, text),
+        )
 
     def _parse_abstract(self, doc: object, publication_id: ID) -> Abstract:
         """Extract the abstract from the PDF text.
@@ -211,30 +165,28 @@ class SpacyPDF(PymupdfParser):
         _, page_spans = doc._.pages[0]
         largest_span = max(page_spans, key=lambda span: len(span.text) if hasattr(span, "text") else 0, default=None)
         abstract_text = largest_span.text if largest_span else ""
-        if not self._ends_with_sentence_terminator(largest_span.text):
+        if not ends(largest_span.text):
             rest_of_the_abstract = next(
-                (
-                    span.text
-                    for span in page_spans
-                    if span != largest_span and self._ends_with_sentence_terminator(span.text)
-                ),
+                (span.text for span in page_spans if span != largest_span and ends(span.text)),
                 "",
             )
             abstract_text += " " + rest_of_the_abstract
         return Abstract(text=abstract_text, publication_id=publication_id)
 
-    def _extract_figure_descriptions(self, doc: object) -> list[str]:
-        """Extract figure descriptions from the PDF.
 
-        Args:
-            doc (object): The spaCy document object.
-        """
-        return [span.text for span in doc.spans["layout"] if span.label_ == "caption"]
+def _extract_figure_descriptions(doc: object) -> list[str]:
+    """Extract figure descriptions from the PDF.
 
-    def _extract_tables(self, doc: object) -> list[pd.DataFrame]:
-        """Extract tables from the PDF.
+    Args:
+        doc (object): The spaCy document object.
+    """
+    return [span.text for span in doc.spans["layout"] if span.label_ == "caption"]
 
-        Args:
-            doc (object): The spaCy document object.
-        """
-        return [table._.data for table in doc._.tables]
+
+def _extract_tables(doc: object) -> list[pd.DataFrame]:
+    """Extract tables from the PDF.
+
+    Args:
+        doc (object): The spaCy document object.
+    """
+    return [table._.data for table in doc._.tables]
