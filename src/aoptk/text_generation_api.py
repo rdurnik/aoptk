@@ -32,58 +32,53 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     }
 
     relationship_prompt: str = """
-                                You are performing a STRICT text-based classification task.
-
-                                Rules:
-                                1. Use ONLY the information explicitly stated in the Context.
-                                2. Do NOT use biological knowledge, assumptions, or inferred relationships.
-                                3. Do NOT assume causal chains or indirect effects.
-                                4. Ignore inhibitory relationships completely.
-                                - If the Context says the chemical inhibits or does not inhibit the effect,
-                                treat it as if no relationship exists.
+                                Task:
+                                Given the Context, determine whether the chemical {chemical} {rel} the biological effect {effect}.
 
                                 Effect synonyms:
                                 - Treat common synonyms or equivalent terms as the same effect.
-                                For example:
-                                    - "liver fibrosis" = "hepatic fibrosis"
-                                    - "heart attack" = "myocardial infarction"
-                                    - "kidney injury" = "renal injury"
-                                Always map any synonym in the Context to the target effect before evaluating.
+                                - Always map any synonym in the Context to the target effect before evaluating.
 
-                                Relationship definition:
-                                - A relationship exists ONLY IF the Context contains a clear, explicit statement
-                                that {chemical} causes or does not cause {effect} (or its synonyms).
-                                - Do NOT count statements about inhibition or non-inhibition.
+                                Decision rules:
+                                - Return {rel.positive} if the Context explicitly states that {chemical} {rel.positive} {effect}.
+                                - Return {rel.negative} if the Context explicitly states that {chemical} {rel.negative} {effect}.
+                                - Return "none" if:
+                                    - The chemical or the effect is not mentioned, or
+                                    - No direct relationship is stated, or
+                                    - The statement is speculative, conditional, or indirect (e.g., uses "may", "might", "could").
+                                - VERY IMPORTANT: In all other cases ({other_topics}) return "none".
 
                                 Output:
-                                - If {chemical} explicitly causes {effect}, return:
-                                    - positive
-                                - If {chemical} explicitly does not cause {effect}, return:
-                                    - negative
-                                - In all other cases (including inhibitory statements), return:
-                                    - none
-
-                                Do NOT output anything else. No explanations, no extra text.
+                                Return exactly one of the following, with no extra text:
+                                {rel.positive}
+                                {rel.negative}
+                                none
 
                                 Context:
                                 {text}
                                 """
+    
+    relationship_additional_prompt: str = """
+                                        Rules:
+                                        1. Use ONLY the information explicitly stated in the Context.
+                                        2. Do NOT use biological knowledge, assumptions, or inferred relationships.
+                                        3. Do NOT assume causal chains or indirect effects.
+                                        """
 
     chemical_prompt: str = """
-                            You are an entity extraction assistant. Your task is to extract
-                            chemical entities from the given text.
+                            Task: 
+                            Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
+                            Replace all chemical abbreviations with their full chemical names. Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
+                            Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
 
-                            A chemical entity includes:
-                            - Full chemical names (e.g., acetaminophen, thioacetamide)
-                            - Chemical abbreviations or acronyms (e.g., TAA, APAP, LPS)
-                            - Short chemical codes commonly used in scientific writing
 
-                            Instructions:
-                            1. Only return chemical names. Do NOT include any extra text, explanations,
-                            or punctuation.
-                            2. Separate chemical names **exactly** with " ; " (space-semicolon-space).
-                            No trailing or leading separators.
-                            3. If the text contains no chemicals, return an empty string.
+                            Output requirements:
+                            1. Return only chemical names.
+                            2. Do not include explanations, labels, or any additional text.
+                            3. Separate chemical names exactly with " ; " (space-semicolon-space).
+                            4. Do not add leading or trailing separators.
+                            5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space) in chemical names.
+                            6. If no chemical entities are present, return an empty string.
 
                             Context:
                             {text}
@@ -161,34 +156,23 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 """
 
     relationships_image_prompt: str = """
-                                Task:
-                                Analyze the provided image and determine whether each chemical
-                                shown inhibits {effect}.
+                                        You are an assistant analyzing data from graphs or plots related to the biological effect {effect}.
+                                        Your task is to process the provided information and output the results in this strict format, one per line:
 
-                                Instructions:
-                                - You MAY interpret plots, numerical values, ET50 values, time-course
-                                curves, and percent-of-control data.
-                                - A chemical is classified as "inhibition" if the image shows a clear and
-                                meaningful reduction in {effect} compared to vehicle/control.
-                                - A chemical is classified as "no-inhibition" if {effect} remains
-                                approximately at control levels with no meaningful reduction.
-                                - If evidence is ambiguous, classify as "none".
+                                        Format:
+                                        full_chemical_name_in_lowercase : relationship
 
-                                Chemical name handling:
-                                - Translate abbreviations to full chemical names when possible.
-                                - If a full name cannot be confidently determined, keep the abbreviation.
-                                - Output chemical names in lowercase.
-
-                                Output requirements:
-                                - Output a single line per chemical.
-                                - Use the exact format:
-                                <chemical_name>: <classification>
-                                - Do NOT include explanations, comments, or extra text.
-
-                                Allowed classifications (use exactly one):
-                                - inhibition
-                                - no-inhibition
-                                - none"""
+                                        Guidelines:
+                                        1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
+                                        2. Replace "relationship" with:
+                                        - {rel.positive} if the chemical {rel.positive} {effect}.
+                                        - {rel.negative} if the chemical {rel.negative} {effect}.
+                                        3. No headers, explanations, or extra text may be included in the output.
+                                        4. Respond only with lines matching the format above—each line must correspond to a single chemical and its relationship.
+                                        5. Handle incomplete or unrelated data as follows:
+                                        - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals with identifiable effects.
+                                        - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+                                        """
 
     def __init__(
         self,
@@ -337,6 +321,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             ],
         )
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            print(content)
             return self._process_image_response(response, effect)
         return []
 
@@ -348,10 +333,10 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         relationships = []
         for raw_line in response.splitlines():
             line = raw_line.strip()
-            if ":" not in line:
+            if " : " not in line:
                 continue
 
-            chem_name, classification = line.split(":", 1)
+            chem_name, classification = line.split(" : ", 1)
             chem_name = chem_name.strip().lower()
             classification = classification.strip().lower()
 
