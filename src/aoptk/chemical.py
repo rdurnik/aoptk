@@ -100,8 +100,8 @@ class Chemical:
         Returns:
             bool: If headings are present, is true if heading matches. Otherwise use given name instead.
         """
-        this_name = self.heading if self.heading else self.name
-        other_name = other.heading if other.heading else other.name
+        this_name = self.heading or self.name
+        other_name = other.heading or other.name
         return this_name == other_name
 
     def __eq_object(self, other: object) -> bool:
