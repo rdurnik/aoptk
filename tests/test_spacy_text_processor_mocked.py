@@ -7,10 +7,11 @@ from unittest.mock import patch
 import pytest
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
+from aoptk.spacy_models import SpacyModels
 from aoptk.spacy_text_processor import SpacyText
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_can_create(mock_spacy_load):
     """Can create Spacy instance."""
     # Mock the spacy.load to return a mock NLP object
@@ -22,7 +23,7 @@ def test_can_create(mock_spacy_load):
     assert actual is not None
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_implements_interface_find_chemical(mock_spacy_load):
     """Spacy implements FindChemical interface."""
     mock_nlp = MagicMock()
@@ -32,7 +33,7 @@ def test_implements_interface_find_chemical(mock_spacy_load):
     assert isinstance(SpacyText(), FindChemical)
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_find_chemical_not_empty(mock_spacy_load):
     """Test that find_chemical method returns a non-empty result."""
     mock_nlp = MagicMock()
@@ -61,11 +62,11 @@ def test_find_chemical_not_empty(mock_spacy_load):
         ("Thioacetamide (TAA) was used to induce liver fibrosis.", ["thioacetamide"]),
     ],
 )
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_find_chemical_chemical(mock_spacy_load, sentence: str, expected: list[str]):
     """Test that find_chemical method finds chemicals in text."""
     # Clear model cache
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     # Create mock entities based on expected chemicals
     mock_entities = []
@@ -87,7 +88,7 @@ def test_find_chemical_chemical(mock_spacy_load, sentence: str, expected: list[s
     assert actual == expected
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_implements_interface_sentence_generator(mock_spacy_load):
     """Test that Spacy implements SentenceGenerator interface."""
     mock_nlp = MagicMock()
@@ -97,7 +98,7 @@ def test_implements_interface_sentence_generator(mock_spacy_load):
     assert issubclass(SpacyText, SentenceGenerator)
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_generate_sentences_not_empty(mock_spacy_load):
     """Test that tokenize method returns a non-empty result."""
     mock_nlp = MagicMock()
@@ -128,11 +129,11 @@ def test_generate_sentences_not_empty(mock_spacy_load):
         ),
     ],
 )
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_generate_sentences(mock_spacy_load, text: str, expected: list[str]):
     """Test tokenize method with various cases."""
     # Clear model cache
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     # Create mock sentence objects
     mock_sents = []
@@ -186,11 +187,11 @@ def test_generate_sentences(mock_spacy_load, text: str, expected: list[str]):
         ),
     ],
 )
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_generate_mesh_terms(mock_spacy_load, chemical: str, expected_mesh_terms: list[str]):
     """Test that generate_mesh_terms method generates MeSH terms."""
     # Clear model cache
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     # Setup single mock model (default behavior uses same model for both)
     mock_nlp = MagicMock()
@@ -224,7 +225,7 @@ def test_generate_mesh_terms(mock_spacy_load, chemical: str, expected_mesh_terms
     assert actual == expected_mesh_terms
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_model_caching(mock_spacy_load):
     """Test that models are cached and not loaded multiple times."""
     mock_nlp = MagicMock()
@@ -232,7 +233,7 @@ def test_model_caching(mock_spacy_load):
     mock_spacy_load.return_value = mock_nlp
 
     # Clear the cache first
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     # Create two instances with same model
     spacy1 = SpacyText("test_model", "test_model")
@@ -245,11 +246,11 @@ def test_model_caching(mock_spacy_load):
     assert spacy1.nlp is spacy2.nlp
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_scispacy_linker_added_once(mock_spacy_load):
     """Test that scispacy_linker is only added once to the pipeline."""
     # Clear the cache
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     mock_nlp = MagicMock()
     mock_nlp.pipe_names = []  # Initially no linker
@@ -269,11 +270,11 @@ def test_scispacy_linker_added_once(mock_spacy_load):
     assert mock_nlp.add_pipe.call_count == initial_call_count
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_find_chemical_filters_non_chemical_entities(mock_spacy_load):
     """Test that find_chemical only returns entities labeled as CHEMICAL."""
     # Clear model cache
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     # Create mixed entities - some CHEMICAL, some not
     mock_chem1 = MagicMock()
@@ -304,11 +305,11 @@ def test_find_chemical_filters_non_chemical_entities(mock_spacy_load):
     assert result[1].name == "ibuprofen"
 
 
-@patch("aoptk.spacy_text_processor.spacy.load")
+@patch("aoptk.spacy_models.spacy.load")
 def test_tokenize_strips_whitespace(mock_spacy_load):
     """Test that tokenize strips whitespace from sentences."""
     # Clear model cache
-    SpacyText._models.clear()
+    SpacyModels()._models.clear()
 
     # Create mock sentences with extra whitespace
     mock_sent1 = MagicMock()
