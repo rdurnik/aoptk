@@ -27,6 +27,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         "positive": "positive",
         "negative": "negative",
         "none": None,
+        "inhibition": "inhibition",
+        "no-inhibition": "no-inhibition",
     }
 
     relationship_prompt: str = """
@@ -170,7 +172,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 meaningful reduction in {effect} compared to vehicle/control.
                                 - A chemical is classified as "no-inhibition" if {effect} remains
                                 approximately at control levels with no meaningful reduction.
-                                - If evidence is ambiguous, classify as "unknown".
+                                - If evidence is ambiguous, classify as "none".
 
                                 Chemical name handling:
                                 - Translate abbreviations to full chemical names when possible.
@@ -186,7 +188,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 Allowed classifications (use exactly one):
                                 - inhibition
                                 - no-inhibition
-                                - unknown"""
+                                - none"""
 
     def __init__(
         self,
@@ -303,18 +305,20 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             image_path (str): Path to the image.
             effects (list[Effect]): List of effect entities.
         """
-        return [
-            relationship
-            for effect in effects
-            if (relationship := self._classify_relationship_in_image(image_path, effect))
-        ]
+        relationships = []
+        for effect in effects:
+            relationships.extend(self._classify_relationships_in_image(image_path, effect))
+        return relationships
 
-    def _classify_relationship_in_image(self, image_path: str, effect: Effect) -> Relationship | None:
-        """Classify the relationship between a chemical and an effect.
+    def _classify_relationships_in_image(self, image_path: str, effect: Effect) -> list[Relationship]:
+        """Classify relationships between chemicals and an effect in an image.
 
         Args:
             image_path (str): Path to the image.
             effect (Effect): The effect entity.
+
+        Returns:
+            list[Relationship]: List of relationships found in the image.
         """
         base64_image = self._encode_image(image_path)
 
@@ -332,26 +336,31 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 },
             ],
         )
-        if response := completion.choices[0].message.content.strip().lower():
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
             return self._process_image_response(response, effect)
-        return None
+        return []
 
     def _encode_image(self, image_path: str) -> str:
         with Path(image_path).open("rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
-    def _process_image_response(self, response: str, effect: Effect) -> Relationship | None:
-        for line in response.splitlines():
-            if ":" in line:
-                chem_name, classification = line.split(":", 1)
-                chem_name = chem_name.strip().lower()
-                classification = classification.strip().lower()
-                chemical = Chemical(name=chem_name)
-                if classification == "inhibition":
-                    relationship_type = "inhibition"
-                elif classification == "no-inhibition":
-                    relationship_type = "no-inhibition"
-                else:
-                    continue
-                return Relationship(relationship=relationship_type, chemical=chemical, effect=effect)
-        return None
+    def _process_image_response(self, response: str, effect: Effect) -> list[Relationship]:
+        relationships = []
+        for raw_line in response.splitlines():
+            line = raw_line.strip()
+            if ":" not in line:
+                continue
+
+            chem_name, classification = line.split(":", 1)
+            chem_name = chem_name.strip().lower()
+            classification = classification.strip().lower()
+
+            relationship_type = self.relationship_types.get(classification)
+            if relationship_type is None:
+                continue
+
+            relationships.append(
+                Relationship(relationship=relationship_type, chemical=Chemical(name=chem_name), effect=effect),
+            )
+
+        return relationships
