@@ -1,18 +1,18 @@
 """Singleton access to spaCy models."""
 
 from __future__ import annotations
-
+from typing import ClassVar
 import spacy
 
 
 class SingletonMeta(type):
     """Singleton metaclass for shared service objects."""
 
-    _instances: dict[type, object] = {}
+    _instances: ClassVar[dict[type, object]] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: object, **kwargs: object) -> object:
         """Return a single instance per class.
-        
+
         Args:
             *args: Positional arguments for the class constructor
             **kwargs: Keyword arguments for the class constructor
@@ -30,29 +30,23 @@ class SpacyModels(metaclass=SingletonMeta):
         self._models: dict[str, object] = {}
 
     def get_model(self, model: str) -> object:
-        """Return a loaded spaCy model, cached by name.
-        
+        """Return a loaded or blank spaCy model, cached by name.
+
         Args:
-            model (str): The name of the spaCy model to load.
+            model (str): The name of the spaCy model to load,
+            or "blank:<language>" for a blank model.
         """
         if model not in self._models:
-            self._models[model] = spacy.load(model)
+            if model.startswith("blank:"):
+                language = model.split(":", 1)[1]
+                self._models[model] = spacy.blank(language)
+            else:
+                self._models[model] = spacy.load(model)
         return self._models[model]
-
-    def get_blank(self, language: str) -> object:
-        """Return a blank spaCy model, cached by language.
-        
-        Args:
-            language (str): The language code for the blank spaCy model.
-        """
-        key = f"blank:{language}"
-        if key not in self._models:
-            self._models[key] = spacy.blank(language)
-        return self._models[key]
 
     def ensure_pipe(self, model: object, pipe_name: str, config: dict | None = None) -> object:
         """Ensure a pipeline component exists, returning the model.
-        
+
         Args:
             model (object): The spaCy model to modify.
             pipe_name (str): The name of the pipeline component to ensure.

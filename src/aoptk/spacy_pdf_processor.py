@@ -25,7 +25,7 @@ class SpacyPDF(PymupdfParser):
         self.pdfs = pdfs
         self.figures_output_dir = figures_output_dir
         self.model = model
-        self.nlp = SpacyModels().get_blank(model)
+        self.nlp = SpacyModels().get_model(f"blank:{model}")
         self.layout = spaCyLayout(self.nlp)
 
     def get_publications(self) -> list[Publication]:
