@@ -51,7 +51,7 @@ def cli(read: str, master: str, email: str, code: str, query: str, database: str
         db.get_publications_metadata(),
     )
 
-    generate_publications_to_read(read, code, metadata, outdir)
+    generate_publications_to_read(read, metadata, outdir)
     update_master_table_search_codes(master, code, metadata, outdir)
 
 
@@ -78,12 +78,12 @@ def convert_metadata_structures_to_df(
     return pd.DataFrame(rows)
 
 
-def generate_publications_to_read(database_path: str, search_code: str, metadata: pd.DataFrame, outdir: str) -> None:
+def generate_publications_to_read(database_path: str, metadata: pd.DataFrame, outdir: str) -> None:
     """Generate publications to read based on existing database of read publications."""
     read_publications = pd.read_excel(database_path)
     existing_ids = read_publications["id"].dropna().astype(str)
     to_read = metadata.loc[~(metadata["id"].isin(existing_ids))]
-    to_read.to_excel(Path(outdir) / f"read_{search_code}.xlsx", index=False)
+    to_read.to_excel(Path(outdir) / "to_read.xlsx", index=False)
 
 
 def update_master_table_search_codes(
@@ -99,10 +99,10 @@ def update_master_table_search_codes(
     master_id_col = header.index("ID")
     master_search_code = header.index("Search code")
     master_id_map = create_map_of_ids_from_master_table(master_ws, master_id_col)
-    to_read_publications_id = metadata_df["id"].astype(str)
-    common_ids_to_read_publications_master = set(to_read_publications_id).intersection(master_id_map.keys())
-    for row in metadata_df:
-        row_id = str(row[0])
+    publications_id = metadata_df["id"].astype(str)
+    common_ids_to_read_publications_master = set(publications_id).intersection(master_id_map.keys())
+    for row in metadata_df.itertuples(index=False):
+        row_id = str(row.id)
         if row_id in common_ids_to_read_publications_master:
             for excel_row_idx in master_id_map[row_id]:
                 cell = master_ws.cell(row=excel_row_idx, column=master_search_code + 1)
