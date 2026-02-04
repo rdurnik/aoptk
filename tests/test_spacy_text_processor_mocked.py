@@ -7,8 +7,8 @@ from unittest.mock import patch
 import pytest
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
-from aoptk.spacy_text_processor import SpacyText
 from aoptk.spacy_models import SpacyModels
+from aoptk.spacy_text_processor import SpacyText
 
 
 @patch("aoptk.spacy_models.spacy.load")
