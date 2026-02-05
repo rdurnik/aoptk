@@ -209,7 +209,10 @@ def test_find_relationships(
 ):
     """Test find_relationships method with multiple chemicals and effects."""
     actual = TextGenerationAPI().find_relationships(
-        text=text, relationship_type=relationship_type, chemicals=chemicals, effects=effects
+        text=text,
+        relationship_type=relationship_type,
+        chemicals=chemicals,
+        effects=effects,
     )
 
     assert sorted(actual, key=sort_key) == sorted(expected_relationships, key=sort_key)

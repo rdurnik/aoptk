@@ -3,14 +3,15 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
-from typing import ClassVar
 from dotenv import load_dotenv
 from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
-from aoptk.relationship_type import Causative, Inhibitive, RelationshipType
 from aoptk.find_chemical import FindChemical
+from aoptk.relationship_type import Causative
+from aoptk.relationship_type import Inhibitive
+from aoptk.relationship_type import RelationshipType
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
 
@@ -52,7 +53,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 Context:
                                 {text}
                                 """
-    
+
     relationship_additional_prompt: str = """
                                         Rules:
                                         1. Use ONLY the information explicitly stated in the Context.
@@ -61,7 +62,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                         """
 
     chemical_prompt: str = """
-                            Task: 
+                            Task:
                             Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
                             Replace all chemical abbreviations with their full chemical names. Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
                             Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
@@ -184,21 +185,31 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 api_key=self.api_key,
             )
 
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect], relationship_type: RelationshipType) -> list[Relationship]:
+    def find_relationships(
+        self,
+        text: str,
+        chemicals: list[Chemical],
+        effects: list[Effect],
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
         """Find relationships between chemicals and effects.
 
         Args:
             text (str): The input text.
             chemicals (list[Chemical]): List of chemical entities.
             effects (list[Effect]): List of effect entities.
+            relationship_type (RelationshipType): The relationship type to classify.
         """
         relationships = []
         for chemical, effect in product(chemicals, effects):
-            if response := self._prompt_text(text, chemical, effect, relationship_type):
-                if relationship := self._select_relationship_type(response, relationship_type):
-                    relationships.append(Relationship(relationship_type=relationship, chemical=chemical, effect=effect, context=text))
+            if (response := self._prompt_text(text, chemical, effect, relationship_type)) and (
+                relationship := self._select_relationship_type(response, relationship_type)
+            ):
+                relationships.append(
+                    Relationship(relationship_type=relationship, chemical=chemical, effect=effect, context=text),
+                )
         return relationships
-    
+
     def _prompt_text(self, text: str, chemical: Chemical, effect: Effect, relationship_type: RelationshipType) -> str:
         """Classify the relationship between a chemical and an effect.
 
@@ -206,6 +217,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             text (str): The input text.
             chemical (Chemical): The chemical entity.
             effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
         """
         other_topics = topics.difference({relationship_type})
         completion = self.client.chat.completions.create(
@@ -215,12 +227,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                    "content": self.relationship_prompt.format(text=text, 
-                                                               chemical=chemical.name, 
-                                                               effect=effect.name,
-                                                               relationship_type=relationship_type,
-                                                               other_topics= ", ".join([topic.positive for topic in other_topics])
-                                                               ),
+                    "content": self.relationship_prompt.format(
+                        text=text,
+                        chemical=chemical.name,
+                        effect=effect.name,
+                        relationship_type=relationship_type,
+                        other_topics=", ".join([topic.positive for topic in other_topics]),
+                    ),
                 },
             ],
         )
@@ -231,12 +244,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
         Args:
             response (str): The response from the model indicating the relationship type.
-            chemical (Chemical): The chemical entity.
-            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
         """
         if response == relationship_type.positive:
             return relationship_type.positive
-        elif response == relationship_type.negative:
+        if response == relationship_type.negative:
             return relationship_type.negative
         return None
 
@@ -314,6 +326,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         Args:
             image_path (str): Path to the image.
             effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+            context (str | None): Optional context for the relationship evidence.
 
         Returns:
             list[Relationship]: List of relationships found in the image.
@@ -341,7 +355,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             ],
         )
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            print(content)
             return self._process_image_response(
                 response,
                 effect,
@@ -371,16 +384,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             chem_name = chem_name.strip().lower()
             classification = classification.strip().lower()
 
-            if classification == relationship_type.positive:
-                matched_relationship = relationship_type.positive
-            elif classification == relationship_type.negative:
-                matched_relationship = relationship_type.negative
-            else:
-                continue
+            relationship = self._select_relationship_type(classification, relationship_type)
 
             relationships.append(
                 Relationship(
-                    relationship_type=matched_relationship,
+                    relationship_type=relationship,
                     chemical=Chemical(name=chem_name),
                     effect=effect,
                     context=context,
@@ -388,6 +396,3 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             )
 
         return relationships
-    
-obj = TextGenerationAPI().find_relationships(text="Thioacetamide does not cause liver fibrosis", chemicals=[Chemical(name="thioacetamide")], effects=[Effect(name="liver fibrosis")], relationship_type=Causative())
-print(obj[0].relationship_type)
