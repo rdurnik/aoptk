@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import pytest
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
@@ -10,6 +11,11 @@ from aoptk.relationship_type import RelationshipType
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
 from aoptk.text_generation_api import TextGenerationAPI
+
+pytestmark = pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Skip in Github Actions to save energy consumption (large model download required).",
+)
 
 
 def sort_key(r: Relationship) -> tuple[str, str, str]:
