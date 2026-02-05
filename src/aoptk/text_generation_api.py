@@ -9,6 +9,7 @@ from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
+from aoptk.relationship_type import Evidence, RelationshipType
 from aoptk.find_chemical import FindChemical
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
@@ -33,15 +34,15 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
     relationship_prompt: str = """
                                 Task:
-                                Given the Context, determine whether the chemical {chemical} {rel} the biological effect {effect}.
+                                Given the Context, determine whether the chemical {chemical} {relationship.positive_verb} the biological effect {effect}.
 
                                 Effect synonyms:
                                 - Treat common synonyms or equivalent terms as the same effect.
                                 - Always map any synonym in the Context to the target effect before evaluating.
 
                                 Decision rules:
-                                - Return {rel.positive} if the Context explicitly states that {chemical} {rel.positive} {effect}.
-                                - Return {rel.negative} if the Context explicitly states that {chemical} {rel.negative} {effect}.
+                                - Return {relationship.positive} if the Context explicitly states that {chemical} {relationship.positive_verb} {effect}.
+                                - Return {relationship.negative} if the Context explicitly states that {chemical} {relationship.negative_verb} {effect}.
                                 - Return "none" if:
                                     - The chemical or the effect is not mentioned, or
                                     - No direct relationship is stated, or
@@ -50,8 +51,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
                                 Output:
                                 Return exactly one of the following, with no extra text:
-                                {rel.positive}
-                                {rel.negative}
+                                {relationship.positive}
+                                {relationship.negative}
                                 none
 
                                 Context:
@@ -165,8 +166,8 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                         Guidelines:
                                         1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
                                         2. Replace "relationship" with:
-                                        - {rel.positive} if the chemical {rel.positive} {effect}.
-                                        - {rel.negative} if the chemical {rel.negative} {effect}.
+                                        - {relationship_positive} if the chemical {relationship.positive_verb} {effect}.
+                                        - {relationship_negative} if the chemical {relationship.negative_verb} {effect}.
                                         3. No headers, explanations, or extra text may be included in the output.
                                         4. Respond only with lines matching the format above—each line must correspond to a single chemical and its relationship.
                                         5. Handle incomplete or unrelated data as follows:
@@ -189,7 +190,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 api_key=self.api_key,
             )
 
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
+    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect], relationship_type: RelationshipType) -> list[Relationship]:
         """Find relationships between chemicals and effects.
 
         Args:
@@ -199,11 +200,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         """
         relationships = []
         for chemical, effect in product(chemicals, effects):
-            if relationship := self._classify_relationship(text, chemical, effect):
-                relationships.append(relationship)
+            if relationship := self._classify_relationship(text, chemical, effect, relationship_type):
+                relationships.append(Relationship(relationship_type=relationship_type, chemical=chemical, effect=effect, context=text))
         return relationships
-
-    def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
+    
+    def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect, relationship_type: RelationshipType) -> Relationship | None:
         """Classify the relationship between a chemical and an effect.
 
         Args:
