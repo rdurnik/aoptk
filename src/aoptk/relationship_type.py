@@ -18,7 +18,7 @@ class Inhibitive(RelationshipType):
             positive_verb="inhibits",
             negative="no inhibition",
             negative_verb="does not inhibit",
-            definition="Inhibit means the chemical suppresses, reduces, blocks, or prevents the biological effect. "
+            definition="Inhibit means the chemical suppresses, reduces, blocks, or prevents the biological effect. ",
         )
 
 
@@ -31,5 +31,5 @@ class Causative(RelationshipType):
             positive_verb="causes",
             negative="no causation",
             negative_verb="does not cause",
-            definition="Cause means the chemical brings about, induces, or is responsible for the biological effect."
+            definition="Cause means the chemical brings about, induces, or is responsible for the biological effect.",
         )
