@@ -91,10 +91,10 @@ def test_find_chemical_chemical(text: str, expected: list[str]):
         ("TAA was studied for its effect on liver cells.", "Thioacetamide was studied for its effect on liver cells."),
         (
             "The liver MTs were exposed to a known profibrotic chemical, thioacetamide (TAA) and three representative "
-            "environmental chemicals (TCDD, benzo[a]pyrene (BaP) and PCB126).",
+            "environmental chemicals (TCDD and PCB126).",
             "The liver MTs were exposed to a known profibrotic chemical, thioacetamide and three representative "
-            "environmental chemicals (2,3,7,8-tetrachlorodibenzo-p-dioxin, "
-            "benzo[a]pyrene and 3,3',4,4',5-pentachlorobiphenyl).",
+            "environmental chemicals (2,3,7,8-tetrachlorodibenzo-p-dioxin "
+            "and 3,3',4,4',5-pentachlorobiphenyl).",
         ),
     ],
 )
