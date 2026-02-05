@@ -15,7 +15,7 @@ class Relationship:
 
     def __str__(self) -> str:
         return (
-            f"Evidence(relationship_type={self.relationship_type}, "
+            f"relationship_type={self.relationship_type}, "
             f"chemical={self.chemical.name}, effect={self.effect.name}, "
             f"context={self.context})"
         )
