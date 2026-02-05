@@ -1,18 +1,12 @@
 from __future__ import annotations
+import sys
 import pytest
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
 from aoptk.spacy_text_processor import SpacyText
 
-IN_GITHUB_ACTIONS = False
-
-
-pytestmark = pytest.mark.skipif(
-    IN_GITHUB_ACTIONS,
-    reason="Skip in Github Actions to save energy consumption (large model download required).",
-)
-
+pytestmark = pytest.mark.skipif(sys.platform in ["darwin", "os2", "os2emx"], reason="tests for non macOS only")
 
 def test_can_create():
     """Can create ScispacyFindChemical instance."""

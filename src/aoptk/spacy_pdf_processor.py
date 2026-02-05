@@ -38,6 +38,15 @@ class SpacyPDF(PymupdfParser):
             pubs.append(pub)
         return pubs
 
+    def get_abstracts(self) -> list[Abstract]:
+        abstracts = []
+        sources = [(Path(pdf.path), pdf) for pdf in self.pdfs]
+        for doc, pdf in self.layout.pipe(sources, as_tuples=True):
+            publication_id = ID(Path(pdf.path).stem)
+            abstract = self._parse_abstract(doc, publication_id)
+            abstracts.append(abstract)
+        return abstracts
+    
     def _parse_doc_pdf(self, doc: object, pdf: PDF) -> Publication:
         """Parse a single PDF and return a Publication object.
 
@@ -180,8 +189,8 @@ def _extract_figure_descriptions(doc: object) -> list[str]:
     Args:
         doc (object): The spaCy document object.
     """
-    return [span.text for span in doc.spans["layout"] if span.label_ == "caption"]
-
+    captions = [span.text for span in doc.spans["layout"] if span.label_ == "caption"]
+    return captions
 
 def _extract_tables(doc: object) -> list[pd.DataFrame]:
     """Extract tables from the PDF.

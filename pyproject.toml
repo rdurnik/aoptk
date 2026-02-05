@@ -62,7 +62,8 @@ dev = [
     "sphinx-autoapi",
     "myst_parser",
     "jupyter",
-    "ipykernel"
+    "ipykernel",
+    "fuzzywuzzy"
 ]
 docs = [
     "sphinx",

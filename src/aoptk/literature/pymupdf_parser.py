@@ -7,9 +7,9 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
+from aoptk.literature.abstract import Abstract
 
 if TYPE_CHECKING:
-    from aoptk.literature.abstract import Abstract
     from aoptk.literature.pdf import PDF
 
 
@@ -55,11 +55,20 @@ class PymupdfParser(PDFParser):
             pubs.append(pub)
         return pubs
 
+    def get_abstracts(self) -> list[Abstract]:
+        abstracts = []
+        for pdf in self.pdfs:
+            text = self._extract_text_to_parse(pdf)
+            publication_id = ID(Path(pdf.path).stem)
+            abstract = self._parse_abstract(text, publication_id)
+            abstracts.append(abstract)
+        return abstracts
+
     def _parse_pdf(self, pdf: PDF) -> Publication:
         """Parse a single PDF and return a Publication object."""
         text = self._extract_text_to_parse(pdf)
         publication_id = ID(Path(pdf.path).stem)
-        abstract = self._parse_abstract(text)
+        abstract = self._parse_abstract(text, publication_id)
         full_text = self._parse_full_text(text)
         abbreviations = self._extract_abbreviations(text, pdf)
         figures = self._extract_figures(pdf)
@@ -75,15 +84,15 @@ class PymupdfParser(PDFParser):
             tables=tables,
         )
 
-    def _parse_abstract(self, text: str) -> Abstract:
+    def _parse_abstract(self, text: str, publication_id: ID) -> Abstract:
         """Extract the abstract from the text."""
         if match := self._extract_abstract_match_abstract_specified(text):
-            return match.group(1).strip()
+            return Abstract(match.group(1).strip(), publication_id)
         if match := self._extract_abstract_match_abstract_not_specified(text):
             match = self._remove_title_authors(match)
-            return match.group(1).strip()
+            return Abstract(match.group(1).strip(), publication_id)
         if match := self._extract_first_large_paragraph(text):
-            return match.group().strip()
+            return Abstract(match.group().strip(), publication_id)
         return None
 
     def _parse_full_text(self, text: str) -> str:
