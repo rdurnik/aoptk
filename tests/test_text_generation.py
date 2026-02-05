@@ -4,10 +4,12 @@ from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.relationship_type import Causative
+from aoptk.relationship_type import Inhibitive
+from aoptk.relationship_type import RelationshipType
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
 from aoptk.text_generation_api import TextGenerationAPI
-from aoptk.relationship_type import RelationshipType, Causative, Inhibitive
 
 
 def sort_key(r: Relationship) -> tuple[str, str, str]:
@@ -139,7 +141,13 @@ def test_translate_abbreviations(text: str, expected: list[str]):
                 ),
             ],
         ),
-        ("Methotrexate induced renal fibrosis.", Causative(), [Chemical(name="methotrexate")], [Effect(name="liver fibrosis")], []),
+        (
+            "Methotrexate induced renal fibrosis.",
+            Causative(),
+            [Chemical(name="methotrexate")],
+            [Effect(name="liver fibrosis")],
+            [],
+        ),
         (
             "Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
             Causative(),
@@ -200,7 +208,9 @@ def test_find_relationships(
     expected_relationships: list[Relationship],
 ):
     """Test find_relationships method with multiple chemicals and effects."""
-    actual = TextGenerationAPI().find_relationships(text=text, relationship_type=relationship_type, chemicals=chemicals, effects=effects)
+    actual = TextGenerationAPI().find_relationships(
+        text=text, relationship_type=relationship_type, chemicals=chemicals, effects=effects
+    )
 
     assert sorted(actual, key=sort_key) == sorted(expected_relationships, key=sort_key)
 
