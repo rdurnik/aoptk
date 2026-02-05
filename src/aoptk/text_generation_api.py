@@ -304,7 +304,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         image_path: str,
         relationship_type: RelationshipType,
         effects: list[Effect],
-        context: str | None = None,
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in an image.
 
@@ -312,11 +311,10 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             image_path (str): Path to the image.
             relationship_type (RelationshipType): The relationship type to classify.
             effects (list[Effect]): List of effect entities.
-            context (str | None): Optional context for the relationship evidence.
         """
         relationships = []
         for effect in effects:
-            relationships.extend(self._classify_relationships_in_image(image_path, effect, relationship_type, context))
+            relationships.extend(self._classify_relationships_in_image(image_path, effect, relationship_type))
         return relationships
 
     def _classify_relationships_in_image(
@@ -324,7 +322,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         image_path: str,
         effect: Effect,
         relationship_type: RelationshipType,
-        context: str | None,
     ) -> list[Relationship]:
         """Classify relationships between chemicals and an effect in an image.
 
@@ -332,7 +329,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             image_path (str): Path to the image.
             effect (Effect): The effect entity.
             relationship_type (RelationshipType): The relationship type to classify.
-            context (str | None): Optional context for the relationship evidence.
 
         Returns:
             list[Relationship]: List of relationships found in the image.
@@ -364,7 +360,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 response,
                 effect,
                 relationship_type,
-                context or image_path,
+                image_path,
             )
         return []
 
@@ -377,7 +373,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         response: str,
         effect: Effect,
         relationship_type: RelationshipType,
-        context: str,
+        image_path: str,
     ) -> list[Relationship]:
         relationships = []
         for raw_line in response.splitlines():
@@ -396,7 +392,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                     relationship_type=relationship,
                     chemical=Chemical(name=chem_name),
                     effect=effect,
-                    context=context,
+                    context=Path(image_path).stem,
                 ),
             )
 

@@ -224,11 +224,11 @@ def test_relationship_images():
         image_path="tests/test_figures/gjic.jpeg",
         relationship_type=Inhibitive(),
         effects=[Effect(name="gap junction intercellular communication")],
-        context="gjic.jpeg",
     )
     assert any(
         r.chemical.name == "dibutyl phthalate"
         and r.effect.name == "gap junction intercellular communication"
         and r.relationship_type == Inhibitive().positive
+        and r.context == "gjic"
         for r in actual
     )
