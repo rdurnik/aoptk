@@ -28,147 +28,152 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     client: None = None
 
     relationship_prompt: str = """
-                                Task:
-                                Given the Context, determine whether the chemical {chemical} {relationship_type.positive_verb} the biological effect {effect}.
+    Task:
+    Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
 
-                                Effect synonyms:
-                                - Treat common synonyms or equivalent terms as the same effect.
-                                - Always map any synonym in the Context to the target effect before evaluating.
+    Effect synonyms:
+    - Treat common synonyms or equivalent terms as the same effect.
+    - Always map any synonym in the Context to the target effect before evaluating.
 
-                                Decision rules:
-                                - Return {relationship_type.positive} if the Context explicitly states that {chemical} {relationship_type.positive_verb} {effect}.
-                                - Return {relationship_type.negative} if the Context explicitly states that {chemical} {relationship_type.negative_verb} {effect}.
-                                - Return "none" if:
-                                    - The chemical or the effect is not mentioned, or
-                                    - No direct relationship is stated, or
-                                    - The statement is speculative, conditional, or indirect (e.g., uses "may", "might", "could").
-                                - VERY IMPORTANT: In all other cases: {other_topics} relationships - return "none".
+    Decision rules:
+    - Return {rel_type.positive} if the Context explicitly states that {chem} {rel_type.positive_verb} {effect}.
+    - Return {rel_type.negative} if the Context explicitly states that {chem} {rel_type.negative_verb} {effect}.
+    - Return "none" if:
+        - The chemical or the effect is not mentioned, or
+        - No direct relationship is stated, or
+        - The statement is speculative, conditional, or indirect (e.g., uses "may", "might", "could").
+    - VERY IMPORTANT: In all other cases: {other_topics} relationships - return "none".
 
-                                Output:
-                                Return exactly one of the following, with no extra text:
-                                {relationship_type.positive}
-                                {relationship_type.negative}
-                                none
+    Output:
+    Return exactly one of the following, with no extra text:
+    {rel_type.positive}
+    {rel_type.negative}
+    none
 
-                                Context:
-                                {text}
+    Context:
+    {text}
                                 """
 
     relationship_additional_prompt: str = """
-                                        Rules:
-                                        1. Use ONLY the information explicitly stated in the Context.
-                                        2. Do NOT use biological knowledge, assumptions, or inferred relationships.
-                                        3. Do NOT assume causal chains or indirect effects.
-                                        """
+    Rules:
+    1. Use ONLY the information explicitly stated in the Context.
+    2. Do NOT use biological knowledge, assumptions, or inferred relationships.
+    3. Do NOT assume causal chains or indirect effects.
+    """
 
     chemical_prompt: str = """
-                            Task:
-                            Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
-                            Replace all chemical abbreviations with their full chemical names. Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
-                            Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
+    Task:
+    Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
+    Replace all chemical abbreviations with their full chemical names.
+    Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
+    Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
 
 
-                            Output requirements:
-                            1. Return only chemical names.
-                            2. Do not include explanations, labels, or any additional text.
-                            3. Separate chemical names exactly with " ; " (space-semicolon-space).
-                            4. Do not add leading or trailing separators.
-                            5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space) in chemical names.
-                            6. If no chemical entities are present, return an empty string.
+    Output requirements:
+    1. Return only chemical names.
+    2. Do not include explanations, labels, or any additional text.
+    3. Separate chemical names exactly with " ; " (space-semicolon-space).
+    4. Do not add leading or trailing separators.
+    5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space)
+    in chemical names.
+    6. If no chemical entities are present, return an empty string.
 
-                            Context:
-                            {text}
-                            """
+    Context:
+    {text}
+    """
 
-    abbreviation_prompt: str = """You are expanding abbreviations in scientific and biomedical text.
+    abbreviation_prompt: str = """
+    You are expanding abbreviations in scientific and biomedical text.
 
-                                TASK:
-                                Rewrite the input text by replacing abbreviations with their full forms.
+    TASK:
+    Rewrite the input text by replacing abbreviations with their full forms.
 
-                                SCOPE:
-                                - Expand ONLY:
-                                1) Chemical entities (chemicals, compounds, pollutants)
-                                2) Biological effects or processes (e.g., cell activation, toxicity,
-                                fibrosis-related events)
-                                - Do NOT expand:
-                                - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
-                                - Genes or proteins unless they describe an effect
-                                - Assays, methods, or analysis names (e.g., RHT)
+    SCOPE:
+    - Expand ONLY:
+    1) Chemical entities (chemicals, compounds, pollutants)
+    2) Biological effects or processes (e.g., cell activation, toxicity,
+    fibrosis-related events)
+    - Do NOT expand:
+    - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
+    - Genes or proteins unless they describe an effect
+    - Assays, methods, or analysis names (e.g., RHT)
 
-                                RULES (in priority order):
+    RULES (in priority order):
 
-                                1. CONTEXT FIRST (MANDATORY):
-                                - If an abbreviation is explicitly defined in the text
-                                    (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
-                                    "hepatic stellate cell (HSC) activation"),
-                                    you MUST use that definition.
-                                - Treat the abbreviation and full form as equivalent.
+    1. CONTEXT FIRST (MANDATORY):
+    - If an abbreviation is explicitly defined in the text
+        (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
+        "hepatic stellate cell (HSC) activation"),
+        you MUST use that definition.
+    - Treat the abbreviation and full form as equivalent.
 
-                                2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
-                                - If an abbreviation is NOT defined in the text,
-                                    expand it ONLY if it has a widely accepted, unambiguous meaning
-                                    in scientific or biomedical literature.
-                                - Examples of acceptable inference:
-                                    - HSC activation → hepatic stellate cell activation
-                                    - ECM remodeling → extracellular matrix remodeling
-                                - If the expansion is uncertain or ambiguous, leave it unchanged.
+    2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
+    - If an abbreviation is NOT defined in the text,
+        expand it ONLY if it has a widely accepted, unambiguous meaning
+        in scientific or biomedical literature.
+    - Examples of acceptable inference:
+        - HSC activation → hepatic stellate cell activation
+        - ECM remodeling → extracellular matrix remodeling
+    - If the expansion is uncertain or ambiguous, leave it unchanged.
 
-                                3. CONSISTENCY:
-                                - Once an abbreviation is expanded, use the full form consistently
-                                    throughout the text.
-                                - Do NOT reintroduce the abbreviation.
+    3. CONSISTENCY:
+    - Once an abbreviation is expanded, use the full form consistently
+        throughout the text.
+    - Do NOT reintroduce the abbreviation.
 
-                                4. GRAMMAR:
-                                - Preserve the original meaning, tense, and sentence structure.
-                                - Only modify the expanded terms.
+    4. GRAMMAR:
+    - Preserve the original meaning, tense, and sentence structure.
+    - Only modify the expanded terms.
 
-                                5. CAPITALIZATION:
-                                - If an abbreviation appears at the start of a sentence, capitalize the
-                                first letter of its expansion.
-                                - Example: "TAA was studied..." → "Thioacetamide was studied..."
-                                - Otherwise, preserve the original capitalization style of the
-                                surrounding text.
+    5. CAPITALIZATION:
+    - If an abbreviation appears at the start of a sentence, capitalize the
+    first letter of its expansion.
+    - Example: "TAA was studied..." → "Thioacetamide was studied..."
+    - Otherwise, preserve the original capitalization style of the
+    surrounding text.
 
-                                6. CHARACTER ENCODING:
-                                - Use ONLY standard ASCII punctuation characters.
-                                - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
-                                - Use regular apostrophes (') NOT Unicode prime symbols (′).
+    6. CHARACTER ENCODING:
+    - Use ONLY standard ASCII punctuation characters.
+    - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
+    - Use regular apostrophes (') NOT Unicode prime symbols (′).
 
-                                7. FORMATTING RULES:
-                                - When expanding abbreviations in lists, maintain the original
-                                parentheses structure.
-                                - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
-                                and expanded-C)"
-                                - Do NOT change parentheses to commas or other punctuation.
-                                - Preserve all original punctuation except the abbreviations being
-                                expanded.
+    7. FORMATTING RULES:
+    - When expanding abbreviations in lists, maintain the original
+    parentheses structure.
+    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
+    and expanded-C)"
+    - Do NOT change parentheses to commas or other punctuation.
+    - Preserve all original punctuation except the abbreviations being
+    expanded.
 
-                                OUTPUT:
-                                - Return ONLY the rewritten text.
-                                - Do NOT add explanations, comments, or formatting.
+    OUTPUT:
+    - Return ONLY the rewritten text.
+    - Do NOT add explanations, comments, or formatting.
 
-                                INPUT TEXT:
-                                {text}
-                                """
+    INPUT TEXT:
+    {text}
+    """
 
     relationships_image_prompt: str = """
-                                        You are an assistant analyzing data from graphs or plots related to the biological effect {effect}.
-                                        Your task is to process the provided information and output the results in this strict format, one per line:
+    You are an assistant analyzing data from graphs or plots related to the biological effect {effect}.
+    Your task is to process the provided information and output the results in this strict format, one per line:
 
-                                        Format:
-                                        full_chemical_name_in_lowercase : relationship
+    Format:
+    full_chemical_name_in_lowercase : relationship
 
-                                        Guidelines:
-                                        1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
-                                        2. Replace "relationship" with:
-                                        - {relationship_type.positive} if the chemical {relationship_type.positive_verb} {effect}.
-                                        - {relationship_type.negative} if the chemical {relationship_type.negative_verb} {effect}.
-                                        3. No headers, explanations, or extra text may be included in the output.
-                                        4. Respond only with lines matching the format above—each line must correspond to a single chemical and its relationship.
-                                        5. Handle incomplete or unrelated data as follows:
-                                        - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals with identifiable effects.
-                                        - If no relevant data (chemicals or {effect} effects) is provided, output "none".
-                                        """
+    Guidelines:
+    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
+    2. Replace "relationship" with:
+    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
+    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
+    3. No headers, explanations, or extra text may be included in the output.
+    4. Respond only with lines matching the format above—each line must correspond to a single chemical and its
+    relationship.
+    5. Handle incomplete or unrelated data as follows:
+    - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
+    with identifiable effects.
+    - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+    """
 
     def __init__(
         self,
@@ -229,9 +234,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                     "role": self.role,
                     "content": self.relationship_prompt.format(
                         text=text,
-                        chemical=chemical.name,
+                        chem=chemical.name,
                         effect=effect.name,
-                        relationship_type=relationship_type,
+                        rel_type=relationship_type,
                         other_topics=", ".join([topic.positive for topic in other_topics]),
                     ),
                 },
@@ -346,7 +351,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                             "type": "text",
                             "text": self.relationships_image_prompt.format(
                                 effect=effect.name,
-                                relationship_type=relationship_type,
+                                rel_type=relationship_type,
                             ),
                         },
                         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
