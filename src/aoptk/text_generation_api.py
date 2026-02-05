@@ -52,7 +52,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
     Context:
     {text}
-                                """
+    """
 
     relationship_additional_prompt: str = """
     Rules:
