@@ -7,7 +7,6 @@ from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
 
-
 output_dir = "tests/figure_storage"
 
 
@@ -30,12 +29,15 @@ def test_get_publication_data_not_empty():
 
 @pytest.fixture(scope="module")
 def publication(provide_pdfs: dict):
+    """Second stage fixture which includes PDF parsing."""
     parser = PymupdfParser(provide_pdfs["pdfs"])
     publications = parser.get_publications()
-    provide_pdfs.update({
-        "publication": publications[0],
-        "parser": parser
-    })
+    provide_pdfs.update(
+        {
+            "publication": publications[0],
+            "parser": parser,
+        },
+    )
     yield provide_pdfs
 
     if Path(parser.figures_output_dir).exists():

@@ -1,14 +1,14 @@
 from __future__ import annotations
 import shutil
 from pathlib import Path
-import pandas as pd
 import pytest
-from aoptk.literature.databases.europepmc import EuropePMC
-from aoptk.literature.id import ID
+from fuzzywuzzy import fuzz
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
 from aoptk.spacy_pdf_processor import SpacyPDF
-from fuzzywuzzy import fuzz
+
+# ruff: noqa: PLR2004
+
 
 def test_can_create():
     """Can create SpacyPDF instance."""
@@ -59,14 +59,18 @@ def test_is_page_header_footer(potential_footer_header: str, output: bool):
     actual = SpacyPDF([])._is_page_header_footer(text=potential_footer_header)  # noqa: SLF001
     assert actual == output
 
+
 @pytest.fixture(scope="module")
 def publication(provide_pdfs: dict):
+    """Second stage fixture which includes PDF parsing."""
     parser = SpacyPDF(provide_pdfs["pdfs"])
     publications = parser.get_publications()
-    provide_pdfs.update({
-        "publication": publications[0],
-        "parser": parser
-    })
+    provide_pdfs.update(
+        {
+            "publication": publications[0],
+            "parser": parser,
+        },
+    )
     yield provide_pdfs
 
     if Path(parser.figures_output_dir).exists():
@@ -84,7 +88,7 @@ def test_extract_abstract_europepmc(publication: dict):
 def test_extract_figure_descriptions(publication: dict):
     """Test extracting figure descriptions from EuropePMC PDFs."""
     actual = publication["publication"].figure_descriptions
-    
+
     expected = publication["figure_descriptions"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio > 50
@@ -104,4 +108,3 @@ def test_extract_tables(publication: dict):
     expected = publication["tables"]
 
     assert len(actual) == expected
-

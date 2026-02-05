@@ -1,9 +1,10 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 import pytest
-
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
+
+# ruff: noqa: E501
 
 
 @pytest.fixture(
@@ -83,7 +84,7 @@ from aoptk.literature.id import ID
             "of ligands is rare, mostly limited to the peripheral areas of "
             "ligands and their resulting complexes, [17] e.g., using peptides,"
             " [18,19] pentasaccharide, [20] or short alkyl chains. [21]",
-            "tables": 0
+            "tables": 0,
         },
         {
             "id": ID("PMC12231352"),
@@ -133,15 +134,15 @@ from aoptk.literature.id import ID
             ],
             "figure_size": 6167990,
             "figure_descriptions": [
-                'FIGURE 1 The extraction and puriﬁcation of BSP-1.',
-                'FIGURE 2 Brief steps of in vivo experiments, observation and recording of rat body weight, and pathological changes in liver tissue. (A) Grouping of experimental Animals. (B) The body weight of rats. (C) The hepatic index of rats. (D) The oil red area of liver tissue in rats. (E) The effect of BSP-1 on liver tissue in rats (anatomical observations and H&E stainning, Oil red stainning, 100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.',
-                'FIGURE 3 Brief steps in vitro experiments, cytotoxicity test of BSP-1, detection of liver function and TC, TG levels, and Oil red staining in HepG2 cells. (A) CCK8 assay in HepG2 cells. (B) HepG2 cells and culture. (C) CCK8 assay in HepG2 cells. The measurement of (D) ALT (E) AST (F) TC (G) TG in HepG2 cells. (H) The oil red area of liver tissue in HepG2 cells. (I) The effect of BSP-1 in HepG2 cells (Oil red stainning, 100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.',
-                'FIGURE 4 Characterization of BSP. (A) The UV Spectroscopy of BSP-1. (B) The average molecular weight of BSP-1. (C) The monosaccharide composition of BSP-1.',
-                'FIGURE 5 Measurement of IL-1β, IL-18, TC, TG, liver function in rat serum and qRT-PCR analysis in rat liver tissue. The measurement of (A) IL-1β (B) IL- 18 (C) ALT (D) AST (E) TC (F) TG in rat serum. The mRNA levels of (G) the NLRP3 (H) the ASC (I) the caspase-1 (J) the GSDMD in rat liver tissue. The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.',
-                'FIGURE 6 Measurement of IL-1β and IL-18, qRT-PCR and WB analysis in HepG2 cells. The measurement of (A) IL-1β and (B) IL-18 in HepG2 cells. The mRNA levels of (C) the NLRP3 (D) the ASC (E) the caspase-1 and (F) the GSDMD in HepG2 cells. (G) The WB analysis in HepG2 cells. (H) The NLRP3/β-Actin (I) the ASC/β-Actinof (J) the Cleaved-caspase-1/β-Actin and (K) the Cleaved-GSDMD/β-Actinof WB in HepG2 cells. The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.',
-                'FIGURE 7 The WB analysis and immunohistochemical staining in rat liver tissue. (A) The WB analysis in rat liver tissue. (B) The NLRP3/β-Actin (C) the ASC/β- Actinof (D) the Cleaved-caspase-1/β-Actin and (E) the Cleaved-GSDMD/β-Actinof WB in rat liver tissue. (F) The evaluation of NLRP3 and GSDMD immunohistochemical staining (200 ×). The immunohistochemical density of (G) the NLRP3 and (H) the GSDMD in rat liver tissue. The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.',
-                'FIGURE 8 Immunoﬂuorescence of HepG2 Cells. (A) The evaluation of NLRP3 immunoﬂuorescence staining (100 ×). The immunohistochemical density of (B) the NLRP3 and (C) the GSDMD in HepG2 cells. (D) The evaluation of GSDMD immunoﬂuorescence staining (100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.',
-                'FIGURE 9 The impact of BSP-1 on MASLD by evaluating its ability to reduce the expression of pyroptosis-related NLRP3/caspase-1/GSDMD pathway in both HFD-induced rat models in vivo and FFA-induced HepG2 cells in vitro.'
+                "FIGURE 1 The extraction and puriﬁcation of BSP-1.",
+                "FIGURE 2 Brief steps of in vivo experiments, observation and recording of rat body weight, and pathological changes in liver tissue. (A) Grouping of experimental Animals. (B) The body weight of rats. (C) The hepatic index of rats. (D) The oil red area of liver tissue in rats. (E) The effect of BSP-1 on liver tissue in rats (anatomical observations and H&E stainning, Oil red stainning, 100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
+                "FIGURE 3 Brief steps in vitro experiments, cytotoxicity test of BSP-1, detection of liver function and TC, TG levels, and Oil red staining in HepG2 cells. (A) CCK8 assay in HepG2 cells. (B) HepG2 cells and culture. (C) CCK8 assay in HepG2 cells. The measurement of (D) ALT (E) AST (F) TC (G) TG in HepG2 cells. (H) The oil red area of liver tissue in HepG2 cells. (I) The effect of BSP-1 in HepG2 cells (Oil red stainning, 100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
+                "FIGURE 4 Characterization of BSP. (A) The UV Spectroscopy of BSP-1. (B) The average molecular weight of BSP-1. (C) The monosaccharide composition of BSP-1.",
+                "FIGURE 5 Measurement of IL-1β, IL-18, TC, TG, liver function in rat serum and qRT-PCR analysis in rat liver tissue. The measurement of (A) IL-1β (B) IL- 18 (C) ALT (D) AST (E) TC (F) TG in rat serum. The mRNA levels of (G) the NLRP3 (H) the ASC (I) the caspase-1 (J) the GSDMD in rat liver tissue. The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
+                "FIGURE 6 Measurement of IL-1β and IL-18, qRT-PCR and WB analysis in HepG2 cells. The measurement of (A) IL-1β and (B) IL-18 in HepG2 cells. The mRNA levels of (C) the NLRP3 (D) the ASC (E) the caspase-1 and (F) the GSDMD in HepG2 cells. (G) The WB analysis in HepG2 cells. (H) The NLRP3/β-Actin (I) the ASC/β-Actinof (J) the Cleaved-caspase-1/β-Actin and (K) the Cleaved-GSDMD/β-Actinof WB in HepG2 cells. The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
+                "FIGURE 7 The WB analysis and immunohistochemical staining in rat liver tissue. (A) The WB analysis in rat liver tissue. (B) The NLRP3/β-Actin (C) the ASC/β- Actinof (D) the Cleaved-caspase-1/β-Actin and (E) the Cleaved-GSDMD/β-Actinof WB in rat liver tissue. (F) The evaluation of NLRP3 and GSDMD immunohistochemical staining (200 ×). The immunohistochemical density of (G) the NLRP3 and (H) the GSDMD in rat liver tissue. The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
+                "FIGURE 8 Immunoﬂuorescence of HepG2 Cells. (A) The evaluation of NLRP3 immunoﬂuorescence staining (100 ×). The immunohistochemical density of (B) the NLRP3 and (C) the GSDMD in HepG2 cells. (D) The evaluation of GSDMD immunoﬂuorescence staining (100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
+                "FIGURE 9 The impact of BSP-1 on MASLD by evaluating its ability to reduce the expression of pyroptosis-related NLRP3/caspase-1/GSDMD pathway in both HFD-induced rat models in vivo and FFA-induced HepG2 cells in vitro.",
             ],
             "paragraph_number": 5,
             "paragraph": "Methods: To simulate MASLD in vivo and in vitro , high-fat diet (HFD)-induced rat models and free fatty acid (FFA)-stimulated HepG2 cells were used. Serum indicators and histopathological staining were employed to assess liver injury and lipid deposition. Additionally, enzyme-linked immunosorbent assay (ELISA), immunohistochemistry (IHC), immuno /uniFB02 uorescence, real-time quantitative polymerase chain reaction (RT-qPCR), and western blotting (WB) analysis were conducted to examine the NLRP3/caspase-1/GSDMD pathway and related cytokine levels.",
@@ -185,33 +186,33 @@ from aoptk.literature.id import ID
                 "tests/figure_storage/PMC12181427/figure7.jpeg",
                 "tests/figure_storage/PMC12181427/figure8.png",
                 "tests/figure_storage/PMC12181427/figure9.png",
-
             ],
             "figure_size": 6852393,
             "figure_descriptions": [
-                'Fig. 1 .  Scan electron microscope images for samples 3a-c , 5a-c (1000× magnification) showing surface morphology of thin films prepared via spin coating.',
-                'Fig. 2 .  Surface plot and surface roughness curves for samples 3a-c and 5a-c .',
-                'Fig. 3 .  Korsmeyer-Peppas drug release model for samples 3a-c , 5a-c : excellent fit with R 2 values ranging from 0.99 to 1, indicating high correlation between experimental and theoretical data.',
-                'Fig. 4 .  Displays optical micrographs captured using an inverted microscope, showing HepG-2 cancer cells on various substrates: ( a ) 3a-c and 5a-c , rounded, detached cells are often indicative of dying cells, while those maintaining the typical elongated shape are likely still alive, control cells: ( b ) morphology and distribution of HepG-2 cells without substrate intervention.',
-                'Fig. 5 .  Boxplot comparison of cell area across the control and treated groups. Cell area (µm 2 ), vs. experimental groups. The control group shows the highest variability and extreme outliers, while all treated groups exhibit reduced spread and fewer outliers, indicating more uniform cell sizes post-treatment.',
-                'Fig. 6 .  Swiss target prediction scanning for compounds 3a-c , 5a-c .',
-                'Fig. 7 .  The interaction between 3-methylthiophene 5b and (PDB ID: 4e4l).',
-                'Fig. 8 .  ( a ) Optimized structures, ( b ) electron density, ( c ) HOMO and LUMO for compound 5b .'
-
+                "Fig. 1 .  Scan electron microscope images for samples 3a-c , 5a-c (1000× magnification) showing surface morphology of thin films prepared via spin coating.",
+                "Fig. 2 .  Surface plot and surface roughness curves for samples 3a-c and 5a-c .",
+                "Fig. 3 .  Korsmeyer-Peppas drug release model for samples 3a-c , 5a-c : excellent fit with R 2 values ranging from 0.99 to 1, indicating high correlation between experimental and theoretical data.",
+                "Fig. 4 .  Displays optical micrographs captured using an inverted microscope, showing HepG-2 cancer cells on various substrates: ( a ) 3a-c and 5a-c , rounded, detached cells are often indicative of dying cells, while those maintaining the typical elongated shape are likely still alive, control cells: ( b ) morphology and distribution of HepG-2 cells without substrate intervention.",
+                "Fig. 5 .  Boxplot comparison of cell area across the control and treated groups. Cell area (µm 2 ), vs. experimental groups. The control group shows the highest variability and extreme outliers, while all treated groups exhibit reduced spread and fewer outliers, indicating more uniform cell sizes post-treatment.",
+                "Fig. 6 .  Swiss target prediction scanning for compounds 3a-c , 5a-c .",
+                "Fig. 7 .  The interaction between 3-methylthiophene 5b and (PDB ID: 4e4l).",
+                "Fig. 8 .  ( a ) Optimized structures, ( b ) electron density, ( c ) HOMO and LUMO for compound 5b .",
             ],
             "paragraph_number": 7,
             "paragraph": "1 Department of Chemistry, Faculty of Science, Mansoura University, Mansoura 35516, Egypt.  2 Center of Excellence for Genome and Cancer Research, Urology and Nephrology Center, Mansoura University, El Dakhlia, Egypt. \uf02a email: hebama@mans.edu.eg; raghdaabogabal@gmail.com",
-            "tables": 4
+            "tables": 4,
         },
     ],
-    ids=["PMC12416454", "PMC12231352", "PMC12181427"]
+    ids=["PMC12416454", "PMC12231352", "PMC12181427"],
 )
 def provide_pdfs(request: pytest.FixtureRequest):
     """Provide parameters for extract abstract fixture."""
     europepmc = EuropePMC(request.param["id"])
-    request.param.update({
-        "pdfs": europepmc.pdfs()
-    })
+    request.param.update(
+        {
+            "pdfs": europepmc.pdfs(),
+        },
+    )
     yield request.param
     if Path(europepmc.storage).exists():
         shutil.rmtree(europepmc.storage)

@@ -3,11 +3,11 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 import pymupdf
+from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
-from aoptk.literature.abstract import Abstract
 
 if TYPE_CHECKING:
     from aoptk.literature.pdf import PDF
@@ -56,6 +56,11 @@ class PymupdfParser(PDFParser):
         return pubs
 
     def get_abstracts(self) -> list[Abstract]:
+        """Get abstracts from the PDFs.
+
+        Returns:
+            list[Abstract]: List of abstracts obtained from the PDF's.
+        """
         abstracts = []
         for pdf in self.pdfs:
             text = self._extract_text_to_parse(pdf)

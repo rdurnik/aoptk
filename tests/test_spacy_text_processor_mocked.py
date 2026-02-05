@@ -11,7 +11,8 @@ from aoptk.sentence_generator import SentenceGenerator
 from aoptk.spacy_models import SpacyModels
 from aoptk.spacy_text_processor import SpacyText
 
-pytestmark = pytest.mark.skipif(not sys.platform in ["darwin", "os2", "os2emx"], reason="tests for macOS only")
+pytestmark = pytest.mark.skipif(sys.platform not in ["darwin", "os2", "os2emx"], reason="tests for macOS only")
+
 
 @patch("aoptk.spacy_models.spacy.load")
 def test_can_create(mock_spacy_load):
