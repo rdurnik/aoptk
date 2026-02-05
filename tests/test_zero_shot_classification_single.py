@@ -33,9 +33,10 @@ def test_normalize_chemical_not_empty():
             [Effect(name="liver fibrosis")],
             [
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="liver fibrosis"),
+                    context="Acetaminophen causes liver fibrosis.",
                 ),
             ],
         ),
@@ -45,14 +46,16 @@ def test_normalize_chemical_not_empty():
             [Effect(name="cancer")],
             [
                 Relationship(
-                    relationship="negative",
+                    relationship_type="negative",
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="cancer"),
+                    context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="cancer"),
+                    context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
             ],
         ),
@@ -69,9 +72,10 @@ def test_normalize_chemical_not_empty():
             [Effect(name="liver fibrosis")],
             [
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="liver fibrosis"),
+                    context="Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
                 ),
             ],
         ),
@@ -115,6 +119,6 @@ def test_find_relationships(
     ).find_relationships(text=text, chemicals=chemicals, effects=effects)
 
     def sort_key(r: Relationship) -> tuple[str, str, str]:
-        return (r.relationship, r.chemical.name, r.effect.name)
+        return (r.relationship_type, r.chemical.name, r.effect.name)
 
     assert sorted(actual, key=sort_key) == sorted(expected_relationships, key=sort_key)

@@ -41,7 +41,7 @@ class ZeroShotClassificationSingle(ZeroShotClassification):
             if self._is_prediction_confident_enough(top_score) and (
                 relationship_type := self._select_relationship_type(top_label, hypothesis_verbs)
             ):
-                return Relationship(relationship=relationship_type, chemical=chemical, effect=effect)
+                return Relationship(relationship_type=relationship_type, chemical=chemical, effect=effect, context=text)
         return None
 
     def _add_verbs_to_avoid_confussion_with_preventive_or_non_preventive(self, verb: str) -> list[str]:
