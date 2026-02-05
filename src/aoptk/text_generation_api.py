@@ -3,15 +3,19 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
-from typing import ClassVar
 from dotenv import load_dotenv
 from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.relationship_type import Causative
+from aoptk.relationship_type import Inhibitive
+from aoptk.relationship_type import RelationshipType
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
+
+topics = {Inhibitive(), Causative()}
 
 
 class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator):
@@ -23,172 +27,153 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     load_dotenv()
     client: None = None
 
-    relationship_types: ClassVar[dict[str, str | None]] = {
-        "positive": "positive",
-        "negative": "negative",
-        "none": None,
-        "inhibition": "inhibition",
-        "no-inhibition": "no-inhibition",
-    }
-
     relationship_prompt: str = """
-                                You are performing a STRICT text-based classification task.
+    Task:
+    Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
 
-                                Rules:
-                                1. Use ONLY the information explicitly stated in the Context.
-                                2. Do NOT use biological knowledge, assumptions, or inferred relationships.
-                                3. Do NOT assume causal chains or indirect effects.
-                                4. Ignore inhibitory relationships completely.
-                                - If the Context says the chemical inhibits or does not inhibit the effect,
-                                treat it as if no relationship exists.
+    Effect synonyms:
+    - Treat common synonyms or equivalent terms as the same effect.
+    - Always map any synonym in the Context to the target effect before evaluating.
 
-                                Effect synonyms:
-                                - Treat common synonyms or equivalent terms as the same effect.
-                                For example:
-                                    - "liver fibrosis" = "hepatic fibrosis"
-                                    - "heart attack" = "myocardial infarction"
-                                    - "kidney injury" = "renal injury"
-                                Always map any synonym in the Context to the target effect before evaluating.
+    Decision rules:
+    - Return {rel_type.positive} if the Context explicitly states that {chem} {rel_type.positive_verb} {effect}.
+    - Return {rel_type.negative} if the Context explicitly states that {chem} {rel_type.negative_verb} {effect}.
+    - Return "none" if:
+        - The chemical or the effect is not mentioned, or
+        - No direct relationship is stated, or
+        - The statement is speculative, conditional, or indirect (e.g., uses "may", "might", "could").
+    - VERY IMPORTANT: In all other cases: {other_topics} relationships - return "none".
 
-                                Relationship definition:
-                                - A relationship exists ONLY IF the Context contains a clear, explicit statement
-                                that {chemical} causes or does not cause {effect} (or its synonyms).
-                                - Do NOT count statements about inhibition or non-inhibition.
+    Output:
+    Return exactly one of the following, with no extra text:
+    {rel_type.positive}
+    {rel_type.negative}
+    none
 
-                                Output:
-                                - If {chemical} explicitly causes {effect}, return:
-                                    - positive
-                                - If {chemical} explicitly does not cause {effect}, return:
-                                    - negative
-                                - In all other cases (including inhibitory statements), return:
-                                    - none
+    Context:
+    {text}
+    """
 
-                                Do NOT output anything else. No explanations, no extra text.
-
-                                Context:
-                                {text}
-                                """
+    relationship_additional_prompt: str = """
+    Rules:
+    1. Use ONLY the information explicitly stated in the Context.
+    2. Do NOT use biological knowledge, assumptions, or inferred relationships.
+    3. Do NOT assume causal chains or indirect effects.
+    """
 
     chemical_prompt: str = """
-                            You are an entity extraction assistant. Your task is to extract
-                            chemical entities from the given text.
+    Task:
+    Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
+    Replace all chemical abbreviations with their full chemical names.
+    Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
+    Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
 
-                            A chemical entity includes:
-                            - Full chemical names (e.g., acetaminophen, thioacetamide)
-                            - Chemical abbreviations or acronyms (e.g., TAA, APAP, LPS)
-                            - Short chemical codes commonly used in scientific writing
 
-                            Instructions:
-                            1. Only return chemical names. Do NOT include any extra text, explanations,
-                            or punctuation.
-                            2. Separate chemical names **exactly** with " ; " (space-semicolon-space).
-                            No trailing or leading separators.
-                            3. If the text contains no chemicals, return an empty string.
+    Output requirements:
+    1. Return only chemical names.
+    2. Do not include explanations, labels, or any additional text.
+    3. Separate chemical names exactly with " ; " (space-semicolon-space).
+    4. Do not add leading or trailing separators.
+    5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space)
+    in chemical names.
+    6. If no chemical entities are present, return an empty string.
 
-                            Context:
-                            {text}
-                            """
+    Context:
+    {text}
+    """
 
-    abbreviation_prompt: str = """You are expanding abbreviations in scientific and biomedical text.
+    abbreviation_prompt: str = """
+    You are expanding abbreviations in scientific and biomedical text.
 
-                                TASK:
-                                Rewrite the input text by replacing abbreviations with their full forms.
+    TASK:
+    Rewrite the input text by replacing abbreviations with their full forms.
 
-                                SCOPE:
-                                - Expand ONLY:
-                                1) Chemical entities (chemicals, compounds, pollutants)
-                                2) Biological effects or processes (e.g., cell activation, toxicity,
-                                fibrosis-related events)
-                                - Do NOT expand:
-                                - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
-                                - Genes or proteins unless they describe an effect
-                                - Assays, methods, or analysis names (e.g., RHT)
+    SCOPE:
+    - Expand ONLY:
+    1) Chemical entities (chemicals, compounds, pollutants)
+    2) Biological effects or processes (e.g., cell activation, toxicity,
+    fibrosis-related events)
+    - Do NOT expand:
+    - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
+    - Genes or proteins unless they describe an effect
+    - Assays, methods, or analysis names (e.g., RHT)
 
-                                RULES (in priority order):
+    RULES (in priority order):
 
-                                1. CONTEXT FIRST (MANDATORY):
-                                - If an abbreviation is explicitly defined in the text
-                                    (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
-                                    "hepatic stellate cell (HSC) activation"),
-                                    you MUST use that definition.
-                                - Treat the abbreviation and full form as equivalent.
+    1. CONTEXT FIRST (MANDATORY):
+    - If an abbreviation is explicitly defined in the text
+        (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
+        "hepatic stellate cell (HSC) activation"),
+        you MUST use that definition.
+    - Treat the abbreviation and full form as equivalent.
 
-                                2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
-                                - If an abbreviation is NOT defined in the text,
-                                    expand it ONLY if it has a widely accepted, unambiguous meaning
-                                    in scientific or biomedical literature.
-                                - Examples of acceptable inference:
-                                    - HSC activation → hepatic stellate cell activation
-                                    - ECM remodeling → extracellular matrix remodeling
-                                - If the expansion is uncertain or ambiguous, leave it unchanged.
+    2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
+    - If an abbreviation is NOT defined in the text,
+        expand it ONLY if it has a widely accepted, unambiguous meaning
+        in scientific or biomedical literature.
+    - Examples of acceptable inference:
+        - HSC activation → hepatic stellate cell activation
+        - ECM remodeling → extracellular matrix remodeling
+    - If the expansion is uncertain or ambiguous, leave it unchanged.
 
-                                3. CONSISTENCY:
-                                - Once an abbreviation is expanded, use the full form consistently
-                                    throughout the text.
-                                - Do NOT reintroduce the abbreviation.
+    3. CONSISTENCY:
+    - Once an abbreviation is expanded, use the full form consistently
+        throughout the text.
+    - Do NOT reintroduce the abbreviation.
 
-                                4. GRAMMAR:
-                                - Preserve the original meaning, tense, and sentence structure.
-                                - Only modify the expanded terms.
+    4. GRAMMAR:
+    - Preserve the original meaning, tense, and sentence structure.
+    - Only modify the expanded terms.
 
-                                5. CAPITALIZATION:
-                                - If an abbreviation appears at the start of a sentence, capitalize the
-                                first letter of its expansion.
-                                - Example: "TAA was studied..." → "Thioacetamide was studied..."
-                                - Otherwise, preserve the original capitalization style of the
-                                surrounding text.
+    5. CAPITALIZATION:
+    - If an abbreviation appears at the start of a sentence, capitalize the
+    first letter of its expansion.
+    - Example: "TAA was studied..." → "Thioacetamide was studied..."
+    - Otherwise, preserve the original capitalization style of the
+    surrounding text.
 
-                                6. CHARACTER ENCODING:
-                                - Use ONLY standard ASCII punctuation characters.
-                                - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
-                                - Use regular apostrophes (') NOT Unicode prime symbols (′).
+    6. CHARACTER ENCODING:
+    - Use ONLY standard ASCII punctuation characters.
+    - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
+    - Use regular apostrophes (') NOT Unicode prime symbols (′).
 
-                                7. FORMATTING RULES:
-                                - When expanding abbreviations in lists, maintain the original
-                                parentheses structure.
-                                - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
-                                and expanded-C)"
-                                - Do NOT change parentheses to commas or other punctuation.
-                                - Preserve all original punctuation except the abbreviations being
-                                expanded.
+    7. FORMATTING RULES:
+    - When expanding abbreviations in lists, maintain the original
+    parentheses structure.
+    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
+    and expanded-C)"
+    - Do NOT change parentheses to commas or other punctuation.
+    - Preserve all original punctuation except the abbreviations being
+    expanded.
 
-                                OUTPUT:
-                                - Return ONLY the rewritten text.
-                                - Do NOT add explanations, comments, or formatting.
+    OUTPUT:
+    - Return ONLY the rewritten text.
+    - Do NOT add explanations, comments, or formatting.
 
-                                INPUT TEXT:
-                                {text}
-                                """
+    INPUT TEXT:
+    {text}
+    """
 
     relationships_image_prompt: str = """
-                                Task:
-                                Analyze the provided image and determine whether each chemical
-                                shown inhibits {effect}.
+    You are an assistant analyzing data from graphs or plots related to the biological effect {effect}.
+    Your task is to process the provided information and output the results in this strict format, one per line:
 
-                                Instructions:
-                                - You MAY interpret plots, numerical values, ET50 values, time-course
-                                curves, and percent-of-control data.
-                                - A chemical is classified as "inhibition" if the image shows a clear and
-                                meaningful reduction in {effect} compared to vehicle/control.
-                                - A chemical is classified as "no-inhibition" if {effect} remains
-                                approximately at control levels with no meaningful reduction.
-                                - If evidence is ambiguous, classify as "none".
+    Format:
+    full_chemical_name_in_lowercase : relationship
 
-                                Chemical name handling:
-                                - Translate abbreviations to full chemical names when possible.
-                                - If a full name cannot be confidently determined, keep the abbreviation.
-                                - Output chemical names in lowercase.
-
-                                Output requirements:
-                                - Output a single line per chemical.
-                                - Use the exact format:
-                                <chemical_name>: <classification>
-                                - Do NOT include explanations, comments, or extra text.
-
-                                Allowed classifications (use exactly one):
-                                - inhibition
-                                - no-inhibition
-                                - none"""
+    Guidelines:
+    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
+    2. Replace "relationship" with:
+    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
+    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
+    3. No headers, explanations, or extra text may be included in the output.
+    4. Respond only with lines matching the format above—each line must correspond to a single chemical and its
+    relationship.
+    5. Handle incomplete or unrelated data as follows:
+    - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
+    with identifiable effects.
+    - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+    """
 
     def __init__(
         self,
@@ -205,28 +190,41 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 api_key=self.api_key,
             )
 
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
+    def find_relationships(
+        self,
+        text: str,
+        chemicals: list[Chemical],
+        effects: list[Effect],
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
         """Find relationships between chemicals and effects.
 
         Args:
             text (str): The input text.
             chemicals (list[Chemical]): List of chemical entities.
             effects (list[Effect]): List of effect entities.
+            relationship_type (RelationshipType): The relationship type to classify.
         """
         relationships = []
         for chemical, effect in product(chemicals, effects):
-            if relationship := self._classify_relationship(text, chemical, effect):
-                relationships.append(relationship)
+            if (response := self._prompt_text(text, chemical, effect, relationship_type)) and (
+                relationship := self._select_relationship_type(response, relationship_type)
+            ):
+                relationships.append(
+                    Relationship(relationship_type=relationship, chemical=chemical, effect=effect, context=text),
+                )
         return relationships
 
-    def _classify_relationship(self, text: str, chemical: Chemical, effect: Effect) -> Relationship | None:
+    def _prompt_text(self, text: str, chemical: Chemical, effect: Effect, relationship_type: RelationshipType) -> str:
         """Classify the relationship between a chemical and an effect.
 
         Args:
             text (str): The input text.
             chemical (Chemical): The chemical entity.
             effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
         """
+        other_topics = topics.difference({relationship_type})
         completion = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
@@ -234,26 +232,29 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                    "content": self.relationship_prompt.format(text=text, chemical=chemical.name, effect=effect.name),
+                    "content": self.relationship_prompt.format(
+                        text=text,
+                        chem=chemical.name,
+                        effect=effect.name,
+                        rel_type=relationship_type,
+                        other_topics=", ".join([topic.positive for topic in other_topics]),
+                    ),
                 },
             ],
         )
-        if response := completion.choices[0].message.content.strip().lower():
-            return self._select_relationship_type(response, chemical, effect)
-        return None
+        return completion.choices[0].message.content.strip().lower()
 
-    def _select_relationship_type(self, response: str, chemical: Chemical, effect: Effect) -> Relationship | None:
+    def _select_relationship_type(self, response: str, relationship_type: RelationshipType) -> str | None:
         """Select the relationship type based on the response.
 
         Args:
             response (str): The response from the model indicating the relationship type.
-            chemical (Chemical): The chemical entity.
-            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
         """
-        if response in self.relationship_types:
-            relationship_type = self.relationship_types[response]
-            if relationship_type is not None:
-                return Relationship(relationship=relationship_type, chemical=chemical, effect=effect)
+        if response == relationship_type.positive:
+            return relationship_type.positive
+        if response == relationship_type.negative:
+            return relationship_type.negative
         return None
 
     def find_chemical(self, text: str) -> list[Chemical]:
@@ -298,24 +299,36 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         response = completion.choices[0].message.content
         return response if response is not None else text
 
-    def find_relationships_in_image(self, image_path: str, effects: list[Effect]) -> list[Relationship]:
+    def find_relationships_in_image(
+        self,
+        image_path: str,
+        relationship_type: RelationshipType,
+        effects: list[Effect],
+    ) -> list[Relationship]:
         """Find relationships between chemicals and effects in an image.
 
         Args:
             image_path (str): Path to the image.
+            relationship_type (RelationshipType): The relationship type to classify.
             effects (list[Effect]): List of effect entities.
         """
         relationships = []
         for effect in effects:
-            relationships.extend(self._classify_relationships_in_image(image_path, effect))
+            relationships.extend(self._classify_relationships_in_image(image_path, effect, relationship_type))
         return relationships
 
-    def _classify_relationships_in_image(self, image_path: str, effect: Effect) -> list[Relationship]:
+    def _classify_relationships_in_image(
+        self,
+        image_path: str,
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
         """Classify relationships between chemicals and an effect in an image.
 
         Args:
             image_path (str): Path to the image.
             effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
 
         Returns:
             list[Relationship]: List of relationships found in the image.
@@ -330,37 +343,57 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 {
                     "role": self.role,
                     "content": [
-                        {"type": "text", "text": self.relationships_image_prompt.format(effect=effect.name)},
+                        {
+                            "type": "text",
+                            "text": self.relationships_image_prompt.format(
+                                effect=effect.name,
+                                rel_type=relationship_type,
+                            ),
+                        },
                         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
                     ],
                 },
             ],
         )
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            return self._process_image_response(response, effect)
+            return self._process_image_response(
+                response,
+                effect,
+                relationship_type,
+                image_path,
+            )
         return []
 
     def _encode_image(self, image_path: str) -> str:
         with Path(image_path).open("rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
-    def _process_image_response(self, response: str, effect: Effect) -> list[Relationship]:
+    def _process_image_response(
+        self,
+        response: str,
+        effect: Effect,
+        relationship_type: RelationshipType,
+        image_path: str,
+    ) -> list[Relationship]:
         relationships = []
         for raw_line in response.splitlines():
             line = raw_line.strip()
-            if ":" not in line:
+            if " : " not in line:
                 continue
 
-            chem_name, classification = line.split(":", 1)
+            chem_name, classification = line.split(" : ", 1)
             chem_name = chem_name.strip().lower()
             classification = classification.strip().lower()
 
-            relationship_type = self.relationship_types.get(classification)
-            if relationship_type is None:
-                continue
+            relationship = self._select_relationship_type(classification, relationship_type)
 
             relationships.append(
-                Relationship(relationship=relationship_type, chemical=Chemical(name=chem_name), effect=effect),
+                Relationship(
+                    relationship_type=relationship,
+                    chemical=Chemical(name=chem_name),
+                    effect=effect,
+                    context=Path(image_path).stem,
+                ),
             )
 
         return relationships

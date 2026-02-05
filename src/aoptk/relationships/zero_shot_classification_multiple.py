@@ -47,7 +47,7 @@ class ZeroShotClassificationMultiple(ZeroShotClassification):
         if self._is_prediction_confident_enough(top_score, second_score) and (
             relationship_type := self._select_relationship_type(top_label, candidate_labels)
         ):
-            return Relationship(relationship=relationship_type, chemical=chemical, effect=effect)
+            return Relationship(relationship_type=relationship_type, chemical=chemical, effect=effect, context=text)
         return None
 
     def _is_prediction_confident_enough(self, top_score: int, second_score: int) -> bool:
