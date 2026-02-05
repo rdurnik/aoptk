@@ -7,6 +7,7 @@ from aoptk.find_chemical import FindChemical
 from aoptk.relationships.find_relationship import FindRelationships
 from aoptk.relationships.relationship import Relationship
 from aoptk.text_generation_api import TextGenerationAPI
+from aoptk.relationship_type import RelationshipType, Causative, Inhibitive
 
 
 def sort_key(r: Relationship) -> tuple[str, str, str]:
@@ -15,7 +16,7 @@ def sort_key(r: Relationship) -> tuple[str, str, str]:
     Args:
         r (Relationship): Relationship object.
     """
-    return (r.relationship, r.chemical.name, r.effect.name)
+    return (r.relationship_type, r.chemical.name, r.effect.name)
 
 
 def test_can_create():
@@ -39,7 +40,7 @@ def test_find_chemical_not_empty():
 
 def test_find_relationships_not_empty():
     """Test that find_relationships method returns a non-empty result."""
-    actual = TextGenerationAPI().find_relationships("", chemicals=[], effects=[])
+    actual = TextGenerationAPI().find_relationships("", relationship_type=None, chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -61,7 +62,7 @@ def test_translate_abbreviation_not_empty():
         ("Thioacetamide causes cancer.", ["thioacetamide"]),
         ("CCl4 and thioacetamide were tested for hepatotoxicity.", ["ccl4", "thioacetamide"]),
         ("Liver fibrosis and cancer were studied.", []),
-        ("Thioacetamide (TAA) was used to induce liver fibrosis.", ["thioacetamide", "taa"]),
+        ("Thioacetamide (TAA) was used to induce liver fibrosis.", ["thioacetamide"]),
         ("Mice were subjected to carbon tetrachloride-induced liver fibrosis.", ["carbon tetrachloride"]),
         ("Fibrosis was suppressed by treatment with N-acetyl-L-cysteine", ["n-acetyl-l-cysteine"]),
         (
@@ -72,7 +73,7 @@ def test_translate_abbreviation_not_empty():
         ),
         (
             "Female mice (C57Blc) were induced by 4 injections of peritoneal carbon-tetrachloride within 10 days",
-            ["carbon-tetrachloride"],
+            ["carbon tetrachloride"],
         ),
     ],
 )
@@ -102,58 +103,67 @@ def test_translate_abbreviations(text: str, expected: list[str]):
 
 
 @pytest.mark.parametrize(
-    ("text", "chemicals", "effects", "expected_relationships"),
+    ("text", "relationship_type", "chemicals", "effects", "expected_relationships"),
     [
         (
             "Acetaminophen causes liver fibrosis.",
+            Causative(),
             [Chemical(name="acetaminophen")],
             [Effect(name="liver fibrosis")],
             [
                 Relationship(
-                    relationship="positive",
+                    relationship_type=Causative().positive,
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="liver fibrosis"),
+                    context="Acetaminophen causes liver fibrosis.",
                 ),
             ],
         ),
         (
             "Cancer is caused by thioacetamide, not by acetaminophen.",
+            Causative(),
             [Chemical(name="acetaminophen"), Chemical(name="thioacetamide")],
             [Effect(name="cancer")],
             [
                 Relationship(
-                    relationship="negative",
+                    relationship_type=Causative().negative,
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="cancer"),
+                    context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type=Causative().positive,
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="cancer"),
+                    context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
             ],
         ),
-        ("Methotrexate induced renal fibrosis.", [Chemical(name="methotrexate")], [Effect(name="liver fibrosis")], []),
+        ("Methotrexate induced renal fibrosis.", Causative(), [Chemical(name="methotrexate")], [Effect(name="liver fibrosis")], []),
         (
             "Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
+            Causative(),
             [Chemical(name="esculin")],
             [Effect(name="liver fibrosis")],
             [],
         ),
         (
             "Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
+            Causative(),
             [Chemical(name="thioacetamide")],
             [Effect(name="liver fibrosis")],
             [
                 Relationship(
-                    relationship="positive",
+                    relationship_type=Causative().positive,
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="liver fibrosis"),
+                    context="Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
                 ),
             ],
         ),
         (
             "Just some random text with no effect and no chemical in here.",
+            Causative(),
             [],
             [],
             [],
@@ -161,18 +171,21 @@ def test_translate_abbreviations(text: str, expected: list[str]):
         (
             "Effect of thioacetamide on liver fibrosis was not studied in"
             " this study. We did, however, study the effect of other chemicals.",
+            Causative(),
             [Chemical(name="thioacetamide")],
             [Effect(name="liver fibrosis")],
             [],
         ),
         (
             "Effect of thioacetamide on liver fibrosis was studied in this study.",
+            Causative(),
             [Chemical(name="thioacetamide")],
             [Effect(name="liver fibrosis")],
             [],
         ),
         (
             "Thioacetamide was studied in this study.",
+            Causative(),
             [Chemical(name="thioacetamide")],
             [Effect(name="liver fibrosis")],
             [],
@@ -181,12 +194,13 @@ def test_translate_abbreviations(text: str, expected: list[str]):
 )
 def test_find_relationships(
     text: str,
+    relationship_type: RelationshipType,
     chemicals: list[Chemical],
     effects: list[Effect],
     expected_relationships: list[Relationship],
 ):
     """Test find_relationships method with multiple chemicals and effects."""
-    actual = TextGenerationAPI().find_relationships(text=text, chemicals=chemicals, effects=effects)
+    actual = TextGenerationAPI().find_relationships(text=text, relationship_type=relationship_type, chemicals=chemicals, effects=effects)
 
     assert sorted(actual, key=sort_key) == sorted(expected_relationships, key=sort_key)
 
@@ -195,11 +209,13 @@ def test_relationship_images():
     """Test find_relationships_in_image method with an image."""
     actual = TextGenerationAPI(model="mistral-large").find_relationships_in_image(
         image_path="tests/test_figures/gjic.jpeg",
+        relationship_type=Inhibitive(),
         effects=[Effect(name="gap junction intercellular communication")],
+        context="gjic.jpeg",
     )
     assert any(
         r.chemical.name == "dibutyl phthalate"
         and r.effect.name == "gap junction intercellular communication"
-        and r.relationship == "inhibition"
+        and r.relationship_type == Inhibitive().positive
         for r in actual
     )

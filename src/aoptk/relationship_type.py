@@ -15,9 +15,9 @@ class Inhibitive(RelationshipType):
 
     def __init__(self):
         super().__init__(
-            positive="Inhibition",
+            positive="inhibition",
             positive_verb="inhibits",
-            negative="No inhibition",
+            negative="no inhibition",
             negative_verb="does not inhibit",
             definition="Inhibit means the chemical suppresses, reduces, blocks, or prevents the biological effect. Treat clear synonyms of the effect as equivalent.",
         )
@@ -27,9 +27,9 @@ class Causative(RelationshipType):
 
     def __init__(self):
         super().__init__(
-            positive="Causation",
+            positive="causation",
             positive_verb="causes",
-            negative="No causation",
+            negative="no causation",
             negative_verb="does not cause",
             definition="Cause means the chemical brings about, induces, or is responsible for the biological effect. Treat clear synonyms of the effect as equivalent. Do NOT count statements about inhibition or non-inhibition.",
         )
