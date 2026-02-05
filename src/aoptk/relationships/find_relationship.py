@@ -15,3 +15,7 @@ class FindRelationships(ABC):
     @abstractmethod
     def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given text."""
+
+    @abstractmethod
+    def find_relationships_in_image(self, image_path: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the text extracted from the given image."""

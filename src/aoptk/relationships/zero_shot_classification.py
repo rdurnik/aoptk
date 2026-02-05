@@ -38,3 +38,6 @@ class ZeroShotClassification(FindRelationships, ABC):
             if relationship := self._classify_relationship(text, chemical, effect):
                 relationships.append(relationship)
         return relationships
+    
+    def find_relationships_in_image(self, image_path: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
+        raise NotImplementedError("Image relationship extraction is not implemented in ZeroShotClassification.")
