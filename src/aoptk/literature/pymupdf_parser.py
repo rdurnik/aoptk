@@ -95,7 +95,7 @@ class PymupdfParser(PDFParser):
         """Extract text to parse from the PDF."""
         with pymupdf.open(pdf.path) as doc:
             text_blocks = self._extract_text_blocks_without_irrelevant_border_text(
-                pages=enumerate(doc, start=1),
+                pages=enumerate(doc, start=0),
             )
             return "\n".join(block[6] for block in text_blocks)
 
