@@ -1,5 +1,6 @@
 from __future__ import annotations
 import re
+from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
 import pymupdf
@@ -19,16 +20,6 @@ class PymupdfParser(PDFParser):
     def __init__(self, pdfs: list[PDF], figures_output_dir: str = "tests/figure_storage"):
         self.figures_output_dir = figures_output_dir
         self.pdfs = pdfs
-        self.pattern_abstract_written = (
-            r"(?i)a\s*b\s*s\s*t\s*r\s*a\s*c\s*t\s*[:\-]?\s*(.*?)\s*"
-            r"(?=\n\s*(?:keywords|introduction|1\.?\s|I\.)\b)"
-        )
-        self.pattern_abstract_not_written = (
-            r"(?:^|\n)((?:(?!\n\s*(?:keywords?|"
-            r"introduction|(?:1|I)\.?\s|section\s+1)\b).)*?)\s*"
-            r"(?=\n\s*(?:keywords?|introduction|(?:1|I)\.?\s"
-            r"|section\s+1)\b)"
-        )
         self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
         self.pattern_abbreviations = (
@@ -63,22 +54,21 @@ class PymupdfParser(PDFParser):
         """
         abstracts = []
         for pdf in self.pdfs:
-            text = self._extract_text_to_parse(pdf)
             publication_id = ID(Path(pdf.path).stem)
-            abstract = self._parse_abstract(text, publication_id)
+            abstract = self._extract_abstract(pdf, publication_id)
             abstracts.append(abstract)
         return abstracts
 
     def _parse_pdf(self, pdf: PDF) -> Publication:
         """Parse a single PDF and return a Publication object."""
-        text = self._extract_text_to_parse(pdf)
+        text_to_parse = self._extract_text_to_parse(pdf)
         publication_id = ID(Path(pdf.path).stem)
-        abstract = self._parse_abstract(text, publication_id)
-        full_text = self._parse_full_text(text)
-        abbreviations = self._extract_abbreviations(text, pdf)
+        abstract = self._extract_abstract(pdf, publication_id)
+        full_text = self._extract_full_text(pdf)
+        abbreviations = self._extract_abbreviations(text_to_parse, pdf)
         figures = self._extract_figures(pdf)
-        figure_descriptions = self._extract_figure_descriptions(text)
-        tables = []  # TODO
+        figure_descriptions = self._extract_figure_descriptions(text_to_parse)
+        tables = []
         return Publication(
             id=publication_id,
             abstract=abstract,
@@ -89,60 +79,54 @@ class PymupdfParser(PDFParser):
             tables=tables,
         )
 
-    def _parse_abstract(self, text: str, publication_id: ID) -> Abstract:
+    def _extract_abstract(self, pdf: PDF, publication_id: ID) -> Abstract:
         """Extract the abstract from the text."""
-        if match := self._extract_abstract_match_abstract_specified(text):
-            return Abstract(match.group(1).strip(), publication_id)
-        if match := self._extract_abstract_match_abstract_not_specified(text):
-            match = self._remove_title_authors(match)
-            return Abstract(match.group(1).strip(), publication_id)
-        if match := self._extract_first_large_paragraph(text):
-            return Abstract(match.group().strip(), publication_id)
-        return None
+        with pymupdf.open(pdf.path) as doc:
+            page = doc[0]
+            text_blocks = self._extract_text_blocks_without_irrelevant_border_text(
+                pages=((0, page),),
+            )
+            longest_block = max(text_blocks, key=lambda b: len(b[6]))
+            abstract_text = "\n".join(block[6] for block in text_blocks if block == longest_block)
 
-    def _parse_full_text(self, text: str) -> str:
-        """Extract the full text from the PDF text."""
-        if match := self._extract_abstract_match_abstract_specified(text):
-            match_end = match.end()
-            return text[match_end:].strip()
-        if match := self._extract_abstract_match_abstract_not_specified(text):
-            match = self._remove_title_authors(match)
-            match_end = match.end() + text.index(match.group(0))
-            return text[match_end:].strip()
-        if match := self._extract_first_large_paragraph(text):
-            match_end = match.end() + text.index(match.group(0))
-            return text[match_end:].strip()
-        return None
+        return Abstract(abstract_text, publication_id)
 
-    def _extract_abstract_match_abstract_specified(self, text: str) -> str:
-        """Extract abstract when explicitly specified."""
-        match = re.search(self.pattern_abstract_written, text, re.DOTALL)
-        if match:
-            return match
-        return None
+    def _extract_full_text(self, pdf: PDF) -> str:
+        """Extract text to parse from the PDF."""
+        with pymupdf.open(pdf.path) as doc:
+            text_blocks = self._extract_text_blocks_without_irrelevant_border_text(
+                pages=enumerate(doc, start=1),
+            )
+            return "\n".join(block[6] for block in text_blocks)
 
-    def _extract_abstract_match_abstract_not_specified(self, text: str) -> str:
-        """Extract abstract when not explicitly specified."""
-        match = re.search(self.pattern_abstract_not_written, text, re.DOTALL | re.IGNORECASE)
-        if match:
-            return match
-        return None
+    def _extract_text_blocks_without_irrelevant_border_text(
+        self,
+        pages: Iterable[tuple[int, pymupdf.Page]],
+        top_margin_frac: float = 0.08,
+        bottom_margin_frac: float = 0.08,
+        side_margin_frac: float = 0.0275,
+    ) -> list[tuple[int, int, float, float, float, float, str]]:
+        """Collect text blocks from pages within margin bounds."""
+        text_blocks = []
+        for page_index, page in pages:
+            page_rect = page.rect
+            x0_min = page_rect.x0 + page_rect.width * side_margin_frac
+            x1_max = page_rect.x1 - page_rect.width * side_margin_frac
+            y0_min = page_rect.y0 + page_rect.height * top_margin_frac
+            y1_max = page_rect.y1 - page_rect.height * bottom_margin_frac
 
-    def _remove_title_authors(self, match: str, newlines_to_remove_from_start: int = 2) -> str:
-        """Remove title and authors from the beginning of the abstract match."""
-        text = match.group(1)
-        parts = text.split("\n", newlines_to_remove_from_start)
-        if len(parts) > newlines_to_remove_from_start:
-            return re.match(self.pattern_any_character, parts[newlines_to_remove_from_start], re.DOTALL)
-        return None
+            blocks = page.get_text("blocks")
+            for b in blocks:
+                x0, y0, x1, y1, text, block_no, _block_type = b
+                text = text.strip()
+                if not text:
+                    continue
+                if x0 < x0_min or x1 > x1_max or y0 < y0_min or y1 > y1_max:
+                    continue
+                text_blocks.append((page_index, block_no, x0, y0, x1, y1, text))
 
-    def _extract_first_large_paragraph(self, text: str, large_paragraph_word_count: int = 100) -> str:
-        """Extract the first large paragraph from the text."""
-        paragraphs = text.split("\n")
-        large_paragraphs = [p for p in paragraphs if len(p.split()) > large_paragraph_word_count]
-        if large_paragraphs:
-            return re.match(self.pattern_any_character, large_paragraphs[0], re.DOTALL)
-        return None
+        text_blocks.sort(key=lambda b: (b[0], b[3], b[2]))
+        return text_blocks
 
     def _extract_text_to_parse(self, pdf: PDF) -> str:
         """Extract text to parse from the PDF."""
