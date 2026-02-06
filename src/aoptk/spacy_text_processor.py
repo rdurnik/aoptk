@@ -1,19 +1,19 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import ClassVar
-import spacy
 from scispacy.linking import EntityLinker
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.sentence import Sentence
 from aoptk.sentence_generator import SentenceGenerator
+from aoptk.spacy_models import SpacyModels
 
 if TYPE_CHECKING:
     from scispacy.linking import EntityLinker
 
 
-class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
+class SpacyText(FindChemical, SentenceGenerator, NormalizeChemical):
     """Process text using Spacy package."""
 
     descriptive_suffixes: ClassVar[list[str]] = [
@@ -30,21 +30,16 @@ class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
         "based",
     ]
 
-    _models: ClassVar[dict[str, object]] = {}
     _mesh_terms_config: ClassVar[dict[str, bool | str]] = {"resolve_abbreviations": True, "linker_name": "mesh"}
 
     def __init__(self, model: str = "en_ner_bc5cdr_md", mesh_model: str = "en_ner_bc5cdr_md"):
         """Initialize with a spaCy model."""
         self.model = model
         self.mesh_model = mesh_model
-        if model not in Spacy._models:
-            Spacy._models[model] = spacy.load(model)
-        self.nlp = Spacy._models[model]
-        if mesh_model not in Spacy._models:
-            Spacy._models[mesh_model] = spacy.load(mesh_model)
-        self.nlp_mesh = Spacy._models[mesh_model]
-        if "scispacy_linker" not in self.nlp_mesh.pipe_names:
-            self.nlp_mesh.add_pipe("scispacy_linker", config=Spacy._mesh_terms_config)
+        models = SpacyModels()
+        self.nlp = models.get_model(model)
+        self.nlp_mesh = models.get_model(mesh_model)
+        models.ensure_pipe(self.nlp_mesh, "scispacy_linker", config=SpacyText._mesh_terms_config)
 
     def find_chemical(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""
@@ -64,16 +59,14 @@ class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
           (e.g., "carbon tetrachloride-induced ..." -> "carbon tetrachloride").
         - Removes a trailing dash at the end of the name.
         """
-        name = self._remove_trailing_dash(name.strip())
+        name = name.rstrip("-")
+
         if "-" not in name:
             return name
+
         parts = name.split("-")
         idx = self._first_descriptive_suffix_index(parts)
         return "-".join(parts[:idx]).strip() if idx is not None else name
-
-    def _remove_trailing_dash(self, name: str) -> str:
-        """Remove a trailing dash from `name` if present, preserving valid hyphenations."""
-        return name[:-1].strip() if name.endswith("-") else name
 
     def _first_descriptive_suffix_index(self, parts: list[str]) -> int | None:
         """Return index of first descriptive suffix segment in `parts`, else None.
@@ -93,19 +86,14 @@ class Spacy(FindChemical, SentenceGenerator, NormalizeChemical):
     def tokenize(self, text: str) -> list[Sentence]:
         """Use spaCy to generate sentences."""
         doc = self.nlp(text)
-        sentences = []
-        for sent in doc.sents:
-            sent_text = sent.text.strip()
-            s = Sentence(sent_text)
-            sentences.append(s)
-        return sentences
+        return [Sentence(sent.text.strip()) for sent in doc.sents]
 
     def normalize_chemical(self, chemical: Chemical) -> Chemical:
         """Normalize the chemical name.
 
         Generate MeSh terms for the given chemical name and return the first relevant chemical.
         """
-        if mesh_terms := Spacy().generate_mesh_terms(chemical.name):
+        if mesh_terms := SpacyText().generate_mesh_terms(chemical.name):
             chemical.synonyms.clear()
             chemical.synonyms.update(mesh_terms)
         return chemical

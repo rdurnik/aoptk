@@ -1,33 +1,28 @@
 from __future__ import annotations
+import sys
 import pytest
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
-from aoptk.spacy_processor import Spacy
+from aoptk.spacy_text_processor import SpacyText
 
-IN_GITHUB_ACTIONS = False
-
-
-pytestmark = pytest.mark.skipif(
-    IN_GITHUB_ACTIONS,
-    reason="Skip in Github Actions to save energy consumption (large model download required).",
-)
+pytestmark = pytest.mark.skipif(sys.platform in ["darwin", "os2", "os2emx"], reason="tests for non macOS only")
 
 
 def test_can_create():
     """Can create ScispacyFindChemical instance."""
-    actual = Spacy()
+    actual = SpacyText()
     assert actual is not None
 
 
 def test_implements_interface_find_chemical():
     """ScispacyFindChemical implements FindChemical interface."""
-    assert isinstance(Spacy(), FindChemical)
+    assert isinstance(SpacyText(), FindChemical)
 
 
 def test_find_chemical_not_empty():
     """Test that find_chemical method returns a non-empty result."""
-    actual = Spacy().find_chemical("")
+    actual = SpacyText().find_chemical("")
     assert actual is not None
 
 
@@ -70,18 +65,18 @@ def test_find_chemical_not_empty():
 )
 def test_find_chemical_chemical(sentence: str, expected: list[str]):
     """Test that find_chemical method finds chemicals in text."""
-    actual = [chem.name for chem in Spacy().find_chemical(sentence)]
+    actual = [chem.name for chem in SpacyText().find_chemical(sentence)]
     assert actual == expected
 
 
 def test_implements_interface_sentence_generator():
     """Test that Spacy implements SentenceGenerator interface."""
-    assert issubclass(Spacy, SentenceGenerator)
+    assert issubclass(SpacyText, SentenceGenerator)
 
 
 def test_generate_sentences_not_empty():
     """Test that generate_sentences method returns a non-empty result."""
-    actual = Spacy().tokenize("")
+    actual = SpacyText().tokenize("")
     assert actual is not None
 
 
@@ -154,7 +149,7 @@ def sentence_cases(request: pytest.FixtureRequest):
 def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
     """Test generate_sentences method with various cases."""
     text, expected = sentence_cases
-    actual = [sentence.__str__() for sentence in Spacy().tokenize(text)]
+    actual = [sentence.__str__() for sentence in SpacyText().tokenize(text)]
     assert actual == expected
 
 
@@ -193,7 +188,7 @@ def test_generate_sentences(sentence_cases: pytest.FixtureRequest):
 )
 def test_generate_mesh_terms(chemical: str, expected_mesh_terms: list[str]):
     """Test that generate_mesh_terms method generates MeSH terms."""
-    actual = Spacy().generate_mesh_terms(chemical)
+    actual = SpacyText().generate_mesh_terms(chemical)
     assert actual == expected_mesh_terms
 
 
@@ -209,5 +204,5 @@ def test_generate_mesh_terms(chemical: str, expected_mesh_terms: list[str]):
 )
 def test_normalize_chemical(chemical: str, normalized_chemical: str):
     """Test that normalize_chemical method normalizes chemical names."""
-    actual = Spacy().normalize_chemical(Chemical(name=chemical))
+    actual = SpacyText().normalize_chemical(Chemical(name=chemical))
     assert actual.similar(Chemical(normalized_chemical))

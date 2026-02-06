@@ -34,7 +34,8 @@ dependencies = [
     "transformers",
     "torch",
     "openpyxl",
-    "click>=8.1"
+    "click>=8.1",
+    "spacy-layout"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
@@ -61,7 +62,8 @@ dev = [
     "sphinx-autoapi",
     "myst_parser",
     "jupyter",
-    "ipykernel"
+    "ipykernel",
+    "fuzzywuzzy"
 ]
 docs = [
     "sphinx",
