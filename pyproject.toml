@@ -35,6 +35,8 @@ dependencies = [
     "torch",
     "openpyxl",
     "click>=8.1",
+    "openai",
+    "dotenv",
     "spacy-layout"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"

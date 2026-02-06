@@ -33,9 +33,10 @@ def test_normalize_chemical_not_empty():
             [Effect(name="liver fibrosis")],
             [
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="liver fibrosis"),
+                    context="Acetaminophen causes liver fibrosis.",
                 ),
             ],
         ),
@@ -45,14 +46,16 @@ def test_normalize_chemical_not_empty():
             [Effect(name="cancer")],
             [
                 Relationship(
-                    relationship="negative",
+                    relationship_type="negative",
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="cancer"),
+                    context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="cancer"),
+                    context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
             ],
         ),
@@ -77,44 +80,156 @@ def test_normalize_chemical_not_empty():
             [Effect(name="cytotoxicity"), Effect(name="stellate cell activation")],
             [
                 Relationship(
-                    relationship="negative",
+                    relationship_type="negative",
                     chemical=Chemical(name="2,3,7,8-tetrachlorodibenzo-pdioxin"),
                     effect=Effect(name="stellate cell activation"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="2,3,7,8-tetrachlorodibenzo-pdioxin"),
                     effect=Effect(name="cytotoxicity"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="benzo(a)pyrene"),
                     effect=Effect(name="stellate cell activation"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="benzo(a)pyrene"),
                     effect=Effect(name="cytotoxicity"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="negative",
+                    relationship_type="negative",
                     chemical=Chemical(name="polychlorinated biphenyl 126"),
                     effect=Effect(name="stellate cell activation"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="polychlorinated biphenyl 126"),
                     effect=Effect(name="cytotoxicity"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="stellate cell activation"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="cytotoxicity"),
+                    context=(
+                        "The liver MTs were exposed to a known profibrotic chemical, "
+                        "thioacetamide and three representative environmental "
+                        "chemicals (2,3,7,8-tetrachlorodibenzo-pdioxin, benzo(a)pyrene and polychlorinated biphenyl "
+                        "126). "
+                        "Both thioacetamide and benzo(a)pyrene triggered fibrotic pathway related events such as "
+                        "hepatocellular damage (cytotoxicity and decreased albumin release), hepatic stellate cell "
+                        "activation (transcriptional upregulation of α-SMA and Col1α1) and extracellular matrix "
+                        "remodelling."
+                        "2,3,7,8-tetrachlorodibenzo-pdioxin or polychlorinated biphenyl 126 at "
+                        "measured concentrations did not elicit "
+                        "these responses in the 3D liver MTs system, though they caused cytotoxicity in"
+                        " HepaRG monoculture at high concentrations."
+                    ),
                 ),
             ],
         ),
@@ -137,9 +252,10 @@ def test_normalize_chemical_not_empty():
             [Effect(name="liver fibrosis")],
             [
                 Relationship(
-                    relationship="positive",
+                    relationship_type="positive",
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="liver fibrosis"),
+                    context="Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
                 ),
             ],
         ),
@@ -184,6 +300,6 @@ def test_find_relationships(
     ).find_relationships(text=text, chemicals=chemicals, effects=effects)
 
     def sort_key(r: Relationship) -> tuple[str, str, str]:
-        return (r.relationship, r.chemical.name, r.effect.name)
+        return (r.relationship_type, r.chemical.name, r.effect.name)
 
     assert sorted(actual, key=sort_key) == sorted(expected_relationships, key=sort_key)
