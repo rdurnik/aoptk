@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
@@ -9,7 +10,7 @@ class Publication:
 
     id: ID
     abstract: Abstract
-    full_text: str
+    full_text: str | list[str]
     abbreviations: dict
     tables: list
     figures: list
