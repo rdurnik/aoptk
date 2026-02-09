@@ -390,6 +390,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         return []
 
     def _encode_image(self, image_path: str) -> str:
+        """Encode the image at the given path to a base64 string.
+
+        Args:
+            image_path (str): The path to the image to encode.
+        """
         with Path(image_path).open("rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
@@ -400,6 +405,15 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         relationship_type: RelationshipType,
         image_path: str,
     ) -> list[Relationship]:
+        """Process the response from the model that is colon seperated.
+
+        Args:
+            response (str): The response from the model.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+            context (str): The path to the image, used for context in the relationship.
+            image_path (str): The path to the image, used for context in the relationship.
+        """
         relationships = []
         for raw_line in response.splitlines():
             line = raw_line.strip()
