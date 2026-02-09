@@ -136,53 +136,6 @@ def test_extract_id():
         shutil.rmtree(output_dir)
 
 
-@pytest.fixture(
-    params=[
-        {
-            "id": "PMC12416454",
-            "figure_descriptions": [
-                "Figure 1. Coordination-driven self-assembly of L into "
-                "stellated helical octahedral Pd6L8 and cuboctahedral "
-                "Pd12L16 SCCs and their transformation reactions: a) using"
-                " [Pd(ACN)4](BF4)2, b) using Pd(NO3)2. The blue asterisk"
-                " denotes chiral centres of the steroid skeleton.",
-                "Figure 2. NMR characterisation of Pd6L8 and Pd12L16. a) "
-                "1H NMR spectra of L, mixture of Pd6L8 and Pd12L16 (RM1), "
-                "Pd6L8 (RM2 3:2), and Pd12L16 (RM2) in [D6]-DMSO at 298.2 K"
-                " and 700 MHz. 1H DOSY NMR spectra of b) Pd12L16 (RM2) and "
-                "c) Pd6L8 (RM2 3:2) ([D6]-DMSO, 303.2 K and 700 MHz).",
-                "Figure 3. Computational models and cartoon representations. "
-                "a) PdC24L4 building subunit, b) Pd6L8, c) Pd12L16, and d)"
-                " nomenclatures used for the triangular panel.",
-                "Figure 4. Structural analysis of supramolecular coordination"
-                " complexes using CD spectroscopy. a) CD spectra of ligands and"
-                " their coordination complexes in methanol at 25 °C. "
-                "Interpretation of helical structures of b) Pd6L8 or "
-                "Pd12L16, and c) Pd3(Ld)6, following the C24-C3-Pd-C3-C24 backbone.",
-                "Figure 5. Toxicological studies of the SCCs. a) "
-                "Concentration-response of HepG2 spheroid viability "
-                "(ATP content) after 8 days of exposure to Pd(NO3)2, "
-                "L, Pd6L8, and Pd12L16. The asterisk (*) indicates a "
-                "statistically signiﬁcant (P < 0.05) diﬀerence from the "
-                "solvent control. b) Relation of spheroid viability to "
-                "palladium content measured in spheroids. ρ represents "
-                "Spearman’s rank correlation coeﬃcient with a P value.",
-            ],
-        },
-    ],
-)
-def provide_params_extract_figure_descriptions(request: pytest.FixtureRequest):
-    """Provide parameters for extract figure descriptions fixture."""
-    europepmc = EuropePMC(request.param["id"])
-    data = {
-        "europepmc": europepmc,
-        "figure_descriptions": request.param["figure_descriptions"],
-    }
-    yield data
-    if Path(europepmc.storage).exists():
-        shutil.rmtree(europepmc.storage)
-
-
 def test_extract_figure_descriptions(publication: dict):
     """Test extracting figure descriptions from EuropePMC PDFs."""
     if publication["id"] == "PMC12181427":
