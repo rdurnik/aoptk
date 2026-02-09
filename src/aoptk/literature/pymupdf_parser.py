@@ -109,15 +109,15 @@ class PymupdfParser(PDFParser):
         """Collect text blocks from pages within margin bounds."""
         text_blocks = []
         for page_index, page in pages:
-            page_rect = page.rect
-            x0_min = page_rect.x0 + page_rect.width * side_margin_frac
-            x1_max = page_rect.x1 - page_rect.width * side_margin_frac
-            y0_min = page_rect.y0 + page_rect.height * top_margin_frac
-            y1_max = page_rect.y1 - page_rect.height * bottom_margin_frac
+            page_layout = page.rect
+            x0_min = page_layout.x0 + page_layout.width * side_margin_frac
+            x1_max = page_layout.x1 - page_layout.width * side_margin_frac
+            y0_min = page_layout.y0 + page_layout.height * top_margin_frac
+            y1_max = page_layout.y1 - page_layout.height * bottom_margin_frac
 
             blocks = page.get_text("blocks")
-            for b in blocks:
-                x0, y0, x1, y1, text, block_no, _block_type = b
+            for block in blocks:
+                x0, y0, x1, y1, text, block_no, _block_type = block
                 text = text.strip()
                 if not text:
                     continue
