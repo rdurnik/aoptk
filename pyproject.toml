@@ -65,7 +65,8 @@ dev = [
     "myst_parser",
     "jupyter",
     "ipykernel",
-    "fuzzywuzzy"
+    "fuzzywuzzy",
+    "setuptools"
 ]
 docs = [
     "sphinx",
