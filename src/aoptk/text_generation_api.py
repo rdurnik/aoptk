@@ -3,6 +3,7 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
+import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
@@ -173,6 +174,30 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
     with identifiable effects.
     - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+    """
+
+    relationships_table_prompt: str = """
+    You are an assistant analyzing data from tables related to the biological effect {effect}.
+    Your task is to process the provided information and output the results in this strict format, one per line:
+
+    Format:
+    full_chemical_name_in_lowercase : relationship
+
+    Guidelines:
+    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
+    2. Replace "relationship" with:
+    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
+    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
+    3. No headers, explanations, or extra text may be included in the output.
+    4. Respond only with lines matching the format above—each line must correspond to a single chemical and its
+    relationship.
+    5. Handle incomplete or unrelated data as follows:
+    - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
+    with identifiable effects.
+    - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+
+    Table:
+    {table}
     """
 
     def __init__(
@@ -356,7 +381,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             ],
         )
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            return self._process_image_response(
+            return self._process_colon_separated_response(
                 response,
                 effect,
                 relationship_type,
@@ -368,7 +393,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         with Path(image_path).open("rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
-    def _process_image_response(
+    def _process_colon_separated_response(
         self,
         response: str,
         effect: Effect,
@@ -397,3 +422,66 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             )
 
         return relationships
+
+    def find_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        relationship_type: RelationshipType,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in a table.
+
+        Args:
+            table_df (pd.DataFrame): Pandas DataFrame.
+            relationship_type (RelationshipType): The relationship type to classify.
+            effects (list[Effect]): List of effect entities.
+        """
+        relationships = []
+        for effect in effects:
+            relationships.extend(
+                self._classify_relationships_in_table(
+                    table_df,
+                    effect,
+                    relationship_type,
+                ),
+            )
+        return relationships
+
+    def _classify_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
+        """Classify relationships between chemicals and an effect in a table.
+
+        Args:
+            table_df (pd.DataFrame): Pandas DataFrame.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+
+        Returns:
+            list[Relationship]: List of relationships found in the table.
+        """
+        table_text = table_df.to_csv(index=False)
+
+        messages = [
+            {
+                "role": self.role,
+                "content": self.relationships_table_prompt.format(
+                    effect=effect.name,
+                    rel_type=relationship_type,
+                    table=table_text,
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            return self._process_colon_separated_response(response, effect, relationship_type, "table")
+        return []
