@@ -83,12 +83,13 @@ class PymupdfParser(PDFParser):
         """Extract the abstract from the text."""
         with pymupdf.open(pdf.path) as doc:
             page = doc[0]
-            text_blocks = self._extract_text_blocks_without_irrelevant_border_text(
+            if text_blocks := self._extract_text_blocks_without_irrelevant_border_text(
                 pages=((0, page),),
-            )
-            longest_block = max(text_blocks, key=lambda b: len(b[6]))
-            abstract_text = "\n".join(block[6] for block in text_blocks if block == longest_block)
-
+            ):
+                longest_block = max(text_blocks, key=lambda b: len(b[6]))
+                abstract_text = "\n".join(block[6] for block in text_blocks if block == longest_block)
+            else:
+                abstract_text = ""
         return Abstract(abstract_text, publication_id)
 
     def _extract_full_text(self, pdf: PDF) -> str:
@@ -192,7 +193,7 @@ class PymupdfParser(PDFParser):
             if m:
                 key, value = m.groups()
                 abbreviations_dict[key.strip()] = value.strip()
-            self._remove_dot_from_the_final_value(abbreviations_dict, key)
+                self._remove_dot_from_the_final_value(abbreviations_dict, key)
         return abbreviations_dict
 
     def _remove_dot_from_the_final_value(self, abbreviations_dict: dict[str, str], key: str) -> dict[str, str]:
