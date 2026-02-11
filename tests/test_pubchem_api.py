@@ -22,18 +22,19 @@ def test_normalize_chemical_not_empty():
 
 
 @pytest.mark.parametrize(
-    ("chemical_name", "expected"),
+    ("chemical_name", "expected_heading", "synonyms"),
     [
-        ("TAA", "thioacetamide"),
-        ("CCL4", "carbon tetrachloride"),
-        ("MTX", "methotrexate"),
-        ("thioacetamide", "thioacetamide"),
-        ("Thioacetamide", "thioacetamide"),
-        ("somethingnotinpubchem", "somethingnotinpubchem"),
-        ("paracetamol", "acetaminophen"),
+        ("TAA", "thioacetamide", {"acetimidic acid, thio-"}),
+        ("CCL4", "carbon tetrachloride", {"tetrachlormethan"}),
+        ("MTX", "methotrexate", {"methotrexatum"}),
+        ("thioacetamide", "thioacetamide", {"acetimidic acid, thio-"}),
+        ("Thioacetamide", "thioacetamide", {"acetimidic acid, thio-"}),
+        ("somethingnotinpubchem", "somethingnotinpubchem", {""}),
+        ("paracetamol", "acetaminophen", {"acetaminophen"}),
     ],
 )
-def test_normalize_chemical(chemical_name: str, expected: str):
+def test_normalize_chemical(chemical_name: str, expected_heading: str, synonyms: set[str]):
     """Test normalize_chemical method with various entities."""
     actual = PubChemAPI().normalize_chemical(Chemical(chemical_name))
-    assert actual == expected
+    assert actual.heading == expected_heading
+    assert synonyms.issubset(actual.synonyms)
