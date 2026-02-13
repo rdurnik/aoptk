@@ -417,3 +417,31 @@ def test_relationship_table(phthalate_table_data: dict):
         and r.context == "table"
         for r in actual
     )
+
+
+@pytest.mark.parametrize(
+    ("chemical", "list_of_chemicals", "expected_heading"),
+    [
+        (
+            Chemical(name="paracetamol"),
+            [Chemical(name="acetaminophen"), Chemical(name="thioacetamide")],
+            "acetaminophen",
+        ),
+        (Chemical(name="paracetamol"), [Chemical(name="paracetamol"), Chemical(name="thioacetamide")], "paracetamol"),
+        (Chemical(name="paracetamol"), [Chemical(name="methotrexate"), Chemical(name="thioacetamide")], None),
+        (
+            Chemical(name="paracetamol"),
+            [Chemical(name="acetaminophen"), Chemical(name="APAP"), Chemical(name="paracetamol")],
+            "paracetamol",
+        ),
+        (
+            Chemical(name="paracetamol"),
+            [Chemical(name="acetaminophen"), Chemical(name="APAP"), Chemical(name="acetaco")],
+            "acetaminophen",
+        ),
+    ],
+)
+def test_normalize_chemical(chemical: str, list_of_chemicals: list[str], expected_heading: str):
+    """Test that find_chemical method finds chemicals in text."""
+    actual = TextGenerationAPI().normalize_chemical(chemical, list_of_chemicals)
+    assert actual.heading == expected_heading

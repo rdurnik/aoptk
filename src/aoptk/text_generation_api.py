@@ -10,6 +10,7 @@ from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
 from aoptk.relationship_type import RelationshipType
@@ -19,7 +20,7 @@ from aoptk.relationships.relationship import Relationship
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator):
+class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator, NormalizeChemical):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -198,6 +199,36 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
 
     Table:
     {table}
+    """
+
+    normalization_prompt: str = """
+    You are a chemical name normalization assistant.
+
+    Task:
+    You will be given:
+    - A TARGET chemical name: {chem}
+    - A LIST OF CHEMICAL NAMES (one chemical name per line)
+
+    Your job is to:
+    1. Determine whether {chem} matches any chemical in the list.
+    2. Matching should include:
+    - Synonyms (e.g., paracetamol = acetaminophen)
+    - Abbreviations (e.g., PCB = polychlorinated biphenyl)
+    - Alternate spellings, hyphenation, or formatting differences
+    - Plural vs singular forms
+    3. If multiple matches exist, return the most likely standardized match based on common chemical naming conventions.
+    4. If there is no match, return: "none".
+
+    Output rules:
+    - Return only the matched chemical name from the list.
+    - Do not explain.
+    - Do not return anything except the answer.
+    - If no match is found, return exactly "none".
+
+    TARGET: {chem}
+
+    LIST OF CHEMICAL NAMES:
+    {list_of_chemical_names}
     """
 
     def __init__(
@@ -499,3 +530,49 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
             return self._process_colon_separated_response(response, effect, relationship_type, "table")
         return []
+
+    def normalize_chemical(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+        """Normalize the chemical name by finding a matching name in the chemical list.
+
+        Args:
+            chemical (Chemical): The chemical to normalize.
+            chemical_list (list[Chemical]): The list of chemicals to match against.
+
+        Returns:
+            Chemical: The normalized chemical.
+        """
+        if matching_name := self._find_matching_name(chemical, chemical_list):
+            chemical.heading = matching_name
+        return chemical
+
+    def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+        """Find a matching chemical name in the chemical list.
+
+        Args:
+            chemical (Chemical): The chemical to find a match for.
+            chemical_list (list[Chemical]): The list of chemicals to match against.
+
+        Returns:
+            Chemical: The matching chemical name, or None if no match is found.
+        """
+        messages = [
+            {
+                "role": self.role,
+                "content": self.normalization_prompt.format(
+                    chem=chemical.name,
+                    list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+        if response := completion.choices[0].message.content.strip().lower():
+            if response == "none":
+                return None
+            return response
+        return None
