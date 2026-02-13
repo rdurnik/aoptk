@@ -3,6 +3,7 @@ from abc import ABC
 from abc import abstractmethod
 from itertools import product
 from typing import TYPE_CHECKING
+import pandas as pd
 from transformers import pipeline
 from aoptk.relationships.find_relationship import FindRelationships
 
@@ -47,4 +48,13 @@ class ZeroShotClassification(FindRelationships, ABC):
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in an image."""
         msg = "Image relationship extraction is not implemented in ZeroShotClassification."
+        raise NotImplementedError(msg)
+
+    def find_relationships_in_table(
+        self,
+        table_data: pd.DataFrame,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the given table data."""
+        msg = "Table relationship extraction is not implemented in ZeroShotClassification."
         raise NotImplementedError(msg)
