@@ -9,6 +9,7 @@ from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
 
 # ruff: noqa: PLR2004
+# ruff: noqa: SLF001
 
 output_dir = "tests/figure_storage"
 
@@ -161,3 +162,54 @@ def test_extract_figures(publication: dict):
     )
     assert actual == expected
     assert total_size == expected_size
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("short", True),
+        ("a" * 1001, False),
+    ],
+)
+def test_is_too_short(text: str, expected: bool):
+    """Test that is_too_short correctly identifies texts shorter than 1000 characters."""
+    parser = PymupdfParser([])
+    assert parser._is_too_short(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("", False),
+        ("normal text without control chars", False),
+        (
+            "/C84/C104/C101 /C110/C111/C110/"
+            "C45/C103/C101/C110/C111/C116/C111"
+            "/C120/C105/C99 /C101/C128/C101/C99"
+            "/C116/C115 /C111/C102 /C116/C119/C111",
+            True,
+        ),
+        (
+            "$\t\x10\x06\x0e\t\x07 @) ,&))&. &=7A&+&\n444\x1c\x02\x15\x0f\x02\x16\x06\x02\x04",
+            True,
+        ),
+        (
+            "4\x0f\x03\x18\x06\x08\x0b\x0f\x03\x10\x03 @@ /+,,&0 @'>A@='\n...\x1c\x03\t",
+            True,
+        ),
+    ],
+)
+def test_is_corrupted(text: str, expected: bool):
+    """Test that is_corrupted correctly identifies texts with excessive control characters."""
+    parser = PymupdfParser([])
+    assert parser._is_corrupted(text) == expected
+
+
+def test_extract_full_text_from_corrupted_pdf():
+    """Test extracting full text from a corrupted PDF."""
+    actual = PymupdfParser(pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")]).get_publications()[0].full_text
+    expected = (
+        "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects, "
+        "we evaluated the effect of the parent chemical and the ozonated products"
+    )
+    assert expected in actual

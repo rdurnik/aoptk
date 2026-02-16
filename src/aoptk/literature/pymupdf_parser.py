@@ -1,4 +1,5 @@
 from __future__ import annotations
+import base64
 import re
 from collections.abc import Iterable
 from pathlib import Path
@@ -9,6 +10,7 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
+from aoptk.text_generation_api import TextGenerationAPI
 
 if TYPE_CHECKING:
     from aoptk.literature.pdf import PDF
@@ -93,12 +95,90 @@ class PymupdfParser(PDFParser):
         return Abstract(abstract_text, publication_id)
 
     def _extract_full_text(self, pdf: PDF) -> str:
-        """Extract text to parse from the PDF."""
+        """Extract text to parse from the PDF.
+
+        Args:
+            pdf (PDF): The PDF object to extract text from.
+
+        Returns:
+            str: The extracted full text from the PDF.
+        """
         with pymupdf.open(pdf.path) as doc:
             text_blocks = self._extract_text_blocks_without_irrelevant_border_text(
                 pages=enumerate(doc, start=0),
             )
-            return "\n".join(block[6] for block in text_blocks)
+            full_text = "\n".join(block[6] for block in text_blocks)
+            if self._is_corrupted(full_text) or self._is_too_short(full_text):
+                pdf_as_images = self._extract_pdf_as_images(pdf)
+                full_text = self._extract_full_text_from_images(pdf_as_images)
+
+            return full_text
+
+    def _is_too_short(self, text: str, min_length: int = 1000) -> bool:
+        """Check if the text is too short to be a valid full text.
+
+        Args:
+            text (str): The text to check.
+            min_length (int): The minimum length of valid full text.
+
+        Returns:
+            bool: True if the text is too short, False otherwise.
+        """
+        return len(text.strip()) < min_length
+
+    def _is_corrupted(self, text: str, max_corruption_ratio: float = 0.1) -> bool:
+        """Check if the text is corrupted based on the ratio of control characters.
+
+        Args:
+            text (str): The text to check.
+            max_corruption_ratio (float): The maximum allowed ratio of corrupted characters.
+
+        Returns:
+            bool: True if the text is corrupted, False otherwise.
+        """
+        if not text:
+            return False
+        corrupted_text = len(re.findall(r"(?:[\x00-\x1F\x7F]|\uFFFD|/C\d{2,3})", text))
+        corruption_ratio = corrupted_text / len(text)
+        return corruption_ratio > max_corruption_ratio
+
+    def _extract_pdf_as_images(self, pdf: PDF) -> list[str]:
+        """Extract each page of the PDF as an image and return a list of base64-encoded images.
+
+        Args:
+            pdf (PDF): The PDF object to extract images from.
+
+        Returns:
+            list[str]: A list of base64-encoded image strings.
+        """
+        pdf_document = pymupdf.open(pdf.path)
+        images_base64 = []
+
+        with pymupdf.open(pdf.path) as doc:
+            for page in doc:
+                matrix = pymupdf.Matrix(2, 2)
+                pixmap = page.get_pixmap(matrix=matrix, alpha=False)
+                png_bytes = pixmap.tobytes("png")
+                img_base64 = base64.b64encode(png_bytes).decode("utf-8")
+                images_base64.append(img_base64)
+        pdf_document.close()
+        return images_base64
+
+    def _extract_full_text_from_images(self, pdf_as_images: list[str]) -> str:
+        """Extract text from a list of base64-encoded images using the TextGenerationAPI.
+
+        Args:
+            pdf_as_images (list[str]): A list of base64-encoded image strings.
+
+        Returns:
+            str: The extracted full text from the images.
+        """
+        full_text = ""
+        text_generation = TextGenerationAPI(model="mistral-large")
+        for img_base64 in pdf_as_images:
+            text_from_image = text_generation.extract_text_from_pdf_image(img_base64)
+            full_text += text_from_image + "\n"
+        return full_text
 
     def _extract_text_blocks_without_irrelevant_border_text(
         self,
