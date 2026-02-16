@@ -3,12 +3,14 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
+import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
 from aoptk.relationship_type import RelationshipType
@@ -18,7 +20,7 @@ from aoptk.relationships.relationship import Relationship
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator):
+class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator, NormalizeChemical):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -173,6 +175,60 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
     with identifiable effects.
     - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+    """
+
+    relationships_table_prompt: str = """
+    You are an assistant analyzing data from tables related to the biological effect {effect}.
+    Your task is to process the provided information and output the results in this strict format, one per line:
+
+    Format:
+    full_chemical_name_in_lowercase : relationship
+
+    Guidelines:
+    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
+    2. Replace "relationship" with:
+    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
+    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
+    3. No headers, explanations, or extra text may be included in the output.
+    4. Respond only with lines matching the format above—each line must correspond to a single chemical and its
+    relationship.
+    5. Handle incomplete or unrelated data as follows:
+    - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
+    with identifiable effects.
+    - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+
+    Table:
+    {table}
+    """
+
+    normalization_prompt: str = """
+    You are a chemical name normalization assistant.
+
+    Task:
+    You will be given:
+    - A TARGET chemical name: {chem}
+    - A LIST OF CHEMICAL NAMES (one chemical name per line)
+
+    Your job is to:
+    1. Determine whether {chem} matches any chemical in the list.
+    2. Matching should include:
+    - Synonyms (e.g., paracetamol = acetaminophen)
+    - Abbreviations (e.g., PCB = polychlorinated biphenyl)
+    - Alternate spellings, hyphenation, or formatting differences
+    - Plural vs singular forms
+    3. If multiple matches exist, return the most likely standardized match based on common chemical naming conventions.
+    4. If there is no match, return: "none".
+
+    Output rules:
+    - Return only the matched chemical name from the list.
+    - Do not explain.
+    - Do not return anything except the answer.
+    - If no match is found, return exactly "none".
+
+    TARGET: {chem}
+
+    LIST OF CHEMICAL NAMES:
+    {list_of_chemical_names}
     """
 
     def __init__(
@@ -356,7 +412,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             ],
         )
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            return self._process_image_response(
+            return self._process_colon_separated_response(
                 response,
                 effect,
                 relationship_type,
@@ -365,16 +421,30 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         return []
 
     def _encode_image(self, image_path: str) -> str:
+        """Encode the image at the given path to a base64 string.
+
+        Args:
+            image_path (str): The path to the image to encode.
+        """
         with Path(image_path).open("rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
-    def _process_image_response(
+    def _process_colon_separated_response(
         self,
         response: str,
         effect: Effect,
         relationship_type: RelationshipType,
         image_path: str,
     ) -> list[Relationship]:
+        """Process the response from the model that is colon seperated.
+
+        Args:
+            response (str): The response from the model.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+            context (str): The path to the image, used for context in the relationship.
+            image_path (str): The path to the image, used for context in the relationship.
+        """
         relationships = []
         for raw_line in response.splitlines():
             line = raw_line.strip()
@@ -397,3 +467,112 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             )
 
         return relationships
+
+    def find_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        relationship_type: RelationshipType,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in a table.
+
+        Args:
+            table_df (pd.DataFrame): Pandas DataFrame.
+            relationship_type (RelationshipType): The relationship type to classify.
+            effects (list[Effect]): List of effect entities.
+        """
+        relationships = []
+        for effect in effects:
+            relationships.extend(
+                self._classify_relationships_in_table(
+                    table_df,
+                    effect,
+                    relationship_type,
+                ),
+            )
+        return relationships
+
+    def _classify_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
+        """Classify relationships between chemicals and an effect in a table.
+
+        Args:
+            table_df (pd.DataFrame): Pandas DataFrame.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+
+        Returns:
+            list[Relationship]: List of relationships found in the table.
+        """
+        table_text = table_df.to_csv(index=False)
+
+        messages = [
+            {
+                "role": self.role,
+                "content": self.relationships_table_prompt.format(
+                    effect=effect.name,
+                    rel_type=relationship_type,
+                    table=table_text,
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            return self._process_colon_separated_response(response, effect, relationship_type, "table")
+        return []
+
+    def normalize_chemical(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+        """Normalize the chemical name by finding a matching name in the chemical list.
+
+        Args:
+            chemical (Chemical): The chemical to normalize.
+            chemical_list (list[Chemical]): The list of chemicals to match against.
+
+        Returns:
+            Chemical: The normalized chemical.
+        """
+        if matching_name := self._find_matching_name(chemical, chemical_list):
+            chemical.heading = matching_name
+        return chemical
+
+    def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+        """Find a matching chemical name in the chemical list.
+
+        Args:
+            chemical (Chemical): The chemical to find a match for.
+            chemical_list (list[Chemical]): The list of chemicals to match against.
+
+        Returns:
+            Chemical: The matching chemical name, or None if no match is found.
+        """
+        messages = [
+            {
+                "role": self.role,
+                "content": self.normalization_prompt.format(
+                    chem=chemical.name,
+                    list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+        if response := completion.choices[0].message.content.strip().lower():
+            if response == "none":
+                return None
+            return response
+        return None
