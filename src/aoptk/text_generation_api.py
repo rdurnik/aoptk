@@ -232,8 +232,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     """
 
     extract_text_from_image_prompt: str = """
-    Extract the complete text from this scientific paper image, preserving line breaks and paragraph structure.
-    Output strictly the extracted text and nothing else.
+    Extract the complete text from the provided scientific paper image, preserving all original line breaks, spacing, and paragraph 
+    structure exactly as shown. Output only the extracted text with no additional commentary or formatting, and ensure that no 
+    extra spaces are inserted between letters or words.
     """
 
     def __init__(
