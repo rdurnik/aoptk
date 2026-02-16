@@ -231,6 +231,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     {list_of_chemical_names}
     """
 
+    extract_text_from_image_prompt: str = """
+    Extract the complete text from this scientific paper image, preserving line breaks and paragraph structure.
+    Output strictly the extracted text and nothing else.
+    """
+
     def __init__(
         self,
         model: str = "gpt-oss-120b",
@@ -576,3 +581,36 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                 return None
             return response
         return None
+
+    def extract_text_from_pdf_image(
+        self,
+        img_base64: str,
+    ) -> str:
+        """Extract text from a base64-encoded image.
+
+        Args:
+            img_base64 (str): Base64-encoded image data.
+
+        Returns:
+            str: Extracted text from the image.
+        """
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[
+                {
+                    "role": self.role,
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": self.extract_text_from_image_prompt,
+                        },
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_base64.strip()}"}},
+                    ],
+                },
+            ],
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip()):
+            return response
+        return ""

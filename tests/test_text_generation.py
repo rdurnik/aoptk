@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from pathlib import Path
 import pandas as pd
 import pytest
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
@@ -445,3 +446,12 @@ def test_normalize_chemical(chemical: str, list_of_chemicals: list[str], expecte
     """Test that find_chemical method finds chemicals in text."""
     actual = TextGenerationAPI().normalize_chemical(chemical, list_of_chemicals)
     assert actual.heading == expected_heading
+
+
+def test_extract_text_from_pdf_image():
+    """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
+    base64_str = (Path("tests/test-data/test_pdf_base64_image.txt").read_text()).strip()
+    actual = TextGenerationAPI(model="mistral-large").extract_text_from_pdf_image(base64_str)
+    assert (
+        "Polycyclic aromatic hydrocarbons (PAHs), many of which are"
+    ) in actual
