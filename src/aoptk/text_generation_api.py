@@ -60,33 +60,37 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
 
     relationship_text_images_prompt: str = """
     Task:
-    Analyze the provided Context and Images (treat image content as part of the same context as the text).
+    Analyze the provided Context and Images.
 
     Step 1 — Chemical Extraction:
-    - Identify all chemical entities (e.g., chemicals, metabolites).
-    - Replace chemical abbreviations with their full chemical names.
-    - Do NOT modify, interpret, or expand chemical formulas (e.g., NaCl must remain exactly as written).
+    - Identify all chemical entities (chemicals or metabolites).
+    - Replace abbreviations with full chemical names.
+    - Always write chemical names in lowercase.
+    - Do NOT modify or expand chemical formulas (e.g., NaCl must remain exactly as written).
     - Do NOT treat broad classes (e.g., pesticides, proteins, plastics) as individual chemicals.
 
     Step 2 — Relationship Evaluation:
-    For each extracted chemical, determine whether it {rel_type.positive_verb} the biological effect "{effect}".
+    Determine whether each chemical {rel_type.positive_verb} the biological effect "{effect}".
+    Treat synonyms of the effect as equivalent.
 
-    Effect Synonym Rules:
-    - Treat synonyms or equivalent terms as the same effect.
-    - Map any synonym found in the Context or Images to the target effect before evaluating.
+    Output Rules:
+    - Only output chemicals with a clear positive or negative relationship.
+    - Exclude chemicals with no clear relationship.
+    - If none qualify, output exactly:
+    none
 
     Format:
     full_chemical_name_in_lowercase : relationship
 
-    Guidelines:
-    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
-    2. Replace "relationship" with:
-    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
-    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
-    3. No headers, explanations, or extra text.
-    4. Each line must represent one chemical.
-    5. If no chemical has a clear relationship with the effect, output exactly:
-    none
+    Where relationship must be exactly:
+    {rel_type.positive}
+    {rel_type.negative}
+
+    Strict:
+    - Chemical names must be full names and lowercase.
+    - No blank relationships.
+    - No extra text.
+    - One chemical per line.
 
     Context:
     {text}
