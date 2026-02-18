@@ -29,7 +29,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     load_dotenv()
     client: None = None
 
-    relationship_prompt: str = """
+    relationship_text_prompt: str = """
     Task:
     Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
 
@@ -50,6 +50,42 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     Return exactly one of the following, with no extra text:
     {rel_type.positive}
     {rel_type.negative}
+    none
+
+    Context:
+    {text}
+    """
+
+    relationship_text_images_prompt: str = """
+    Task:
+    Analyze the provided Context and Images (treat image content as part of the same context as the text).
+    Context has a higher priority, but consider results from both when determining relationships.
+    If the chemical is only mentioned in the images, you can use that information to determine the relationship.
+
+    Step 1 — Chemical Extraction:
+    - Identify all chemical entities (e.g., chemicals, metabolites).
+    - Replace chemical abbreviations with their full chemical names.
+    - Do NOT modify, interpret, or expand chemical formulas (e.g., NaCl must remain exactly as written).
+    - Do NOT treat broad classes (e.g., pesticides, proteins, plastics) as individual chemicals.
+
+    Step 2 — Relationship Evaluation:
+    For each extracted chemical, determine whether it {rel_type.positive_verb} the biological effect "{effect}".
+
+    Effect Synonym Rules:
+    - Treat synonyms or equivalent terms as the same effect.
+    - Map any synonym found in the Context or Images to the target effect before evaluating.
+
+    Format:
+    full_chemical_name_in_lowercase : relationship
+
+    Guidelines:
+    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
+    2. Replace "relationship" with:
+    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
+    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
+    3. No headers, explanations, or extra text.
+    4. Each line must represent one chemical.
+    5. If no chemical has a clear relationship with the effect, output exactly:
     none
 
     Context:
@@ -232,8 +268,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     """
 
     extract_text_from_image_prompt: str = """
-    Extract the complete text from the provided scientific paper image, preserving all original line breaks, spacing, and paragraph 
-    structure exactly as shown. Output only the extracted text with no additional commentary or formatting, and ensure that no 
+    Extract the complete text from the provided scientific paper image, preserving all original line breaks, spacing,
+    and paragraph structure exactly as shown.
+    Output only the extracted text with no additional commentary or formatting, and ensure that no
     extra spaces are inserted between letters or words.
     """
 
@@ -252,7 +289,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                 api_key=self.api_key,
             )
 
-    def find_relationships(
+    def find_relationships_in_text(
         self,
         text: str,
         chemicals: list[Chemical],
@@ -294,7 +331,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             messages=[
                 {
                     "role": self.role,
-                    "content": self.relationship_prompt.format(
+                    "content": self.relationship_text_prompt.format(
                         text=text,
                         chem=chemical.name,
                         effect=effect.name,
@@ -615,3 +652,79 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
         if (content := completion.choices[0].message.content) and (response := content.strip()):
             return response
         return ""
+
+    def find_relationships_in_text_and_images(
+        self,
+        text: str,
+        image_paths: list[str],
+        relationship_type: RelationshipType,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the given text and images combined.
+
+        Args:
+            text (str): The input text.
+            image_paths (list[str]): List of paths to images.
+            relationship_type (RelationshipType): The relationship type to classify.
+            effects (list[Effect]): List of effect entities.
+        """
+        relationships = []
+        for effect in effects:
+            relationships.extend(
+                self._classify_relationships_in_text_and_images(text, image_paths, effect, relationship_type),
+            )
+        return relationships
+
+    def _classify_relationships_in_text_and_images(
+        self,
+        text: str,
+        image_paths: list[str],
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
+        """Classify relationships between chemicals and an effect in the given text and images combined.
+
+        Args:
+            text (str): The input text.
+            image_paths (list[str]): List of paths to images.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+        """
+        base64_images = [self._encode_image(image_path) for image_path in image_paths]
+        other_topics = topics.difference({relationship_type})
+
+        content = [
+            {
+                "type": "text",
+                "text": self.relationship_text_images_prompt.format(
+                    text=text,
+                    effect=effect.name,
+                    rel_type=relationship_type,
+                    other_topics=", ".join([topic.positive for topic in other_topics]),
+                ),
+            },
+        ]
+
+        content.extend(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:image/jpeg;base64,{img}"},
+            }
+            for img in base64_images
+        )
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[{"role": self.role, "content": content}],
+        )
+
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            return self._process_colon_separated_response(
+                response,
+                effect,
+                relationship_type,
+                "text and images",
+            )
+        return []

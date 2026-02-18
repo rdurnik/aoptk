@@ -14,7 +14,12 @@ class FindRelationships(ABC):
     """Interface for finding relationships in text."""
 
     @abstractmethod
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
+    def find_relationships_in_text(
+        self,
+        text: str,
+        chemicals: list[Chemical],
+        effects: list[Effect],
+    ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given text."""
 
     @abstractmethod
@@ -33,3 +38,12 @@ class FindRelationships(ABC):
         effects: list[Effect],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given table data."""
+
+    @abstractmethod
+    def find_relationships_in_text_and_images(
+        self,
+        text: str,
+        image_paths: list[str],
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the given text and images combined."""

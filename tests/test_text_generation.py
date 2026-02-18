@@ -50,7 +50,7 @@ def test_find_chemical_not_empty():
 
 def test_find_relationships_not_empty():
     """Test that find_relationships method returns a non-empty result."""
-    actual = TextGenerationAPI().find_relationships("", relationship_type=None, chemicals=[], effects=[])
+    actual = TextGenerationAPI().find_relationships_in_text("", relationship_type=None, chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -216,7 +216,7 @@ def test_find_relationships(
     expected_relationships: list[Relationship],
 ):
     """Test find_relationships method with multiple chemicals and effects."""
-    actual = TextGenerationAPI().find_relationships(
+    actual = TextGenerationAPI().find_relationships_in_text(
         text=text,
         relationship_type=relationship_type,
         chemicals=chemicals,
@@ -453,3 +453,44 @@ def test_extract_text_from_pdf_image():
     base64_str = (Path("tests/test-data/test_pdf_base64_image.txt").read_text()).strip()
     actual = TextGenerationAPI(model="mistral-large").extract_text_from_pdf_image(base64_str)
     assert ("Polycyclic aromatic hydrocarbons (PAHs), many of which are") in actual
+
+
+@pytest.mark.parametrize(
+    ("text", "images", "expected_chemicals"),
+    [
+        (
+            "Gap junction intracellular communication was studied in this study.",
+            ["tests/test_figures/gjic.jpeg"],
+            ["dibutyl phthalate"],
+        ),
+        (
+            "Gap junction intracellular communication was not studied in this study.",
+            ["tests/test_figures/gjic.jpeg"],
+            [],
+        ),
+        (
+            "Thioacetamide leads to the inhibition of gap junction intercellular communication.",
+            ["tests/test_figures/gjic.jpeg"],
+            ["thioacetamide", "dibutyl phthalate"],
+        ),
+    ],
+)
+def test_find_relationships_in_text_and_images(text: str, images: list[str], expected_chemicals: list[str]):
+    """Test that find_relationships_in_text_and_images method finds relationships in text and images."""
+    actual = TextGenerationAPI(model="mistral-large").find_relationships_in_text_and_images(
+        text=text,
+        image_paths=images,
+        relationship_type=Inhibitive(),
+        effects=[Effect(name="gap junction intercellular communication")],
+    )
+
+    if not expected_chemicals:
+        assert len(actual) == 0
+    else:
+        for expected_chemical in expected_chemicals:
+            assert any(
+                r.chemical.name == expected_chemical
+                and r.effect.name == "gap junction intercellular communication"
+                and r.relationship_type == Inhibitive().positive
+                for r in actual
+            )
