@@ -1,5 +1,6 @@
 from __future__ import annotations
 import base64
+import json
 import os
 from itertools import product
 from pathlib import Path
@@ -271,6 +272,39 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     and paragraph structure exactly as shown.
     Output only the extracted text with no additional commentary or formatting, and ensure that no
     extra spaces are inserted between letters or words.
+    """
+
+    normalization_mapping_prompt = """
+    You are a chemical name normalization assistant.
+
+    Task:
+    You will be given:
+    1. A LIST OF TARGET CHEMICAL NAMES
+    2. A REFERENCE LIST OF STANDARD CHEMICAL NAMES
+
+    For EACH target chemical:
+    - Determine whether it matches a chemical in the reference list.
+
+    Matching rules:
+    - Synonyms
+    - Abbreviations
+    - Alternate spellings or hyphenation
+    - Formatting differences
+    - Singular vs plural
+    - Common vs systematic names
+
+    Output format rules:
+    - Return a JSON dictionary
+    - Keys = original target names
+    - Values = matched reference name OR "none"
+    - Do NOT include explanations
+    - Do NOT include any text outside JSON
+
+    TARGET LIST:
+    {target_list}
+
+    REFERENCE LIST:
+    {reference_list}
     """
 
     def __init__(
@@ -743,3 +777,42 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                 )
 
         return all_relationships
+
+    def generate_normalization_mapping(
+        self,
+        target_chemicals: list[Chemical],
+        reference_chemicals: set[Chemical],
+    ) -> dict[str, str]:
+        """Return a mapping of target names to reference names that can be used for a dataframe.
+
+        Args:
+            target_chemicals (list[Chemical]): Chemicals to normalize.
+            reference_chemicals (set[Chemical]): Reference chemicals to match against.
+
+        Returns:
+            dict[str, str]: Mapping of target names to matched reference names or "none".
+        """
+        target_list = "\n".join(chem.name for chem in target_chemicals)
+        reference_list = "\n".join(chem.name for chem in reference_chemicals)
+
+        messages = [
+            {
+                "role": self.role,
+                "content": self.normalization_mapping_prompt.format(
+                    target_list=target_list,
+                    reference_list=reference_list,
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            mapping = json.loads(response)
+            return {str(key).strip().lower(): str(value).strip().lower() for key, value in mapping.items()}
+        return {}

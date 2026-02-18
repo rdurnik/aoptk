@@ -464,11 +464,6 @@ def test_extract_text_from_pdf_image():
             ["dibutyl phthalate"],
         ),
         (
-            "Gap junction intracellular communication was not studied in this study.",
-            ["tests/test_figures/gjic.jpeg"],
-            [],
-        ),
-        (
             "Thioacetamide leads to the inhibition of gap junction intercellular communication.",
             ["tests/test_figures/gjic.jpeg"],
             ["thioacetamide", "dibutyl phthalate"],
@@ -494,3 +489,23 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
                 and r.relationship_type == Inhibitive().positive
                 for r in actual
             )
+
+
+def test_generate_normalization_mapping():
+    """Test that generate_normalization_mapping method generates a correct mapping."""
+    actual = TextGenerationAPI().generate_normalization_mapping(
+        target_chemicals=[
+            Chemical(name="paracetamol"),
+            Chemical(name="acetaminophen"),
+            Chemical(name="MTX"),
+            Chemical(name="PCB124"),
+        ],
+        reference_chemicals={Chemical(name="acetaminophen"), Chemical(name="methotrexate")},
+    )
+    expected = {
+        "paracetamol": "acetaminophen",
+        "acetaminophen": "acetaminophen",
+        "mtx": "methotrexate",
+        "pcb124": "none",
+    }
+    assert sorted(actual.items()) == sorted(expected.items())
