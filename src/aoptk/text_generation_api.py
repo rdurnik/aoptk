@@ -60,8 +60,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     relationship_text_images_prompt: str = """
     Task:
     Analyze the provided Context and Images (treat image content as part of the same context as the text).
-    Context has a higher priority, but consider results from both when determining relationships.
-    If the chemical is only mentioned in the images, you can use that information to determine the relationship.
 
     Step 1 — Chemical Extraction:
     - Identify all chemical entities (e.g., chemicals, metabolites).
