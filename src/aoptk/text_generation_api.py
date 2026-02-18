@@ -28,6 +28,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     top_p: float = 1
     load_dotenv()
     client: None = None
+    max_images_per_batch: int = 5
 
     relationship_text_prompt: str = """
     Task:
@@ -432,7 +433,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
         Returns:
             list[Relationship]: List of relationships found in the image.
         """
-        base64_image = self._encode_image(image_path)
+        base64_image, mime_type = self._encode_image(image_path)
 
         completion = self.client.chat.completions.create(
             model=self.model,
@@ -449,7 +450,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                                 rel_type=relationship_type,
                             ),
                         },
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
                     ],
                 },
             ],
@@ -463,14 +464,21 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             )
         return []
 
-    def _encode_image(self, image_path: str) -> str:
-        """Encode the image at the given path to a base64 string.
+    def _encode_image(self, image_path: str) -> tuple[str, str]:
+        """Encode the image at the given path to a base64 string and return MIME type.
 
         Args:
             image_path (str): The path to the image to encode.
+
+        Returns:
+            tuple[str, str]: A tuple of (base64_encoded_image, mime_type).
         """
+        ext = Path(image_path).suffix.lower()
+        mime_type = f"image/{ext[1:]}"
+
         with Path(image_path).open("rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
+            base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+        return base64_image, mime_type
 
     def _process_colon_separated_response(
         self,
@@ -623,11 +631,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     def extract_text_from_pdf_image(
         self,
         img_base64: str,
+        mime_type: str,
     ) -> str:
         """Extract text from a base64-encoded image.
 
         Args:
             img_base64 (str): Base64-encoded image data.
+            mime_type (str): MIME type of the image. Defaults to "image/jpeg".
 
         Returns:
             str: Extracted text from the image.
@@ -644,7 +654,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                             "type": "text",
                             "text": self.extract_text_from_image_prompt,
                         },
-                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_base64.strip()}"}},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
                     ],
                 },
             ],
@@ -690,41 +700,48 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             effect (Effect): The effect entity.
             relationship_type (RelationshipType): The relationship type to classify.
         """
-        base64_images = [self._encode_image(image_path) for image_path in image_paths]
+        all_relationships = []
         other_topics = topics.difference({relationship_type})
 
-        content = [
-            {
-                "type": "text",
-                "text": self.relationship_text_images_prompt.format(
-                    text=text,
-                    effect=effect.name,
-                    rel_type=relationship_type,
-                    other_topics=", ".join([topic.positive for topic in other_topics]),
-                ),
-            },
-        ]
+        for i in range(0, len(image_paths), self.max_images_per_batch):
+            batch_image_paths = image_paths[i : i + self.max_images_per_batch]
+            encoded_images = [self._encode_image(image_path) for image_path in batch_image_paths]
 
-        content.extend(
-            {
-                "type": "image_url",
-                "image_url": {"url": f"data:image/jpeg;base64,{img}"},
-            }
-            for img in base64_images
-        )
+            content = [
+                {
+                    "type": "text",
+                    "text": self.relationship_text_images_prompt.format(
+                        text=text,
+                        effect=effect.name,
+                        rel_type=relationship_type,
+                        other_topics=", ".join([topic.positive for topic in other_topics]),
+                    ),
+                },
+            ]
 
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[{"role": self.role, "content": content}],
-        )
-
-        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            return self._process_colon_separated_response(
-                response,
-                effect,
-                relationship_type,
-                "text and images",
+            content.extend(
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime_type};base64,{img}"},
+                }
+                for img, mime_type in encoded_images
             )
-        return []
+
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                messages=[{"role": self.role, "content": content}],
+            )
+
+            if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+                all_relationships.extend(
+                    self._process_colon_separated_response(
+                        response,
+                        effect,
+                        relationship_type,
+                        "text and images",
+                    ),
+                )
+
+        return all_relationships
