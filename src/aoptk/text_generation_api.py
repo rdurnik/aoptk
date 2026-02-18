@@ -290,6 +290,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     - Determine whether it matches a chemical in the reference list.
 
     Matching rules:
+    - Same chemical names should be considered a match
     - Synonyms
     - Abbreviations
     - Alternate spellings or hyphenation
