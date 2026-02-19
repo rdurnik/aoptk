@@ -197,26 +197,30 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     """
 
     relationships_image_prompt: str = """
-    You are an assistant analyzing data from graphs or plots related to the biological effect {effect}.
-    Your task is to process the provided information and output the results in this strict format, one per line:
+    Analyze this scientific graph for the biological effect {effect}.
+    CRITICAL: Use ONLY what is explicitly visible. Zero tolerance for inference, assumptions, or interpretation.
 
-    Format:
-    full_chemical_name_in_lowercase : relationship
+    Output format:
+    full_chemicalname_in_lowercase : relationship
 
-    Guidelines:
-    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
-    2. Replace "relationship" with:
-    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
-    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
-    3. No headers, explanations, or extra text may be included in the output.
-    4. Respond only with lines matching the format above—each line must correspond to a single chemical and its
-    relationship.
-    5. Handle incomplete or unrelated data as follows:
-    - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
-    with identifiable effects.
-    - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+    Extraction rules:
+    - Extract ONLY individual chemicals explicitly named in the figure
+    - Expand abbreviations to full chemical names (e.g., TAA → thioacetamide)
+    - Exclude: abbreviations, chemical classes, mixtures, groups, vague terms
+    - Do not include running characters
+
+    Relationship rules:
+    - {rel_type.positive} = graph clearly shows chemical {rel_type.positive_verb} {effect}
+    - {rel_type.negative} = graph clearly shows chemical {rel_type.negative_verb} {effect}
+    - Include ONLY if 100% certain and visually unambiguous
+    - If significance, trend, or relationship requires ANY interpretation → EXCLUDE
+
+    STRICT: When in doubt, exclude.
+
+    If no chemicals qualify, output:
+    none
     """
-
+    
     relationships_table_prompt: str = """
     You are an assistant analyzing data from tables related to the biological effect {effect}.
     Your task is to process the provided information and output the results in this strict format, one per line:
@@ -821,3 +825,11 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             mapping = json.loads(response)
             return {str(key).strip().lower(): str(value).strip().lower() for key, value in mapping.items()}
         return {}
+
+obj = TextGenerationAPI(model="kimi-k2.5").find_relationships_in_image(
+        image_path="tests/test_figures/gjic.jpeg",
+        relationship_type=Inhibitive(),
+        effects=[Effect(name="gap junction intercellular communication")],
+    )
+for r in obj:
+    print(f"Chemical: {r.chemical.name}, Effect: {r.effect.name}, Relationship: {r.relationship_type}")
