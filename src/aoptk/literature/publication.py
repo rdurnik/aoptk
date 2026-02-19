@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+import pandas as pd
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 
@@ -12,7 +13,7 @@ class Publication:
     abstract: Abstract
     full_text: str | list[str]
     abbreviations: dict
-    tables: list
+    tables: list[pd.DataFrame]
     figures: list
     figure_descriptions: list
 
