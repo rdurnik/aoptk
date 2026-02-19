@@ -29,7 +29,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     top_p: float = 1
     load_dotenv()
     client: None = None
-    max_images_per_batch: int = 5
 
     relationship_text_prompt: str = """
     Task:
@@ -746,51 +745,49 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             effect (Effect): The effect entity.
             relationship_type (RelationshipType): The relationship type to classify.
         """
-        all_relationships = []
         other_topics = topics.difference({relationship_type})
 
-        for i in range(0, len(image_paths), self.max_images_per_batch):
-            batch_image_paths = image_paths[i : i + self.max_images_per_batch]
-            encoded_images = [self._encode_image(image_path) for image_path in batch_image_paths]
+        encoded_images = [self._encode_image(image_path) for image_path in image_paths]
 
-            content = [
-                {
-                    "type": "text",
-                    "text": self.relationship_text_images_prompt.format(
-                        text=text,
-                        effect=effect.name,
-                        rel_type=relationship_type,
-                        other_topics=", ".join([topic.positive for topic in other_topics]),
-                    ),
-                },
-            ]
+        relationships = []
 
-            content.extend(
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:{mime_type};base64,{img}"},
-                }
-                for img, mime_type in encoded_images
+        content = [
+            {
+                "type": "text",
+                "text": self.relationship_text_images_prompt.format(
+                    text=text,
+                    effect=effect.name,
+                    rel_type=relationship_type,
+                    other_topics=", ".join([topic.positive for topic in other_topics]),
+                ),
+            },
+        ]
+
+        content.extend(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime_type};base64,{img}"},
+            }
+            for img, mime_type in encoded_images
+        )
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[{"role": self.role, "content": content}],
+        )
+
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            relationships.extend(
+                self._process_colon_separated_response(
+                    response,
+                    effect,
+                    relationship_type,
+                    "text and images",
+                ),
             )
-
-            completion = self.client.chat.completions.create(
-                model=self.model,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                messages=[{"role": self.role, "content": content}],
-            )
-
-            if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-                all_relationships.extend(
-                    self._process_colon_separated_response(
-                        response,
-                        effect,
-                        relationship_type,
-                        "text and images",
-                    ),
-                )
-
-        return all_relationships
+        return relationships
 
     def generate_normalization_mapping(
         self,

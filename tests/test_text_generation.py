@@ -452,7 +452,8 @@ def test_extract_text_from_pdf_image():
     """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
     base64_str = (Path("tests/test-data/test_pdf_base64_image.txt").read_text()).strip()
     actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").extract_text_from_pdf_image(
-        base64_str, mime_type="image/jpeg",
+        base64_str,
+        mime_type="image/jpeg",
     )
     assert ("Polycyclic aromatic hydrocarbons (PAHs), many of which are") in actual
 
