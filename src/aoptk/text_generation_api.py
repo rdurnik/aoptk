@@ -220,7 +220,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     If no chemicals qualify, output:
     none
     """
-    
+
     relationships_table_prompt: str = """
     You are an assistant analyzing data from tables related to the biological effect {effect}.
     Your task is to process the provided information and output the results in this strict format, one per line:
@@ -314,6 +314,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
 
     REFERENCE LIST:
     {reference_list}
+    """
+    image_to_text_prompt = """
+    Describe what is in this image extracted from a scientific paper.
     """
 
     def __init__(
@@ -825,3 +828,35 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             mapping = json.loads(response)
             return {str(key).strip().lower(): str(value).strip().lower() for key, value in mapping.items()}
         return {}
+
+    def convert_image_to_text(
+        self,
+        image_path: str,
+    ) -> str:
+        """Convert an image to text.
+
+        Args:
+            image_path (str): Path to the image.
+        """
+        base64_image, mime_type = self._encode_image(image_path)
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[
+                {
+                    "role": self.role,
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": self.image_to_text_prompt,
+                        },
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
+                    ],
+                },
+            ],
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            return response
+        return ""
