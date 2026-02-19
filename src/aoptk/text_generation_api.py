@@ -825,11 +825,3 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
             mapping = json.loads(response)
             return {str(key).strip().lower(): str(value).strip().lower() for key, value in mapping.items()}
         return {}
-
-obj = TextGenerationAPI(model="kimi-k2.5").find_relationships_in_image(
-        image_path="tests/test_figures/gjic.jpeg",
-        relationship_type=Inhibitive(),
-        effects=[Effect(name="gap junction intercellular communication")],
-    )
-for r in obj:
-    print(f"Chemical: {r.chemical.name}, Effect: {r.effect.name}, Relationship: {r.relationship_type}")
