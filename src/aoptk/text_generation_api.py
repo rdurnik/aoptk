@@ -316,7 +316,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     {reference_list}
     """
     image_to_text_prompt = """
-    Describe what is in this image extracted from a scientific paper.
+    Describe what is shown in this image from a scientific paper.
+
+    If the image appears to be a scan of a scientific paper page, return an empty string.
     """
 
     def __init__(
