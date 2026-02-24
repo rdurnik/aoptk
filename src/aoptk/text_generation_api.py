@@ -33,6 +33,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     relationship_text_prompt: str = """
     Task:
     Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
+    {prompt_specification}
 
     Effect synonyms:
     - Treat common synonyms or equivalent terms as the same effect.
@@ -55,6 +56,9 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
 
     Context:
     {text}
+    """
+
+    prompt_specificatiom: str = """
     """
 
     relationship_text_images_prompt: str = """
@@ -315,9 +319,19 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     {reference_list}
     """
     image_to_text_prompt = """
-    Describe what is shown in this image from a scientific paper.
+    You are analyzing an image extracted from a scientific publication.
 
-    If the image appears to be a scan of a scientific paper page, return an empty string.
+    Task:
+    Describe in detail what is shown in the image.
+
+    Important instructions:
+    - If the image appears to be a scanned page of a scientific publication, return an empty string.
+    - The provided context contains the full text of the publication. Use this context to interpret the image
+    accurately.
+    - Do not speculate beyond what is visible in the image and supported by the publication context.
+
+    Publication context:
+    {text}
     """
 
     def __init__(
@@ -383,6 +397,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                         effect=effect.name,
                         rel_type=relationship_type,
                         other_topics=", ".join([topic.positive for topic in other_topics]),
+                        prompt_specification=self.prompt_specificatiom,
                     ),
                 },
             ],
@@ -831,11 +846,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     def convert_image_to_text(
         self,
         image_path: str,
+        text: str,
     ) -> str:
         """Convert an image to text.
 
         Args:
             image_path (str): Path to the image.
+            text (str): The full text of the publication for context.
         """
         base64_image, mime_type = self._encode_image(image_path)
 
@@ -849,7 +866,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                     "content": [
                         {
                             "type": "text",
-                            "text": self.image_to_text_prompt,
+                            "text": self.image_to_text_prompt.format(text=text),
                         },
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
                     ],
