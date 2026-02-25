@@ -27,6 +27,7 @@ dependencies = [
     "pymupdf",
     "metapub",
     "requests",
+    "scipy>=1.16.3",
     "scispacy",
     "spacy>=3.0.0,<3.8.0",
     "beautifulsoup4",
@@ -65,8 +66,7 @@ dev = [
     "myst_parser",
     "jupyter",
     "ipykernel",
-    "fuzzywuzzy",
-    "setuptools"
+    "fuzzywuzzy"
 ]
 docs = [
     "sphinx",
