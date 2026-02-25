@@ -1,14 +1,17 @@
 from __future__ import annotations
 import base64
+import json
 import os
 from itertools import product
 from pathlib import Path
+import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
 from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
 from aoptk.relationship_type import RelationshipType
@@ -18,7 +21,7 @@ from aoptk.relationships.relationship import Relationship
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator):
+class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator, NormalizeChemical):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -27,9 +30,10 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     load_dotenv()
     client: None = None
 
-    relationship_prompt: str = """
+    relationship_text_prompt: str = """
     Task:
     Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
+    {prompt_specification}
 
     Effect synonyms:
     - Treat common synonyms or equivalent terms as the same effect.
@@ -49,6 +53,47 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     {rel_type.positive}
     {rel_type.negative}
     none
+
+    Context:
+    {text}
+    """
+
+    prompt_specificatiom: str = """
+    """
+
+    relationship_text_images_prompt: str = """
+    Task:
+    Analyze the provided Context and Images.
+
+    Step 1 — Chemical Extraction:
+    - Identify all chemical entities (chemicals or metabolites).
+    - Replace abbreviations with full chemical names.
+    - Always write chemical names in lowercase.
+    - Do NOT modify or expand chemical formulas (e.g., NaCl must remain exactly as written).
+    - Do NOT treat broad classes (e.g., pesticides, proteins, plastics) as individual chemicals.
+
+    Step 2 — Relationship Evaluation:
+    Determine whether each chemical {rel_type.positive_verb} the biological effect "{effect}".
+    Treat synonyms of the effect as equivalent.
+
+    Output Rules:
+    - Only output chemicals with a clear positive or negative relationship.
+    - Exclude chemicals with no clear relationship.
+    - If none qualify, output exactly:
+    none
+
+    Format:
+    full_chemical_name_in_lowercase : relationship
+
+    Where relationship must be exactly:
+    {rel_type.positive}
+    {rel_type.negative}
+
+    Strict:
+    - Chemical names must be full names and lowercase.
+    - No blank relationships.
+    - No extra text.
+    - One chemical per line.
 
     Context:
     {text}
@@ -155,7 +200,32 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     """
 
     relationships_image_prompt: str = """
-    You are an assistant analyzing data from graphs or plots related to the biological effect {effect}.
+    Analyze this scientific graph for the biological effect {effect}.
+    CRITICAL: Use ONLY what is explicitly visible. Zero tolerance for inference, assumptions, or interpretation.
+
+    Output format:
+    full_chemicalname_in_lowercase : relationship
+
+    Extraction rules:
+    - Extract ONLY individual chemicals explicitly named in the figure
+    - Expand abbreviations to full chemical names (e.g., TAA → thioacetamide)
+    - Exclude: abbreviations, chemical classes, mixtures, groups, vague terms
+    - Do not include running characters
+
+    Relationship rules:
+    - {rel_type.positive} = graph clearly shows chemical {rel_type.positive_verb} {effect}
+    - {rel_type.negative} = graph clearly shows chemical {rel_type.negative_verb} {effect}
+    - Include ONLY if 100% certain and visually unambiguous
+    - If significance, trend, or relationship requires ANY interpretation → EXCLUDE
+
+    STRICT: When in doubt, exclude.
+
+    If no chemicals qualify, output:
+    none
+    """
+
+    relationships_table_prompt: str = """
+    You are an assistant analyzing data from tables related to the biological effect {effect}.
     Your task is to process the provided information and output the results in this strict format, one per line:
 
     Format:
@@ -173,6 +243,95 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
     - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
     with identifiable effects.
     - If no relevant data (chemicals or {effect} effects) is provided, output "none".
+
+    Table:
+    {table}
+    """
+
+    normalization_prompt: str = """
+    You are a chemical name normalization assistant.
+
+    Task:
+    You will be given:
+    - A TARGET chemical name: {chem}
+    - A LIST OF CHEMICAL NAMES (one chemical name per line)
+
+    Your job is to:
+    1. Determine whether {chem} matches any chemical in the list.
+    2. Matching should include:
+    - Synonyms (e.g., paracetamol = acetaminophen)
+    - Abbreviations (e.g., PCB = polychlorinated biphenyl)
+    - Alternate spellings, hyphenation, or formatting differences
+    - Plural vs singular forms
+    3. If multiple matches exist, return the most likely standardized match based on common chemical naming conventions.
+    4. If there is no match, return: "none".
+
+    Output rules:
+    - Return only the matched chemical name from the list.
+    - Do not explain.
+    - Do not return anything except the answer.
+    - If no match is found, return exactly "none".
+
+    TARGET: {chem}
+
+    LIST OF CHEMICAL NAMES:
+    {list_of_chemical_names}
+    """
+
+    extract_text_from_image_prompt: str = """
+    Extract the complete text from the provided scientific paper image, preserving all original line breaks, spacing,
+    and paragraph structure exactly as shown.
+    Output only the extracted text with no additional commentary or formatting, and ensure that no
+    extra spaces are inserted between letters or words.
+    """
+
+    normalization_mapping_prompt = """
+    You are a chemical name normalization assistant.
+
+    Task:
+    You will be given:
+    1. A LIST OF TARGET CHEMICAL NAMES
+    2. A REFERENCE LIST OF STANDARD CHEMICAL NAMES
+
+    For EACH target chemical:
+    - Determine whether it matches a chemical in the reference list.
+
+    Matching rules:
+    - Same chemical names should be considered a match
+    - Synonyms
+    - Abbreviations
+    - Alternate spellings or hyphenation
+    - Formatting differences
+    - Singular vs plural
+    - Common vs systematic names
+
+    Output format rules:
+    - Return a JSON dictionary
+    - Keys = original target names
+    - Values = matched reference name OR "none"
+    - Do NOT include explanations
+    - Do NOT include any text outside JSON
+
+    TARGET LIST:
+    {target_list}
+
+    REFERENCE LIST:
+    {reference_list}
+    """
+    image_to_text_prompt = """
+    You are analyzing an image extracted from a scientific publication.
+
+    Task:
+    Describe in detail what is shown in the image.
+
+    Important instructions:
+    - If the image appears to be a scanned page of a scientific publication, return an empty string.
+    - The provided context contains the full text of the publication. Use this context to interpret the image
+    accurately.
+    - Do not speculate beyond what is visible in the image and supported by the publication context.
+
+    Publication context:
+    {text}
     """
 
     def __init__(
@@ -190,7 +349,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                 api_key=self.api_key,
             )
 
-    def find_relationships(
+    def find_relationships_in_text(
         self,
         text: str,
         chemicals: list[Chemical],
@@ -232,12 +391,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             messages=[
                 {
                     "role": self.role,
-                    "content": self.relationship_prompt.format(
+                    "content": self.relationship_text_prompt.format(
                         text=text,
                         chem=chemical.name,
                         effect=effect.name,
                         rel_type=relationship_type,
                         other_topics=", ".join([topic.positive for topic in other_topics]),
+                        prompt_specification=self.prompt_specificatiom,
                     ),
                 },
             ],
@@ -333,7 +493,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
         Returns:
             list[Relationship]: List of relationships found in the image.
         """
-        base64_image = self._encode_image(image_path)
+        base64_image, mime_type = self._encode_image(image_path)
 
         completion = self.client.chat.completions.create(
             model=self.model,
@@ -350,13 +510,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
                                 rel_type=relationship_type,
                             ),
                         },
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}},
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
                     ],
                 },
             ],
         )
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            return self._process_image_response(
+            return self._process_colon_separated_response(
                 response,
                 effect,
                 relationship_type,
@@ -364,17 +524,38 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             )
         return []
 
-    def _encode_image(self, image_path: str) -> str:
-        with Path(image_path).open("rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
+    def _encode_image(self, image_path: str) -> tuple[str, str]:
+        """Encode the image at the given path to a base64 string and return MIME type.
 
-    def _process_image_response(
+        Args:
+            image_path (str): The path to the image to encode.
+
+        Returns:
+            tuple[str, str]: A tuple of (base64_encoded_image, mime_type).
+        """
+        ext = Path(image_path).suffix.lower()
+        mime_type = f"image/{ext[1:]}"
+
+        with Path(image_path).open("rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+        return base64_image, mime_type
+
+    def _process_colon_separated_response(
         self,
         response: str,
         effect: Effect,
         relationship_type: RelationshipType,
         image_path: str,
     ) -> list[Relationship]:
+        """Process the response from the model that is colon seperated.
+
+        Args:
+            response (str): The response from the model.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+            context (str): The path to the image, used for context in the relationship.
+            image_path (str): The path to the image, used for context in the relationship.
+        """
         relationships = []
         for raw_line in response.splitlines():
             line = raw_line.strip()
@@ -397,3 +578,301 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator)
             )
 
         return relationships
+
+    def find_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        relationship_type: RelationshipType,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in a table.
+
+        Args:
+            table_df (pd.DataFrame): Pandas DataFrame.
+            relationship_type (RelationshipType): The relationship type to classify.
+            effects (list[Effect]): List of effect entities.
+        """
+        relationships = []
+        for effect in effects:
+            relationships.extend(
+                self._classify_relationships_in_table(
+                    table_df,
+                    effect,
+                    relationship_type,
+                ),
+            )
+        return relationships
+
+    def _classify_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
+        """Classify relationships between chemicals and an effect in a table.
+
+        Args:
+            table_df (pd.DataFrame): Pandas DataFrame.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+
+        Returns:
+            list[Relationship]: List of relationships found in the table.
+        """
+        table_text = table_df.to_csv(index=False)
+
+        messages = [
+            {
+                "role": self.role,
+                "content": self.relationships_table_prompt.format(
+                    effect=effect.name,
+                    rel_type=relationship_type,
+                    table=table_text,
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            return self._process_colon_separated_response(response, effect, relationship_type, "table")
+        return []
+
+    def normalize_chemical(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+        """Normalize the chemical name by finding a matching name in the chemical list.
+
+        Args:
+            chemical (Chemical): The chemical to normalize.
+            chemical_list (list[Chemical]): The list of chemicals to match against.
+
+        Returns:
+            Chemical: The normalized chemical.
+        """
+        if matching_name := self._find_matching_name(chemical, chemical_list):
+            chemical.heading = matching_name
+        return chemical
+
+    def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+        """Find a matching chemical name in the chemical list.
+
+        Args:
+            chemical (Chemical): The chemical to find a match for.
+            chemical_list (list[Chemical]): The list of chemicals to match against.
+
+        Returns:
+            Chemical: The matching chemical name, or None if no match is found.
+        """
+        messages = [
+            {
+                "role": self.role,
+                "content": self.normalization_prompt.format(
+                    chem=chemical.name,
+                    list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+        if response := completion.choices[0].message.content.strip().lower():
+            if response == "none":
+                return None
+            return response
+        return None
+
+    def extract_text_from_pdf_image(
+        self,
+        img_base64: str,
+        mime_type: str,
+    ) -> str:
+        """Extract text from a base64-encoded image.
+
+        Args:
+            img_base64 (str): Base64-encoded image data.
+            mime_type (str): MIME type of the image. Defaults to "image/jpeg".
+
+        Returns:
+            str: Extracted text from the image.
+        """
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[
+                {
+                    "role": self.role,
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": self.extract_text_from_image_prompt,
+                        },
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
+                    ],
+                },
+            ],
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip()):
+            return response
+        return ""
+
+    def find_relationships_in_text_and_images(
+        self,
+        text: str,
+        image_paths: list[str],
+        relationship_type: RelationshipType,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the given text and images combined.
+
+        Args:
+            text (str): The input text.
+            image_paths (list[str]): List of paths to images.
+            relationship_type (RelationshipType): The relationship type to classify.
+            effects (list[Effect]): List of effect entities.
+        """
+        relationships = []
+        for effect in effects:
+            relationships.extend(
+                self._classify_relationships_in_text_and_images(text, image_paths, effect, relationship_type),
+            )
+        return relationships
+
+    def _classify_relationships_in_text_and_images(
+        self,
+        text: str,
+        image_paths: list[str],
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> list[Relationship]:
+        """Classify relationships between chemicals and an effect in the given text and images combined.
+
+        Args:
+            text (str): The input text.
+            image_paths (list[str]): List of paths to images.
+            effect (Effect): The effect entity.
+            relationship_type (RelationshipType): The relationship type to classify.
+        """
+        other_topics = topics.difference({relationship_type})
+
+        encoded_images = [self._encode_image(image_path) for image_path in image_paths]
+
+        relationships = []
+
+        content = [
+            {
+                "type": "text",
+                "text": self.relationship_text_images_prompt.format(
+                    text=text,
+                    effect=effect.name,
+                    rel_type=relationship_type,
+                    other_topics=", ".join([topic.positive for topic in other_topics]),
+                ),
+            },
+        ]
+
+        content.extend(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime_type};base64,{img}"},
+            }
+            for img, mime_type in encoded_images
+        )
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[{"role": self.role, "content": content}],
+        )
+
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            relationships.extend(
+                self._process_colon_separated_response(
+                    response,
+                    effect,
+                    relationship_type,
+                    "text and images",
+                ),
+            )
+        return relationships
+
+    def generate_normalization_mapping(
+        self,
+        target_chemicals: list[Chemical],
+        reference_chemicals: set[Chemical],
+    ) -> dict[str, str]:
+        """Return a mapping of target names to reference names that can be used for a dataframe.
+
+        Args:
+            target_chemicals (list[Chemical]): Chemicals to normalize.
+            reference_chemicals (set[Chemical]): Reference chemicals to match against.
+
+        Returns:
+            dict[str, str]: Mapping of target names to matched reference names or "none".
+        """
+        target_list = "\n".join(chem.name for chem in target_chemicals)
+        reference_list = "\n".join(chem.name for chem in reference_chemicals)
+
+        messages = [
+            {
+                "role": self.role,
+                "content": self.normalization_mapping_prompt.format(
+                    target_list=target_list,
+                    reference_list=reference_list,
+                ),
+            },
+        ]
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=messages,
+        )
+
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            mapping = json.loads(response)
+            return {str(key).strip().lower(): str(value).strip().lower() for key, value in mapping.items()}
+        return {}
+
+    def convert_image_to_text(
+        self,
+        image_path: str,
+        text: str,
+    ) -> str:
+        """Convert an image to text.
+
+        Args:
+            image_path (str): Path to the image.
+            text (str): The full text of the publication for context.
+        """
+        base64_image, mime_type = self._encode_image(image_path)
+
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[
+                {
+                    "role": self.role,
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": self.image_to_text_prompt.format(text=text),
+                        },
+                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
+                    ],
+                },
+            ],
+        )
+        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+            return response
+        return ""

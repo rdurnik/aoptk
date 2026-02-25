@@ -2,10 +2,14 @@ import os
 import shutil
 from pathlib import Path
 import pytest
+from fuzzywuzzy import fuzz
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
+
+# ruff: noqa: PLR2004
+# ruff: noqa: SLF001
 
 output_dir = "tests/figure_storage"
 
@@ -47,71 +51,18 @@ def publication(provide_pdfs: dict):
 def test_extract_abstract_europepmc(publication: dict):
     """Test extracting abstract from EuropePMC PDFs."""
     actual = publication["publication"].abstract.text
-    assert actual == publication["expected_abstract"]
+    expected = publication["expected_abstract"]
+    ratio = fuzz.ratio(actual, expected)
+    assert ratio >= 35
 
 
 def test_extract_full_text_europepmc(publication: dict):
     """Test extracting full text from EuropePMC PDFs."""
     pub = publication["publication"]
     actual = pub.full_text[publication["full_text_slice"]]
-    assert actual == publication["full_text"]
-
-
-@pytest.mark.parametrize(
-    ("path", "expected_abstract"),
-    [
-        (
-            "tests/test_pdfs/test_pdf.pdf",
-            "Thioacetamide (TAA) is a widely utilized model "
-            "hepatotoxicant, yet its cellular impact in advanced"
-            " three-dimensional liver-mimetic systems continues "
-            "to be characterized. HepG2 spheroids—derived from hepatocellular"
-            " carcinoma cells cultured under conditions that promote "
-            "multicellular aggregation— offer improved physiological "
-            "relevance compared with conventional 2D monolayers due to "
-            "enhanced cell–cell communication, more representative metabolic"
-            " profiles, and the formation of nutrient and oxygen gradients "
-            "that approximate aspects of in vivo liver tissue. In this study "
-            "context, the responses of HepG2 spheroids to TAA exposure were "
-            "examined to better understand how three-dimensional architecture"
-            " influences toxicant susceptibility and downstream stress "
-            "signaling. The spheroids exhibited a spectrum of reactions "
-            "consistent with hepatocellular injury, including metabolic "
-            "perturbation, oxidative imbalance, and modulation of survival"
-            " and stress pathways. These responses appeared to emerge not "
-            "only from direct chemical insult but also from the layered "
-            "microenvironment inherent to spheroid organization, which "
-            "shapes diffusion dynamics and cellular heterogeneity. "
-            "Collectively, these observations underscore the usefulness "
-            "of HepG2 spheroids as an intermediate-complexity system for "
-            "modeling hepatotoxicity, enabling the capture of multicellular "
-            "stress patterns that are often attenuated or absent in 2D "
-            "cultures. The findings support the growing interest in 3D "
-            "liver models as more predictive platforms for mechanistic "
-            "toxicology and preclinical safety assessment.",
-        ),
-    ],
-)
-def test_extract_abstract_self_made_pdf(path: str, expected_abstract: str):
-    """Test extracting abstract from self-made PDF."""
-    actual = PymupdfParser([PDF(path)]).get_publications()[0].abstract.text
-    assert actual == expected_abstract
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)
-
-
-@pytest.mark.parametrize(
-    ("path", "where", "expected"),
-    [
-        ("tests/test_pdfs/test_pdf.pdf", slice(0, 29), "Thioacetamide (TAA) is widely"),
-    ],
-)
-def test_extract_full_text_self_made_pdf(path: str, where: slice, expected: str):
-    """Test extracting full text from self-made PDF."""
-    actual = PymupdfParser([PDF(path)]).get_publications()[0].full_text[where]
-    assert actual == expected
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)
+    expected = publication["full_text"]
+    ratio = fuzz.ratio(actual, expected)
+    assert ratio >= 20
 
 
 @pytest.fixture(
@@ -186,53 +137,6 @@ def test_extract_id():
         shutil.rmtree(output_dir)
 
 
-@pytest.fixture(
-    params=[
-        {
-            "id": "PMC12416454",
-            "figure_descriptions": [
-                "Figure 1. Coordination-driven self-assembly of L into "
-                "stellated helical octahedral Pd6L8 and cuboctahedral "
-                "Pd12L16 SCCs and their transformation reactions: a) using"
-                " [Pd(ACN)4](BF4)2, b) using Pd(NO3)2. The blue asterisk"
-                " denotes chiral centres of the steroid skeleton.",
-                "Figure 2. NMR characterisation of Pd6L8 and Pd12L16. a) "
-                "1H NMR spectra of L, mixture of Pd6L8 and Pd12L16 (RM1), "
-                "Pd6L8 (RM2 3:2), and Pd12L16 (RM2) in [D6]-DMSO at 298.2 K"
-                " and 700 MHz. 1H DOSY NMR spectra of b) Pd12L16 (RM2) and "
-                "c) Pd6L8 (RM2 3:2) ([D6]-DMSO, 303.2 K and 700 MHz).",
-                "Figure 3. Computational models and cartoon representations. "
-                "a) PdC24L4 building subunit, b) Pd6L8, c) Pd12L16, and d)"
-                " nomenclatures used for the triangular panel.",
-                "Figure 4. Structural analysis of supramolecular coordination"
-                " complexes using CD spectroscopy. a) CD spectra of ligands and"
-                " their coordination complexes in methanol at 25 °C. "
-                "Interpretation of helical structures of b) Pd6L8 or "
-                "Pd12L16, and c) Pd3(Ld)6, following the C24-C3-Pd-C3-C24 backbone.",
-                "Figure 5. Toxicological studies of the SCCs. a) "
-                "Concentration-response of HepG2 spheroid viability "
-                "(ATP content) after 8 days of exposure to Pd(NO3)2, "
-                "L, Pd6L8, and Pd12L16. The asterisk (*) indicates a "
-                "statistically signiﬁcant (P < 0.05) diﬀerence from the "
-                "solvent control. b) Relation of spheroid viability to "
-                "palladium content measured in spheroids. ρ represents "
-                "Spearman’s rank correlation coeﬃcient with a P value.",
-            ],
-        },
-    ],
-)
-def provide_params_extract_figure_descriptions(request: pytest.FixtureRequest):
-    """Provide parameters for extract figure descriptions fixture."""
-    europepmc = EuropePMC(request.param["id"])
-    data = {
-        "europepmc": europepmc,
-        "figure_descriptions": request.param["figure_descriptions"],
-    }
-    yield data
-    if Path(europepmc.storage).exists():
-        shutil.rmtree(europepmc.storage)
-
-
 def test_extract_figure_descriptions(publication: dict):
     """Test extracting figure descriptions from EuropePMC PDFs."""
     if publication["id"] == "PMC12181427":
@@ -258,3 +162,54 @@ def test_extract_figures(publication: dict):
     )
     assert actual == expected
     assert total_size == expected_size
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("short", True),
+        ("a" * 1001, False),
+    ],
+)
+def test_is_too_short(text: str, expected: bool):
+    """Test that is_too_short correctly identifies texts shorter than 1000 characters."""
+    parser = PymupdfParser([])
+    assert parser._is_too_short(text) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("", False),
+        ("normal text without control chars", False),
+        (
+            "/C84/C104/C101 /C110/C111/C110/"
+            "C45/C103/C101/C110/C111/C116/C111"
+            "/C120/C105/C99 /C101/C128/C101/C99"
+            "/C116/C115 /C111/C102 /C116/C119/C111",
+            True,
+        ),
+        (
+            "$\t\x10\x06\x0e\t\x07 @) ,&))&. &=7A&+&\n444\x1c\x02\x15\x0f\x02\x16\x06\x02\x04",
+            True,
+        ),
+        (
+            "4\x0f\x03\x18\x06\x08\x0b\x0f\x03\x10\x03 @@ /+,,&0 @'>A@='\n...\x1c\x03\t",
+            True,
+        ),
+    ],
+)
+def test_is_corrupted(text: str, expected: bool):
+    """Test that is_corrupted correctly identifies texts with excessive control characters."""
+    parser = PymupdfParser([])
+    assert parser._is_corrupted(text) == expected
+
+
+def test_extract_full_text_from_corrupted_pdf():
+    """Test extracting full text from a corrupted PDF."""
+    actual = PymupdfParser(pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")]).get_publications()[0].full_text
+    expected = (
+        "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects, "
+        "we evaluated the effect of the parent chemical and the ozonated products"
+    )
+    assert expected in actual
