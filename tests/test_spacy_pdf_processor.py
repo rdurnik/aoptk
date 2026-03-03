@@ -1,6 +1,4 @@
 from __future__ import annotations
-import shutil
-from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
 from aoptk.literature.pdf import PDF
@@ -27,14 +25,14 @@ def test_get_publications_not_empty():
     assert actual is not None
 
 
-def test_extract_id():
+def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
-    parser = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")])
+    parser = SpacyPDF(
+        [PDF("tests/test_pdfs/test_pdf.pdf")], figures_output_dir=tmp_path_factory.mktemp("spacy_pdf_processor_figures")
+    )
     actual = parser.get_publications()[0].id
     expected = "test_pdf"
     assert str(actual) == expected
-    if Path(parser.figures_output_dir).exists():
-        shutil.rmtree(parser.figures_output_dir)
 
 
 @pytest.mark.parametrize(
@@ -61,9 +59,9 @@ def test_is_page_header_footer(potential_footer_header: str, output: bool):
 
 
 @pytest.fixture(scope="module")
-def publication(provide_pdfs: dict):
+def publication(provide_pdfs: dict, tmp_path_factory: pytest.TempPathFactory):
     """Second stage fixture which includes PDF parsing."""
-    parser = SpacyPDF(provide_pdfs["pdfs"])
+    parser = SpacyPDF(provide_pdfs["pdfs"], figures_output_dir=tmp_path_factory.mktemp("spacy_pdf_processor_figures"))
     publications = parser.get_publications()
     provide_pdfs.update(
         {
@@ -71,10 +69,7 @@ def publication(provide_pdfs: dict):
             "parser": parser,
         },
     )
-    yield provide_pdfs
-
-    if Path(parser.figures_output_dir).exists():
-        shutil.rmtree(parser.figures_output_dir)
+    return provide_pdfs
 
 
 def test_extract_abstract_europepmc(publication: dict):

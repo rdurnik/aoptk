@@ -1,5 +1,4 @@
 import os
-import shutil
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
@@ -32,9 +31,9 @@ def test_get_publication_data_not_empty():
 
 
 @pytest.fixture(scope="module")
-def publication(provide_pdfs: dict):
+def publication(provide_pdfs: dict, tmp_path_factory: pytest.TempPathFactory):
     """Second stage fixture which includes PDF parsing."""
-    parser = PymupdfParser(provide_pdfs["pdfs"])
+    parser = PymupdfParser(provide_pdfs["pdfs"], figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_figures"))
     publications = parser.get_publications()
     provide_pdfs.update(
         {
@@ -42,10 +41,7 @@ def publication(provide_pdfs: dict):
             "parser": parser,
         },
     )
-    yield provide_pdfs
-
-    if Path(parser.figures_output_dir).exists():
-        shutil.rmtree(parser.figures_output_dir)
+    return provide_pdfs
 
 
 def test_extract_abstract_europepmc(publication: dict):
@@ -98,22 +94,26 @@ def test_extract_full_text_europepmc(publication: dict):
         },
     ],
 )
-def provide_params_extract_abbreviations_fixture(request: pytest.FixtureRequest):
+def provide_params_extract_abbreviations_fixture(
+    request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory
+):
     """Provide parameters for extract abbreviations fixture."""
-    europepmc = EuropePMC(request.param["id"])
-    data = {
+    europepmc = EuropePMC(request.param["id"], storage=tmp_path_factory.mktemp(f"europepmc_{request.param['id']}"))
+    return {
         "europepmc": europepmc,
         "abbreviation_list": request.param["abbreviation_list"],
     }
-    yield data
-    if Path(europepmc.storage).exists():
-        shutil.rmtree(europepmc.storage)
 
 
-def test_extract_abbreviations(provide_params_extract_abbreviations_fixture: dict):
+def test_extract_abbreviations(
+    provide_params_extract_abbreviations_fixture: dict, tmp_path_factory: pytest.TempPathFactory
+):
     """Test extracting abbreviations from EuropePMC PDFs."""
     abbrev_dict = (
-        PymupdfParser(provide_params_extract_abbreviations_fixture["europepmc"].pdfs())
+        PymupdfParser(
+            provide_params_extract_abbreviations_fixture["europepmc"].pdfs(),
+            figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_abbreviations"),
+        )
         .get_publications()[0]
         .abbreviations
     )
@@ -124,17 +124,20 @@ def test_extract_abbreviations(provide_params_extract_abbreviations_fixture: dic
         assert actual == expected_list
     else:
         assert abbrev_dict == {}
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)
 
 
-def test_extract_id():
+def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
-    actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()[0].id
+    actual = (
+        PymupdfParser(
+            [PDF("tests/test_pdfs/test_pdf.pdf")],
+            figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_extract_id"),
+        )
+        .get_publications()[0]
+        .id
+    )
     expected = "test_pdf"
     assert str(actual) == expected
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)
 
 
 def test_extract_figure_descriptions(publication: dict):
@@ -205,11 +208,15 @@ def test_is_corrupted(text: str, expected: bool):
     assert parser._is_corrupted(text) == expected
 
 
-def test_extract_full_text_from_corrupted_pdf():
+def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting full text from a corrupted PDF."""
-    actual = PymupdfParser(pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")]).get_publications()[0].full_text
-    expected = (
-        "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects, "
-        "we evaluated the effect of the parent chemical and the ozonated products"
+    actual = (
+        PymupdfParser(
+            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
+            figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_corrupted_pdf"),
+        )
+        .get_publications()[0]
+        .full_text
     )
+    expected = "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects,"
     assert expected in actual

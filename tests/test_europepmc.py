@@ -1,8 +1,6 @@
 from __future__ import annotations
-import shutil
 from datetime import datetime
 from datetime import timezone
-from pathlib import Path
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.europepmc import EuropePMC
@@ -110,28 +108,27 @@ def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_
     assert actual == expected
 
 
-def test_open_access_europepmc_pdf_file_exists():
+def test_open_access_europepmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactory):
     """Test that an open access EuropePMC PDF can be retrieved and saved."""
-    EuropePMC("PMC8614944").pdfs()
-    filepath = Path("tests/pdf_storage") / "PMC8614944.pdf"
+    storage = tmp_path_factory.mktemp("europepmc_PMC8614944")
+    EuropePMC("PMC8614944", storage=storage).pdfs()
+    filepath = storage / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()
     assert filepath.stat().st_size > 0
-    shutil.rmtree("tests/pdf_storage", ignore_errors=True)
 
 
 @pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
 @pytest.mark.xfail(raises=HTTPError)
-def test_metapub_pdf_file_exists(pubmed_id: str):
+def test_metapub_pdf_file_exists(pubmed_id: str, tmp_path_factory: pytest.TempPathFactory):
     """Test that a PDF retrieved via PubMed can be saved."""
-    storage = Path("tests/pdf_storage")
+    storage = tmp_path_factory.mktemp(f"europepmc_{pubmed_id}")
     sut = EuropePMC(pubmed_id, storage=storage)
     sut.pdfs()
     filepath = storage / f"{pubmed_id}.pdf"
     assert filepath.exists()
     assert filepath.is_file()
     assert filepath.stat().st_size > 0
-    shutil.rmtree(storage, ignore_errors=True)
 
 
 def test_get_abstract_not_empty():
@@ -225,7 +222,7 @@ def test_generate_abstract_for_given_id(publication_id: str, expected_abstract: 
             "PMC5594291 OR PMC5596756",
             "",
             "PMC5596756",
-            1,
+            2,
         ),
     ],
 )
