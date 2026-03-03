@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 class PymupdfParser(PDFParser):
     """Parse PDFs using PyMuPDF."""
 
+    model: str = "llama-4-scout-17b-16e-instruct"
+
     def __init__(self, pdfs: list[PDF], figures_output_dir: str = "tests/figure_storage"):
         self.figures_output_dir = figures_output_dir
         self.pdfs = pdfs
@@ -174,7 +176,7 @@ class PymupdfParser(PDFParser):
             str: The extracted full text from the images.
         """
         full_text = ""
-        text_generation = TextGenerationAPI(model="qwen3.5")
+        text_generation = TextGenerationAPI(model=self.model)
         for img_base64 in pdf_as_images:
             text_from_image = text_generation.extract_text_from_pdf_image(img_base64, mime_type="image/png")
             full_text += text_from_image + "\n"
