@@ -1,6 +1,5 @@
 ## Badges
 
-(Customize these badges with your own links, and check https://shields.io/ or https://badgen.net/ to see which other badges are available.)
 
 | fair-software.eu recommendations | |
 | :-- | :--  |
@@ -16,9 +15,8 @@
 | Build                              | [![build](https://github.com/rdurnik/aoptk/actions/workflows/build.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/build.yml) |
 | Citation data consistency          | [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml) |## How to use aoptk
 
-Tools to support data mining for the development of (q)AOPs
+Tools for data mining and prediction of toxicological outcomes using large language models.
 
-The project setup is documented in [project_setup.md](project_setup.md). Feel free to remove this document (and/or the link to this document) if you don't need it.
 
 ## Installation
 
@@ -32,7 +30,7 @@ python -m pip install .
 
 ## Documentation
 
-Include a link to your project's full documentation here.
+TBA
 
 ## Contributing
 
