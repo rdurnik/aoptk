@@ -95,7 +95,8 @@ def test_extract_full_text_europepmc(publication: dict):
     ],
 )
 def provide_params_extract_abbreviations_fixture(
-    request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory
+    request: pytest.FixtureRequest,
+    tmp_path_factory: pytest.TempPathFactory,
 ):
     """Provide parameters for extract abbreviations fixture."""
     europepmc = EuropePMC(request.param["id"], storage=tmp_path_factory.mktemp(f"europepmc_{request.param['id']}"))
@@ -106,7 +107,8 @@ def provide_params_extract_abbreviations_fixture(
 
 
 def test_extract_abbreviations(
-    provide_params_extract_abbreviations_fixture: dict, tmp_path_factory: pytest.TempPathFactory
+    provide_params_extract_abbreviations_fixture: dict,
+    tmp_path_factory: pytest.TempPathFactory,
 ):
     """Test extracting abbreviations from EuropePMC PDFs."""
     abbrev_dict = (

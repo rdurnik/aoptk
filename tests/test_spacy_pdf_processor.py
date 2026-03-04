@@ -28,7 +28,8 @@ def test_get_publications_not_empty():
 def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
     parser = SpacyPDF(
-        [PDF("tests/test_pdfs/test_pdf.pdf")], figures_output_dir=tmp_path_factory.mktemp("spacy_pdf_processor_figures")
+        [PDF("tests/test_pdfs/test_pdf.pdf")],
+        figures_output_dir=tmp_path_factory.mktemp("spacy_pdf_processor_figures"),
     )
     actual = parser.get_publications()[0].id
     expected = "test_pdf"
