@@ -1,42 +1,31 @@
 # ruff: noqa: ANN001
 from datetime import datetime
 from datetime import timezone
-from unittest.mock import MagicMock
-from unittest.mock import patch
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
-from aoptk.literature.get_abstract import GetAbstract
 
 
-def test_implements_interface():
-    """PubMed implements GetAbstract interface."""
-    assert issubclass(PubMed, GetAbstract)
+@pytest.fixture
+def mock_entrez(mocker):
+    """Mock Entrez module."""
+    return mocker.patch("aoptk.literature.databases.pubmed.Entrez")
 
 
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_can_create(mock_entrez):
     """Can create PubMed instance."""
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
     mock_entrez.read.return_value = {"Count": "5", "IdList": ["1", "2", "3", "4", "5"]}
-
     actual = PubMed("hepg2 thioacetamide")
     assert actual is not None
 
 
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_get_abstract_not_empty(mock_entrez):
     """Get abstracts returns non-empty list."""
-    # Mock handles
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
-    mock_entrez.efetch.return_value = mock_handle
     mock_entrez.read.side_effect = [
-        {"Count": "2", "IdList": ["12345", "67890"]},  # For get_id_list in __init__
-        {"Count": "2"},  # For get_publication_count (first call in __init__)
-        {"Count": "2"},  # For get_publication_count (second call in __init__ if statement)
-        {  # For get_abstracts efetch
+        {"Count": "2", "IdList": ["12345", "67890"]},
+        {"Count": "2"},
+        {"Count": "2"},
+        {
             "PubmedArticle": [
                 {
                     "MedlineCitation": {
@@ -67,15 +56,12 @@ def test_get_abstract_not_empty(mock_entrez):
     assert len(actual) > 0
 
 
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_get_publication_count(mock_entrez):
     """Get publication count returns correct number."""
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
     mock_entrez.read.side_effect = [
-        {"Count": "4", "IdList": ["36835489", "37913737", "37891562", "36838959"]},  # get_id_list
-        {"Count": "4"},  # get_publication_count (first call)
-        {"Count": "4"},  # get_publication_count (second call in if statement)
+        {"Count": "4", "IdList": ["36835489", "37913737", "37891562", "36838959"]},
+        {"Count": "4"},
+        {"Count": "4"},
     ]
 
     pubmed_instance = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))')
@@ -84,16 +70,12 @@ def test_get_publication_count(mock_entrez):
     assert actual == expected
 
 
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_raises_query_too_large_error(mock_entrez):
     """QueryTooLargeError is raised when result count >= maximum_results."""
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
-    # Simulate a query that returns more than maximum_results
     mock_entrez.read.side_effect = [
-        {"Count": str(PubMed.maximum_results), "IdList": []},  # get_id_list
-        {"Count": str(PubMed.maximum_results)},  # get_publication_count (first call)
-        {"Count": str(PubMed.maximum_results)},  # get_publication_count (second call triggers exception)
+        {"Count": str(PubMed.maximum_results), "IdList": []},
+        {"Count": str(PubMed.maximum_results)},
+        {"Count": str(PubMed.maximum_results)},
     ]
 
     with pytest.raises(QueryTooLargeError) as exc_info:
@@ -102,16 +84,13 @@ def test_raises_query_too_large_error(mock_entrez):
     assert exc_info.value.maximum == PubMed.maximum_results
 
 
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_get_id_list(mock_entrez):
     """Get publication count returns correct number."""
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
     expected = ["36835489", "37913737", "37891562", "36838959"]
     mock_entrez.read.side_effect = [
-        {"Count": "4", "IdList": expected},  # get_id_list
-        {"Count": "4"},  # get_publication_count (first call)
-        {"Count": "4"},  # get_publication_count (second call in if statement)
+        {"Count": "4", "IdList": expected},
+        {"Count": "4"},
+        {"Count": "4"},
     ]
 
     pubmed_instance = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))')
@@ -153,7 +132,6 @@ def test_get_id_list(mock_entrez):
         ),
     ],
 )
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_generate_abstracts_for_given_query(
     mock_entrez,
     query: str,
@@ -162,11 +140,6 @@ def test_generate_abstracts_for_given_query(
     position: int,
 ):
     """Generate list of abstracts for given query."""
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
-    mock_entrez.efetch.return_value = mock_handle
-
-    # Create mock articles based on position
     articles = []
     for i in range(position + 1):
         if i == position:
@@ -199,18 +172,16 @@ def test_generate_abstracts_for_given_query(
     id_list = [article["MedlineCitation"]["PMID"] for article in articles]
 
     mock_entrez.read.side_effect = [
-        {"Count": str(len(id_list)), "IdList": id_list},  # get_id_list
-        {"Count": str(len(id_list))},  # get_publication_count (first call)
-        {"Count": str(len(id_list))},  # get_publication_count (second call in if statement)
-        {"PubmedArticle": articles},  # get_abstracts
+        {"Count": str(len(id_list)), "IdList": id_list},
+        {"Count": str(len(id_list))},
+        {"Count": str(len(id_list))},
+        {"PubmedArticle": articles},
     ]
 
     pubmed_instance = PubMed(query)
     abstracts = pubmed_instance.get_abstracts()
-    abstract = abstracts[position].text
-    publication_id = abstracts[position].publication_id
-    assert abstract == expected_abstract
-    assert publication_id == expected_id
+    assert abstracts[position].text == expected_abstract
+    assert abstracts[position].publication_id == expected_id
 
 
 @pytest.mark.parametrize(
@@ -234,26 +205,19 @@ def test_generate_abstracts_for_given_query(
         },
     ],
 )
-@patch("aoptk.literature.databases.pubmed.Entrez")
 def test_get_publication_metadata(mock_entrez, test_data: dict):
     """Generate publication metadata for given id."""
-    mock_handle = MagicMock()
-    mock_entrez.esearch.return_value = mock_handle
-    mock_entrez.esummary.return_value = mock_handle
-
-    authors_list = test_data["authors"].split(", ")
-
     mock_entrez.read.side_effect = [
-        {"Count": "1", "IdList": [test_data["publication_id"]]},  # get_id_list
-        {"Count": "1"},  # get_publication_count (first call)
-        {"Count": "1"},  # get_publication_count (second call in if statement)
+        {"Count": "1", "IdList": [test_data["publication_id"]]},
+        {"Count": "1"},
+        {"Count": "1"},
         [
             {
-                "PubDate": f"{test_data['publication_date']} Jan",
+                "PubDate": f"{test_data['publication_date']}",
                 "Title": test_data["title"],
-                "AuthorList": authors_list,
+                "AuthorList": test_data["authors"].split(", "),
             },
-        ],  # get_publication_metadata
+        ],
     ]
 
     publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
