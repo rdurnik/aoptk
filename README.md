@@ -1,6 +1,6 @@
 ## AOP-toolkit (aoptk)
 
-AOP-toolkit (aoptk) is a Python package for mining and analyzing toxicological and biomedical literature. Originally developed to support the construction of Adverse Outcome Pathways (AOPs), it provides general-purpose tools for retrieving, processing, and analyzing scientific publications and related data.
+AOP-toolkit (aoptk) is a Python package for mining and analyzing toxicological and biomedical literature. Originally developed to support the construction of Adverse Outcome Pathways (AOPs), it provides general-purpose tools for retrieving, processing, and analyzing scientific publications.
 
 The toolkit enables users to collect literature from databases such as PubMed and Europe PMC, extract information from full-text articles, analyze unstructured text and images using large language models, and normalize chemical names across publications to improve data consistency and interoperability.
 
