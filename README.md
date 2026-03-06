@@ -1,3 +1,9 @@
+## AOP-toolkit (aoptk)
+
+AOP-toolkit (aoptk) is a Python package for mining and analyzing toxicological and biomedical literature. Originally developed to support the construction of Adverse Outcome Pathways (AOPs), it provides general-purpose tools for retrieving, processing, and analyzing scientific publications and related data.
+
+The toolkit enables users to collect literature from databases such as PubMed and Europe PMC, extract information from full-text articles, analyze unstructured text and images using large language models, and normalize chemical names across publications to improve data consistency and interoperability.
+
 ## Badges
 
 
@@ -14,8 +20,6 @@
 | Coverage                           | [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=coverage)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk) || Documentation                      | [![Documentation Status](https://readthedocs.org/projects/aoptk/badge/?version=latest)](https://aoptk.readthedocs.io/en/latest/?badge=latest) || **GitHub Actions**                 | &nbsp; |
 | Build                              | [![build](https://github.com/rdurnik/aoptk/actions/workflows/build.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/build.yml) |
 | Citation data consistency          | [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml) |## How to use aoptk
-
-Tools for data mining and prediction of toxicological outcomes using large language models.
 
 
 ## Installation
