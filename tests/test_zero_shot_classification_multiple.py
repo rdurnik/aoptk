@@ -20,7 +20,7 @@ def test_implements_interface():
 
 def test_normalize_chemical_not_empty():
     """Test that normalize_chemical method returns a non-empty result."""
-    actual = ZeroShotClassificationMultiple().find_relationships(text="", chemicals=[], effects=[])
+    actual = ZeroShotClassificationMultiple().find_relationships_in_text(text="", chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -297,7 +297,7 @@ def test_find_relationships(
         model="facebook/bart-large-mnli",
         threshold=0.6,
         margin=0.15,
-    ).find_relationships(text=text, chemicals=chemicals, effects=effects)
+    ).find_relationships_in_text(text=text, chemicals=chemicals, effects=effects)
 
     def sort_key(r: Relationship) -> tuple[str, str, str]:
         return (r.relationship_type, r.chemical.name, r.effect.name)

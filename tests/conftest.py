@@ -1,5 +1,3 @@
-import shutil
-from pathlib import Path
 import pytest
 from aoptk.literature.databases.europepmc import EuropePMC
 from aoptk.literature.id import ID
@@ -205,14 +203,12 @@ from aoptk.literature.id import ID
     ],
     ids=["PMC12416454", "PMC12231352", "PMC12181427"],
 )
-def provide_pdfs(request: pytest.FixtureRequest):
-    """Provide parameters for extract abstract fixture."""
-    europepmc = EuropePMC(request.param["id"])
+def provide_pdfs(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory):
+    """Provide parameters for extract abstract/full text fixture."""
+    europepmc = EuropePMC(request.param["id"], storage=tmp_path_factory.mktemp(f"europepmc_{request.param['id']}"))
     request.param.update(
         {
             "pdfs": europepmc.pdfs(),
         },
     )
-    yield request.param
-    if Path(europepmc.storage).exists():
-        shutil.rmtree(europepmc.storage)
+    return request.param
