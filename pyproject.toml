@@ -37,6 +37,7 @@ dependencies = [
     "click>=8.1",
     "openai",
     "python-dotenv",
+    "setuptools",
     "spacy-layout"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
@@ -59,7 +60,6 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "setuptools",
     "sphinx",
     "sphinx_rtd_theme",
     "sphinx-autoapi",
