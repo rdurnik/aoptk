@@ -59,6 +59,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
+    "setuptools",
     "sphinx",
     "sphinx_rtd_theme",
     "sphinx-autoapi",
