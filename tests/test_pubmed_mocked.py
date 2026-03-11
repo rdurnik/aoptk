@@ -1,6 +1,6 @@
 # ruff: noqa: ANN001
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
@@ -226,5 +226,5 @@ def test_get_publication_metadata(mock_entrez, test_data: dict):
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
     assert publication_metadata.database == test_data["database"]
-    assert publication_metadata.search_date.year == datetime.now(timezone.utc).year
-    assert publication_metadata.search_date.month == datetime.now(timezone.utc).month
+    assert publication_metadata.search_date.year == datetime.now(UTC).year
+    assert publication_metadata.search_date.month == datetime.now(UTC).month

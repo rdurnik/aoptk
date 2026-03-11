@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
@@ -95,7 +95,7 @@ class PubMed(GetAbstract, GetID):
             year_publication = pub_date.split()[0] if pub_date else "Unknown"
             title = summary.get("Title", None)
             authors = ", ".join(summary.get("AuthorList", []))
-            search_date = datetime.now(timezone.utc)
+            search_date = datetime.now(UTC)
         return PublicationMetadata(
             publication_id=publication_id,
             publication_date=year_publication,

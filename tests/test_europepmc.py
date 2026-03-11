@@ -1,6 +1,6 @@
 from __future__ import annotations
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.europepmc import EuropePMC
@@ -119,7 +119,9 @@ def test_open_access_europepmc_pdf_file_exists(tmp_path_factory: pytest.TempPath
 
 
 @pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
-@pytest.mark.xfail(raises=HTTPError)
+@pytest.mark.xfail(
+    reason="Publications not available in Europe PMC. Metapub was removed due to dependency issues.", strict=False,
+)
 def test_metapub_pdf_file_exists(pubmed_id: str, tmp_path_factory: pytest.TempPathFactory):
     """Test that a PDF retrieved via PubMed can be saved."""
     storage = tmp_path_factory.mktemp(f"europepmc_{pubmed_id}")
@@ -265,5 +267,5 @@ def test_get_publication_metadata(test_data: dict):
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
     assert publication_metadata.database == test_data["database"]
-    assert publication_metadata.search_date.year == datetime.now(timezone.utc).year
-    assert publication_metadata.search_date.month == datetime.now(timezone.utc).month
+    assert publication_metadata.search_date.year == datetime.now(UTC).year
+    assert publication_metadata.search_date.month == datetime.now(UTC).month

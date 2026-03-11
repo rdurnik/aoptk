@@ -1,6 +1,6 @@
 from __future__ import annotations
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from pathlib import Path
 from typing import ClassVar
 import requests
@@ -13,7 +13,6 @@ from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication_metadata import PublicationMetadata
-from aoptk.literature.utils import get_pubmed_pdf_url
 
 
 class EuropePMC(GetAbstract, GetPDF, GetID):
@@ -109,14 +108,9 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
             stream=True,
             timeout=self.timeout,
         )
-        if not response.ok and publication_id.isdecimal():
-            pubmed_url = get_pubmed_pdf_url(publication_id)
-            if pubmed_url:
-                response = self._session.get(pubmed_url, stream=True, timeout=self.timeout)
-                if not response.ok:
-                    return None
-
-        return self.write(publication_id, response)
+        if response.ok:
+            return self.write(publication_id, response)
+        return None
 
     def write(self, publication_id: str, response: requests.Response) -> PDF:
         """Write the PDF content to a file and return a PDF object."""
@@ -172,7 +166,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
             title = results[0].get("title")
             authors = results[0].get("authorString", "")
             database = "Europe PMC"
-            search_date = datetime.now(timezone.utc)
+            search_date = datetime.now(UTC)
             return PublicationMetadata(
                 publication_id=publication_id,
                 publication_date=publication_date,
