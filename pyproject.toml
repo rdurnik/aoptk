@@ -25,7 +25,6 @@ dependencies = [
     "pandas",
     "pymupdf",
     "metapub",
-    "eutils>=0.6.1",
     "requests",
     "scipy>=1.16.3",
     "scispacy",
@@ -38,6 +37,7 @@ dependencies = [
     "click>=8.1",
     "openai",
     "python-dotenv",
+    "setuptools",
     "spacy-layout",
     "en-ner-bc5cdr-md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz"
 ]
