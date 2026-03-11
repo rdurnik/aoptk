@@ -120,7 +120,7 @@ def test_open_access_europepmc_pdf_file_exists(tmp_path_factory: pytest.TempPath
 
 @pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
 @pytest.mark.xfail(
-    reason="Publications not available in Europe PMC. Metapub was removed due to dependency issues.", strict=False,
+    reason="PDF not available in Europe PMC. Metapub was removed due to dependency issues.", strict=False,
 )
 def test_metapub_pdf_file_exists(pubmed_id: str, tmp_path_factory: pytest.TempPathFactory):
     """Test that a PDF retrieved via PubMed can be saved."""

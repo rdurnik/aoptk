@@ -1,7 +1,6 @@
 import pytest
-from requests import HTTPError
 from aoptk.literature.utils import is_europepmc_id
-
+# ruff: noqa: F821
 
 @pytest.mark.parametrize(
     ("publication_id", "expected"),
@@ -31,7 +30,7 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
     ],
 )
 @pytest.mark.xfail(
-    reason="Publications not available in Europe PMC. Metapub was removed due to dependency issues.", strict=False,
+    reason="PDF not available in Europe PMC. Metapub was removed due to dependency issues.", strict=False,
 )
 def test_get_pubmed_url(pubmed_id: str, expected: str):
     """Test get pubmed url. Can result in 403 HHTP Error."""
