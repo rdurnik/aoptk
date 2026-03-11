@@ -36,7 +36,8 @@ jobs:
           python --version
       - name: Install dependencies with uv
         run: |
-          uv sync --extra dev --extra publishing
+          uv lock
+          uv sync --frozen --extra dev --extra publishing
       - name: Run unit tests
         run: uv run python -m pytest -v
       - name: Verify that we can build the package
@@ -61,7 +62,8 @@ jobs:
           python --version
       - name: Install dependencies with uv
         run: |
-          uv sync --extra dev
+          uv lock
+          uv sync --frozen --extra dev
       - name: Check style against standards using ruff
         run: |
           uv run ruff check
