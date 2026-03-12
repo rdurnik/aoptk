@@ -64,13 +64,11 @@ def publication(provide_pdfs: dict, tmp_path_factory: pytest.TempPathFactory):
     """Second stage fixture which includes PDF parsing."""
     parser = SpacyPDF(provide_pdfs["pdfs"], figures_output_dir=tmp_path_factory.mktemp("spacy_pdf_processor_figures"))
     publications = parser.get_publications()
-    provide_pdfs.update(
-        {
-            "publication": publications[0],
-            "parser": parser,
-        },
-    )
-    return provide_pdfs
+    return {
+        **provide_pdfs,
+        "publication": publications[0],
+        "parser": parser,
+    }
 
 
 def test_extract_abstract_europepmc(publication: dict):

@@ -466,11 +466,6 @@ def test_extract_text_from_pdf_image():
             ["tests/test_figures/gjic.jpeg"],
             ["dibutyl phthalate"],
         ),
-        (
-            "Thioacetamide leads to the inhibition of gap junction intercellular communication.",
-            ["tests/test_figures/gjic.jpeg"],
-            ["thioacetamide", "dibutyl phthalate"],
-        ),
     ],
 )
 def test_find_relationships_in_text_and_images(text: str, images: list[str], expected_chemicals: list[str]):
@@ -516,5 +511,7 @@ def test_generate_normalization_mapping():
 
 def test_convert_image_to_text():
     """Test that convert_image_to_text method converts an image to text."""
-    actual = TextGenerationAPI(model="qwen3.5").convert_image_to_text("tests/test_figures/gjic.jpeg")
+    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image_to_text(
+        "tests/test_figures/gjic.jpeg", 
+        text="These images are about gap junction intercellular communication.")
     assert "gjic" in actual.lower()

@@ -8,7 +8,6 @@ import pytest
 from aoptk.spacy_models import SpacyModels
 from aoptk.spacy_text_processor import SpacyText
 
-pytestmark = pytest.mark.skipif(sys.platform not in ["darwin", "os2", "os2emx"], reason="tests for macOS only")
 
 
 @pytest.fixture
