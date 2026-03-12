@@ -210,6 +210,10 @@ def test_is_corrupted(text: str, expected: bool):
     assert parser._is_corrupted(text) == expected
 
 
+@pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Skip in Github Actions to save energy consumption (large model download required).",
+)
 def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting full text from a corrupted PDF."""
     actual = (
