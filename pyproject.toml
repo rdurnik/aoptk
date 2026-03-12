@@ -67,7 +67,8 @@ dev = [
     "myst_parser",
     "jupyter",
     "ipykernel",
-    "fuzzywuzzy"
+    "fuzzywuzzy",
+    "pytest-mock",
 ]
 docs = [
     "sphinx",
