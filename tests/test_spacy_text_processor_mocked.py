@@ -2,12 +2,10 @@
 # ruff: noqa: SLF001 ANN001 PLR2004
 
 from __future__ import annotations
-import sys
 from unittest.mock import MagicMock
 import pytest
 from aoptk.spacy_models import SpacyModels
 from aoptk.spacy_text_processor import SpacyText
-
 
 
 @pytest.fixture
