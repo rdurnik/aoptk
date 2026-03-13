@@ -207,7 +207,7 @@ def test_is_corrupted(text: str, expected: bool):
 
 @pytest.mark.skipif(
     os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Skip in Github Actions to save energy consumption (large model download required).",
+    reason="This requires LLMs (API key not currently available in GitHub Actions).",
 )
 def test_extract_full_text_from_corrupted_pdf():
     """Test extracting full text from a corrupted PDF."""
