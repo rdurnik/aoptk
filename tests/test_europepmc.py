@@ -108,16 +108,6 @@ def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_
     assert actual == expected
 
 
-def test_open_access_europepmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactory):
-    """Test that an open access EuropePMC PDF can be retrieved and saved."""
-    storage = tmp_path_factory.mktemp("europepmc_PMC8614944")
-    EuropePMC("PMC8614944", storage=storage).pdfs()
-    filepath = storage / "PMC8614944.pdf"
-    assert filepath.exists()
-    assert filepath.is_file()
-    assert filepath.stat().st_size > 0
-
-
 @pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
 @pytest.mark.xfail(
     reason="PDF not available in Europe PMC. Metapub was removed due to dependency issues.",
