@@ -13,6 +13,7 @@ from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.utils import is_europepmc_id
 
 
 class EuropePMC(GetAbstract, GetPDF, GetID):
@@ -41,8 +42,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
         self._session = requests.Session()
         self._session.headers.update(self.headers)
         retry_strategy = Retry(
-            total=5,
-            backoff_factor=10,
+            total=3,
+            backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["GET", "POST"],
         )
@@ -103,13 +104,15 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
 
     def get_pdf(self, publication_id: str) -> PDF | None:
         """Retrieve the PDF for a given publication ID."""
-        response = self._session.get(
-            f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
-            stream=True,
-            timeout=self.timeout,
-        )
-        if response.ok:
-            return self.write(publication_id, response)
+        if is_europepmc_id(publication_id):
+            response = self._session.get(
+                f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
+                stream=True,
+                timeout=self.timeout,
+            )
+            if response.ok:
+                return self.write(publication_id, response)
+            return None
         return None
 
     def write(self, publication_id: str, response: requests.Response) -> PDF:
