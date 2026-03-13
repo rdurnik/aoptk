@@ -1,4 +1,5 @@
 import os
+import shutil
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
@@ -9,6 +10,8 @@ from aoptk.literature.pymupdf_parser import PymupdfParser
 
 # ruff: noqa: PLR2004
 # ruff: noqa: SLF001
+
+output_dir = "tests/figure_storage"
 
 
 def test_can_create():
@@ -29,9 +32,9 @@ def test_get_publication_data_not_empty():
 
 
 @pytest.fixture(scope="module")
-def publication(provide_pdfs: dict, tmp_path_factory: pytest.TempPathFactory):
+def publication(provide_pdfs: dict):
     """Second stage fixture which includes PDF parsing."""
-    parser = PymupdfParser(provide_pdfs["pdfs"], figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_figures"))
+    parser = PymupdfParser(provide_pdfs["pdfs"])
     publications = parser.get_publications()
     provide_pdfs.update(
         {
@@ -39,7 +42,10 @@ def publication(provide_pdfs: dict, tmp_path_factory: pytest.TempPathFactory):
             "parser": parser,
         },
     )
-    return provide_pdfs
+    yield provide_pdfs
+
+    if Path(parser.figures_output_dir).exists():
+        shutil.rmtree(parser.figures_output_dir)
 
 
 def test_extract_abstract_europepmc(publication: dict):
@@ -92,28 +98,22 @@ def test_extract_full_text_europepmc(publication: dict):
         },
     ],
 )
-def provide_params_extract_abbreviations_fixture(
-    request: pytest.FixtureRequest,
-    tmp_path_factory: pytest.TempPathFactory,
-):
+def provide_params_extract_abbreviations_fixture(request: pytest.FixtureRequest):
     """Provide parameters for extract abbreviations fixture."""
-    europepmc = EuropePMC(request.param["id"], storage=tmp_path_factory.mktemp(f"europepmc_{request.param['id']}"))
-    return {
+    europepmc = EuropePMC(request.param["id"])
+    data = {
         "europepmc": europepmc,
         "abbreviation_list": request.param["abbreviation_list"],
     }
+    yield data
+    if Path(europepmc.storage).exists():
+        shutil.rmtree(europepmc.storage)
 
 
-def test_extract_abbreviations(
-    provide_params_extract_abbreviations_fixture: dict,
-    tmp_path_factory: pytest.TempPathFactory,
-):
+def test_extract_abbreviations(provide_params_extract_abbreviations_fixture: dict):
     """Test extracting abbreviations from EuropePMC PDFs."""
     abbrev_dict = (
-        PymupdfParser(
-            provide_params_extract_abbreviations_fixture["europepmc"].pdfs(),
-            figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_abbreviations"),
-        )
+        PymupdfParser(provide_params_extract_abbreviations_fixture["europepmc"].pdfs())
         .get_publications()[0]
         .abbreviations
     )
@@ -124,20 +124,17 @@ def test_extract_abbreviations(
         assert actual == expected_list
     else:
         assert abbrev_dict == {}
+    if Path(output_dir).exists():
+        shutil.rmtree(output_dir)
 
 
-def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
+def test_extract_id():
     """Test extracting publication ID from user-provided PDF."""
-    actual = (
-        PymupdfParser(
-            [PDF("tests/test_pdfs/test_pdf.pdf")],
-            figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_extract_id"),
-        )
-        .get_publications()[0]
-        .id
-    )
+    actual = PymupdfParser([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()[0].id
     expected = "test_pdf"
     assert str(actual) == expected
+    if Path(output_dir).exists():
+        shutil.rmtree(output_dir)
 
 
 def test_extract_figure_descriptions(publication: dict):
@@ -212,15 +209,11 @@ def test_is_corrupted(text: str, expected: bool):
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Skip in Github Actions to save energy consumption (large model download required).",
 )
-def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathFactory):
+def test_extract_full_text_from_corrupted_pdf():
     """Test extracting full text from a corrupted PDF."""
-    actual = (
-        PymupdfParser(
-            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
-            figures_output_dir=tmp_path_factory.mktemp("pymupdf_parser_corrupted_pdf"),
-        )
-        .get_publications()[0]
-        .full_text
+    actual = PymupdfParser(pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")]).get_publications()[0].full_text
+    expected = (
+        "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects, "
+        "we evaluated the effect of the parent chemical and the ozonated products"
     )
-    expected = "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects,"
     assert expected in actual
