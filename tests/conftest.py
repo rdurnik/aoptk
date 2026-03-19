@@ -34,8 +34,8 @@ from aoptk.literature.id import ID
             "increase the anticancer activity of bioactive "
             "palladium cations as determined in studies using "
             "in vitro 3D spheroids of the human hepatic cells HepG2.",
-            "full_text_slice": slice(13, 39),
-            "full_text": "Natural chiral hydrophobic",
+            "full_text_slice": slice(2218, 2254),
+            "full_text": "Natural chiral hydrophobic cavities",
             "figures": [
                 "tests/figure_storage/PMC12416454/figure1.jpeg",
                 "tests/figure_storage/PMC12416454/figure2.png",
