@@ -77,8 +77,8 @@ def publication(provide_pdfs: dict):
         shutil.rmtree(parser.figures_output_dir)
 
 
-def test_extract_abstract_europepmc(publication: dict):
-    """Test extracting abstract from EuropePMC PDFs."""
+def test_extract_abstract_pmc(publication: dict):
+    """Test extracting abstract from PMC PDFs."""
     actual = publication["publication"].abstract.text
     expected = publication["expected_abstract"]
     ratio = fuzz.ratio(actual, expected)
@@ -86,7 +86,7 @@ def test_extract_abstract_europepmc(publication: dict):
 
 
 def test_extract_figure_descriptions(publication: dict):
-    """Test extracting figure descriptions from EuropePMC PDFs."""
+    """Test extracting figure descriptions from PMC PDFs."""
     actual = publication["publication"].figure_descriptions
 
     expected = publication["figure_descriptions"]
@@ -94,8 +94,8 @@ def test_extract_figure_descriptions(publication: dict):
     assert ratio > 50
 
 
-def test_extract_full_text_europepmc(publication: dict):
-    """Test extracting full text from EuropePMC PDFs."""
+def test_extract_full_text_pmc(publication: dict):
+    """Test extracting full text from PMC PDFs."""
     actual = publication["publication"].full_text[publication["paragraph_number"]]
     expected = publication["paragraph"]
     ratio = fuzz.ratio(actual, expected)
@@ -103,7 +103,7 @@ def test_extract_full_text_europepmc(publication: dict):
 
 
 def test_extract_tables(publication: dict):
-    """Test extracting tables from EuropePMC PDFs."""
+    """Test extracting tables from PMC PDFs."""
     actual = publication["publication"].tables
     expected = publication["tables"]
 

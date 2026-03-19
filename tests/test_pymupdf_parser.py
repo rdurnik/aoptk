@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
-from aoptk.literature.databases.europepmc import EuropePMC
+from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
@@ -48,16 +48,16 @@ def publication(provide_pdfs: dict):
         shutil.rmtree(parser.figures_output_dir)
 
 
-def test_extract_abstract_europepmc(publication: dict):
-    """Test extracting abstract from EuropePMC PDFs."""
+def test_extract_abstract_pmc(publication: dict):
+    """Test extracting abstract from PMC PDFs."""
     actual = publication["publication"].abstract.text
     expected = publication["expected_abstract"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 35
 
 
-def test_extract_full_text_europepmc(publication: dict):
-    """Test extracting full text from EuropePMC PDFs."""
+def test_extract_full_text_pmc(publication: dict):
+    """Test extracting full text from PMC PDFs."""
     pub = publication["publication"]
     actual = pub.full_text[publication["full_text_slice"]]
     expected = publication["full_text"]
@@ -100,22 +100,20 @@ def test_extract_full_text_europepmc(publication: dict):
 )
 def provide_params_extract_abbreviations_fixture(request: pytest.FixtureRequest):
     """Provide parameters for extract abbreviations fixture."""
-    europepmc = EuropePMC(request.param["id"])
+    pmc = PMC(request.param["id"])
     data = {
-        "europepmc": europepmc,
+        "pmc": pmc,
         "abbreviation_list": request.param["abbreviation_list"],
     }
     yield data
-    if Path(europepmc.storage).exists():
-        shutil.rmtree(europepmc.storage)
+    if Path(pmc.storage).exists():
+        shutil.rmtree(pmc.storage)
 
 
 def test_extract_abbreviations(provide_params_extract_abbreviations_fixture: dict):
-    """Test extracting abbreviations from EuropePMC PDFs."""
+    """Test extracting abbreviations from PMC PDFs."""
     abbrev_dict = (
-        PymupdfParser(provide_params_extract_abbreviations_fixture["europepmc"].pdfs())
-        .get_publications()[0]
-        .abbreviations
+        PymupdfParser(provide_params_extract_abbreviations_fixture["pmc"].pdfs()).get_publications()[0].abbreviations
     )
     expected_list = provide_params_extract_abbreviations_fixture["abbreviation_list"]
 
@@ -138,7 +136,7 @@ def test_extract_id():
 
 
 def test_extract_figure_descriptions(publication: dict):
-    """Test extracting figure descriptions from EuropePMC PDFs."""
+    """Test extracting figure descriptions from PMC PDFs."""
     if publication["id"] == "PMC12181427":
         pytest.skip("Pymupdf can't parse figure captions in this paper.")
 
@@ -148,7 +146,7 @@ def test_extract_figure_descriptions(publication: dict):
 
 
 def test_extract_figures(publication: dict):
-    """Test extracting figures from EuropePMC PDFs."""
+    """Test extracting figures from PMC PDFs."""
     actual = publication["publication"].figures
     expected = [
         str(publication["parser"].figures_output_dir / Path(fig).relative_to("tests/figure_storage"))

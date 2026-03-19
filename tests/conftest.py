@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 import pytest
-from aoptk.literature.databases.europepmc import EuropePMC
+from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.id import ID
 
 # ruff: noqa: E501
@@ -207,12 +207,12 @@ from aoptk.literature.id import ID
 )
 def provide_pdfs(request: pytest.FixtureRequest):
     """Provide parameters for extract abstract/full text fixture."""
-    europepmc = EuropePMC(request.param["id"])
+    pmc = PMC(request.param["id"])
     request.param.update(
         {
-            "pdfs": europepmc.pdfs(),
+            "pdfs": pmc.pdfs(),
         },
     )
     yield request.param
-    if Path(europepmc.storage).exists():
-        shutil.rmtree(europepmc.storage)
+    if Path(pmc.storage).exists():
+        shutil.rmtree(pmc.storage)

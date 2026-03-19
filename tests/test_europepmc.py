@@ -110,10 +110,22 @@ def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_
     assert actual == expected
 
 
+@pytest.mark.skip(
+    reason="Europe PMC currently does not allow PDF retrieval.",
+)
+def test_open_access_europepmc_pdf_file_exists():
+    """Test that an open access EuropePMC PDF can be retrieved and saved."""
+    EuropePMC("PMC8614944").pdfs()
+    filepath = Path("tests/pdf_storage") / "PMC8614944.pdf"
+    assert filepath.exists()
+    assert filepath.is_file()
+    assert filepath.stat().st_size > 0
+    shutil.rmtree("tests/pdf_storage", ignore_errors=True)
+
+
 @pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
-@pytest.mark.xfail(
+@pytest.mark.skip(
     reason="PDF not available in Europe PMC. Metapub was removed due to dependency issues.",
-    strict=False,
 )
 def test_metapub_pdf_file_exists(pubmed_id: str):
     """Test that a PDF retrieved via PubMed can be saved."""
