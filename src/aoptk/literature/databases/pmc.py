@@ -126,7 +126,7 @@ class PMC(GetPublication, GetPDF):
         supplementary_files = metadata.get("media_urls", [])
         downloaded = []
 
-        base_dir = Path(self.storage) / f"{publication_id}"
+        base_dir = Path(self.figure_storage) / f"{publication_id}"
         base_dir.mkdir(parents=True, exist_ok=True)
 
         for supplement in supplementary_files:
@@ -163,3 +163,6 @@ class PMC(GetPublication, GetPDF):
         if pdf_path := self._get_file(publication_id, "pdf"):
             return PDF(pdf_path)
         return None
+
+
+obj = PMC("PMC12416454").get_publications()[0]
