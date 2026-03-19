@@ -34,7 +34,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID):
         "Cache-Control": "max-age=0",
     }
 
-    def __init__(self, query: str, storage: str = "tests/pdf_storage"):
+    def __init__(self, query: str, storage: str = "tests/storage"):
         self._query = query
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)

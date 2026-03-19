@@ -27,8 +27,8 @@ def test_get_publication_data_not_empty():
 def test_open_access_pmc_pdf_file_exists():
     """Test that an open access PMC PDF can be retrieved and saved."""
     PMC("PMC8614944").pdfs()
-    filepath = Path("tests/pdf_storage") / "PMC8614944.pdf"
+    filepath = Path("tests/storage") / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()
     assert filepath.stat().st_size > 0
-    shutil.rmtree("tests/pdf_storage", ignore_errors=True)
+    shutil.rmtree("tests/storage", ignore_errors=True)

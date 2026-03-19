@@ -21,8 +21,8 @@ class PymupdfParser(PDFParser):
 
     model: str = "llama-4-scout-17b-16e-instruct"
 
-    def __init__(self, pdfs: list[PDF], figures_output_dir: str = "tests/figure_storage"):
-        self.figures_output_dir = figures_output_dir
+    def __init__(self, pdfs: list[PDF], figure_storage: str = "tests/figure_storage"):
+        self.figure_storage = figure_storage
         self.pdfs = pdfs
         self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
@@ -314,7 +314,7 @@ class PymupdfParser(PDFParser):
 
     def _extract_figures(self, pdf: PDF) -> list[str]:
         """Extract figures from the PDF and save them to the output directory."""
-        output_dir = Path(self.figures_output_dir) / Path(pdf.path).stem
+        output_dir = Path(self.figure_storage) / Path(pdf.path).stem
         output_dir.mkdir(parents=True, exist_ok=True)
         with pymupdf.open(pdf.path) as doc:
             figure_count = 0

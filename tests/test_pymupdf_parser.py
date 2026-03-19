@@ -44,8 +44,8 @@ def publication(provide_pdfs: dict):
     )
     yield provide_pdfs
 
-    if Path(parser.figures_output_dir).exists():
-        shutil.rmtree(parser.figures_output_dir)
+    if Path(parser.figure_storage).exists():
+        shutil.rmtree(parser.figure_storage)
 
 
 def test_extract_abstract_pmc(publication: dict):
@@ -149,13 +149,13 @@ def test_extract_figures(publication: dict):
     """Test extracting figures from PMC PDFs."""
     actual = publication["publication"].figures
     expected = [
-        str(publication["parser"].figures_output_dir / Path(fig).relative_to("tests/figure_storage"))
+        str(publication["parser"].figure_storage / Path(fig).relative_to("tests/figure_storage"))
         for fig in publication["figures"]
     ]
     expected_size = publication["figure_size"]
     total_size = sum(
         Path(dirpath, filename).stat().st_size
-        for dirpath, dirnames, filenames in os.walk(publication["parser"].figures_output_dir)
+        for dirpath, dirnames, filenames in os.walk(publication["parser"].figure_storage)
         for filename in filenames
     )
     assert actual == expected

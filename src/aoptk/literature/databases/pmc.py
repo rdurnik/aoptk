@@ -16,6 +16,8 @@ from aoptk.literature.utils import is_europepmc_id
 class PMC(GetPublication, GetPDF):
     """Class for retrieving and parsing open access PMC publications."""
 
+    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
+
     s3 = boto3.client(
         "s3",
         config=Config(signature_version=UNSIGNED),
@@ -27,18 +29,18 @@ class PMC(GetPublication, GetPDF):
     def __init__(
         self,
         query: str,
-        storage: str = "tests/pdf_storage",
-        figures_output_dir: str = "tests/figures_storage",
+        storage: str = "tests/storage",
+        figure_storage: str = "tests/figure_storage",
     ):
         self._query = query
-        self.storage = storage
-        Path(self.storage).mkdir(parents=True, exist_ok=True)
-
         ids = EuropePMC(self._query).get_id()
         self.id_list = [publication_id for publication_id in ids if publication_id and is_europepmc_id(publication_id)]
 
-        self.figures_output_dir = figures_output_dir
-        Path(self.figures_output_dir).mkdir(parents=True, exist_ok=True)
+        self.storage = storage
+        Path(self.storage).mkdir(parents=True, exist_ok=True)
+
+        self.figure_storage = figure_storage
+        Path(self.figure_storage).mkdir(parents=True, exist_ok=True)
 
     def pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
@@ -69,17 +71,13 @@ class PMC(GetPublication, GetPDF):
             tables=tables,
         )
 
-    def _get_pdf(self, publication_id: str) -> PDF | None:
-        """Retrieve the PDF for a given publication ID."""
-        if pdf_path := self._get_file(publication_id, "pdf"):
-            return PDF(pdf_path)
-        return None
-
     def _get_full_text(self, publication_id: str) -> str:
         """Retrieve the full text for a given publication ID."""
         if txt_path := self._get_file(publication_id, "txt"):
             with Path.open(txt_path) as f:
-                return f.read()
+                txt = f.read()
+                Path.unlink(txt_path)
+                return txt
         return None
 
     def _get_file(self, publication_id: str, file_format: str) -> PDF | str | None:
@@ -101,34 +99,38 @@ class PMC(GetPublication, GetPDF):
                 return filepath
         return None
 
-    def _get_figures(self, publication_id: str) -> list[Path]:
-        json_path = self._get_json_metadata(publication_id)
-        metadata = json.load(json_path.open())
+    def _get_figures(self, publication_id: str) -> list[str]:
+        metadata = self._get_json(publication_id)
 
         supplementary_files = metadata.get("media_urls", [])
         downloaded = []
+
+        base_dir = Path(self.storage) / f"{publication_id}"
+        base_dir.mkdir(parents=True, exist_ok=True)
 
         for supplement in supplementary_files:
             parsed = urlparse(supplement)
 
             key = parsed.path.lstrip("/")
-            image_name = Path(parsed.path).name
-            image_path = Path(self.figures_output_dir) / image_name
-
-            self.s3.download_file(self.bucket, key, str(image_path))
-
-            downloaded.append(image_path)
+            if key.lower().endswith(self.image_extensions):
+                image_name = Path(parsed.path).name
+                image_path = base_dir / image_name
+                image_path.parent.mkdir(parents=True, exist_ok=True)
+                self.s3.download_file(self.bucket, key, str(image_path))
+                downloaded.append(str(image_path))
 
         return downloaded
 
-    def _get_json_metadata(self, publication_id: str) -> PDF | None:
-        """Retrieve the JSON metadata for a given publication ID."""
-        filepath = Path(self.storage) / f"{publication_id}.json"
-        for page in self.paginator.paginate(Bucket=self.bucket, Prefix=f"metadata/{publication_id}."):
-            for obj in page.get("Contents", []):
-                key = obj["Key"]
-                ext = Path(key).suffix.lower()
-                if ext == ".json":
-                    self.s3.download_file(self.bucket, key, f"{filepath}_{key.split('/')[-1]}")
-                    return filepath
+    def _get_json(self, publication_id: str) -> str:
+        """Retrieve the full text for a given publication ID."""
+        if json_path := self._get_file(publication_id, "json"):
+            metadata = json.load(json_path.open())
+            Path.unlink(json_path)
+            return metadata
+        return None
+
+    def _get_pdf(self, publication_id: str) -> PDF | None:
+        """Retrieve the PDF for a given publication ID."""
+        if pdf_path := self._get_file(publication_id, "pdf"):
+            return PDF(pdf_path)
         return None

@@ -33,8 +33,8 @@ def test_extract_id():
     actual = parser.get_publications()[0].id
     expected = "test_pdf"
     assert str(actual) == expected
-    if Path(parser.figures_output_dir).exists():
-        shutil.rmtree(parser.figures_output_dir)
+    if Path(parser.figure_storage).exists():
+        shutil.rmtree(parser.figure_storage)
 
 
 @pytest.mark.parametrize(
@@ -73,8 +73,8 @@ def publication(provide_pdfs: dict):
     )
     yield provide_pdfs
 
-    if Path(parser.figures_output_dir).exists():
-        shutil.rmtree(parser.figures_output_dir)
+    if Path(parser.figure_storage).exists():
+        shutil.rmtree(parser.figure_storage)
 
 
 def test_extract_abstract_pmc(publication: dict):

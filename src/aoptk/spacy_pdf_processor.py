@@ -17,16 +17,16 @@ from aoptk.text_utils import ends
 class SpacyPDF(PymupdfParser):
     """Process PDF using Spacy package."""
 
-    def __init__(self, pdfs: list[PDF], model: str = "en", figures_output_dir: str = "tests/figure_storage"):
+    def __init__(self, pdfs: list[PDF], model: str = "en", figure_storage: str = "tests/figures_storage"):
         """Initialize with a spaCy model.
 
         Args:
             pdfs (list[PDF]): List of PDF objects to process.
             model (str): spaCy model to use.
-            figures_output_dir (str): Directory to store extracted figures.
+            figure_storage (str): Directory to store extracted figures.
         """
         self.pdfs = pdfs
-        self.figures_output_dir = figures_output_dir
+        self.figure_storage = figure_storage
         self.layout = spaCyLayout(SpacyModels().get_model(f"blank:{model}"))
 
     def get_publications(self) -> list[Publication]:
