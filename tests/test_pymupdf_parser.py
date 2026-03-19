@@ -215,3 +215,5 @@ def test_extract_full_text_from_corrupted_pdf():
         "we evaluated the effect of the parent chemical and the ozonated products"
     )
     assert expected in actual
+    if Path(output_dir).exists():
+        shutil.rmtree(output_dir)
