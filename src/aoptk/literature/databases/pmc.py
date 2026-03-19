@@ -43,17 +43,29 @@ class PMC(GetPublication, GetPDF):
         Path(self.figure_storage).mkdir(parents=True, exist_ok=True)
 
     def pdfs(self) -> list[PDF]:
-        """Retrieve PDFs based on the query."""
+        """Retrieve PDFs based on the query.
+
+        Returns:
+            list[PDF]: A list of PDF objects corresponding to the publications matching the query.
+        """
         return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
 
     def get_publications(self) -> list[Publication]:
-        """Get a list of publications."""
+        """Get a list of publications.
+
+        Returns:
+            list[Publication]: A list of Publication objects.
+        """
         return [
             pub for pub in (self._get_publication(publication_id) for publication_id in self.id_list) if pub is not None
         ]
 
     def _get_publication(self, publication_id: str) -> Publication:
-        """Parse a single PDF and return a Publication object."""
+        """Parse a single PDF and return a Publication object.
+
+        Args:
+            publication_id (str): The publication ID to retrieve and parse.
+        """
         publication_id = ID(publication_id)
         abstract = ""
         full_text = self._get_full_text(publication_id)
@@ -72,7 +84,11 @@ class PMC(GetPublication, GetPDF):
         )
 
     def _get_full_text(self, publication_id: str) -> str:
-        """Retrieve the full text for a given publication ID."""
+        """Retrieve the full text for a given publication ID.
+
+        Args:
+            publication_id (str): The publication ID to retrieve the full text for.
+        """
         if txt_path := self._get_file(publication_id, "txt"):
             with Path.open(txt_path) as f:
                 txt = f.read()
@@ -100,6 +116,11 @@ class PMC(GetPublication, GetPDF):
         return None
 
     def _get_figures(self, publication_id: str) -> list[str]:
+        """Retrieve the figure files for a given publication ID.
+
+        Args:
+            publication_id (str): The publication ID to retrieve the figure files for.
+        """
         metadata = self._get_json(publication_id)
 
         supplementary_files = metadata.get("media_urls", [])
@@ -122,7 +143,11 @@ class PMC(GetPublication, GetPDF):
         return downloaded
 
     def _get_json(self, publication_id: str) -> str:
-        """Retrieve the full text for a given publication ID."""
+        """Retrieve the json for a given publication ID.
+
+        Args:
+            publication_id (str): The publication ID to retrieve the json for.
+        """
         if json_path := self._get_file(publication_id, "json"):
             metadata = json.load(json_path.open())
             Path.unlink(json_path)
@@ -130,7 +155,11 @@ class PMC(GetPublication, GetPDF):
         return None
 
     def _get_pdf(self, publication_id: str) -> PDF | None:
-        """Retrieve the PDF for a given publication ID."""
+        """Retrieve the PDF for a given publication ID.
+
+        Args:
+            publication_id (str): The publication ID to retrieve the PDF for.
+        """
         if pdf_path := self._get_file(publication_id, "pdf"):
             return PDF(pdf_path)
         return None
