@@ -22,7 +22,15 @@ from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.utils import AsyncRequestLimiter
 
-Entrez.api_key = os.environ.get("NCBI_API_KEY")
+
+def _normalize_env_value(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip().strip('"').strip("'")
+    return normalized or None
+
+
+Entrez.api_key = _normalize_env_value(os.environ.get("NCBI_API_KEY"))
 
 
 class PMC(GetPublication, GetPDF, GetID):

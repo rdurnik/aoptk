@@ -9,7 +9,15 @@ from aoptk.literature.get_id import GetID
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 
-Entrez.api_key = os.environ.get("NCBI_API_KEY")
+
+def _normalize_env_value(value: str | None) -> str | None:
+    if value is None:
+        return None
+    normalized = value.strip().strip('"').strip("'")
+    return normalized or None
+
+
+Entrez.api_key = _normalize_env_value(os.environ.get("NCBI_API_KEY"))
 
 
 class QueryTooLargeError(Exception):
