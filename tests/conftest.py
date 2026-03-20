@@ -34,8 +34,7 @@ from aoptk.literature.id import ID
             "increase the anticancer activity of bioactive "
             "palladium cations as determined in studies using "
             "in vitro 3D spheroids of the human hepatic cells HepG2.",
-            "full_text_slice": slice(2218, 2254),
-            "full_text": "Natural chiral hydrophobic cavities",
+            "full_text": Path("tests/test-data/PMC12416454.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12416454/figure1.jpeg",
                 "tests/figure_storage/PMC12416454/figure2.png",
@@ -72,18 +71,6 @@ from aoptk.literature.id import ID
                 "palladium content measured in spheroids. ρ represents "
                 "Spearman’s rank correlation coeﬃcient with a P value.",
             ],
-            "paragraph_number": 15,
-            "paragraph": "More than three decades after the first discovery, "
-            "most of these metallo-supramolecular complexes are achiral and "
-            "symmetric. Several approaches have been employed to construct "
-            "low-symmetry, unsymmetric, or chiral coordination complexes using "
-            "unsymmetric bidentate ligands, [10] a combination of multiple "
-            "symmetric ligands (heteroleptic complexes), [11,12] or even "
-            "single-type symmetric ligands. [13-16] However, unlike natural "
-            "systems, the presence of stereogenic carbons in the structure "
-            "of ligands is rare, mostly limited to the peripheral areas of "
-            "ligands and their resulting complexes, [17] e.g., using peptides,"
-            " [18,19] pentasaccharide, [20] or short alkyl chains. [21]",
             "tables": 0,
         },
         {
@@ -119,8 +106,7 @@ from aoptk.literature.id import ID
             "thereby protecting against MASLD.\n"
             "Discussion: BSP-1 may represent a promising therapeutic agent for MASLD treatment"
             " by inhibiting the NLRP3/caspase-1/GSDMD signaling pathway.",
-            "full_text_slice": slice(1444, 1484),
-            "full_text": "Metabolic-associated fatty liver disease",
+            "full_text": Path("tests/test-data/PMC12231352.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12231352/figure1.jpeg",
                 "tests/figure_storage/PMC12231352/figure2.jpeg",
@@ -144,8 +130,6 @@ from aoptk.literature.id import ID
                 "FIGURE 8 Immunoﬂuorescence of HepG2 Cells. (A) The evaluation of NLRP3 immunoﬂuorescence staining (100 ×). The immunohistochemical density of (B) the NLRP3 and (C) the GSDMD in HepG2 cells. (D) The evaluation of GSDMD immunoﬂuorescence staining (100 ×). The data are shown as the means ± SDs. #p < 0.05, ##p < 0.01, ###p < 0.001, vs. the control group; *p < 0.05, **p < 0.01, ***p < 0.001, vs. the model group.",
                 "FIGURE 9 The impact of BSP-1 on MASLD by evaluating its ability to reduce the expression of pyroptosis-related NLRP3/caspase-1/GSDMD pathway in both HFD-induced rat models in vivo and FFA-induced HepG2 cells in vitro.",
             ],
-            "paragraph_number": 5,
-            "paragraph": "Methods: To simulate MASLD in vivo and in vitro , high-fat diet (HFD)-induced rat models and free fatty acid (FFA)-stimulated HepG2 cells were used. Serum indicators and histopathological staining were employed to assess liver injury and lipid deposition. Additionally, enzyme-linked immunosorbent assay (ELISA), immunohistochemistry (IHC), immuno /uniFB02 uorescence, real-time quantitative polymerase chain reaction (RT-qPCR), and western blotting (WB) analysis were conducted to examine the NLRP3/caspase-1/GSDMD pathway and related cytokine levels.",
             "tables": 1,
         },
         {
@@ -171,8 +155,7 @@ from aoptk.literature.id import ID
             " reduction. These findings underscore the promise of thiophene derivatives"
             " in biomedical applications, potentially leading to safer surgical "
             "procedures and more effective localized drug delivery systems.",
-            "full_text_slice": slice(108, 127),
-            "full_text": "Surgical tools used",
+            "full_text": Path("tests/test-data/PMC12181427.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12181427/figure1.png",
                 "tests/figure_storage/PMC12181427/figure10.png",
@@ -198,8 +181,6 @@ from aoptk.literature.id import ID
                 "Fig. 7 .  The interaction between 3-methylthiophene 5b and (PDB ID: 4e4l).",
                 "Fig. 8 .  ( a ) Optimized structures, ( b ) electron density, ( c ) HOMO and LUMO for compound 5b .",
             ],
-            "paragraph_number": 7,
-            "paragraph": "1 Department of Chemistry, Faculty of Science, Mansoura University, Mansoura 35516, Egypt.  2 Center of Excellence for Genome and Cancer Research, Urology and Nephrology Center, Mansoura University, El Dakhlia, Egypt. \uf02a email: hebama@mans.edu.eg; raghdaabogabal@gmail.com",
             "tables": 4,
         },
     ],

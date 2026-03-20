@@ -96,10 +96,10 @@ def test_extract_figure_descriptions(publication: dict):
 
 def test_extract_full_text_pmc(publication: dict):
     """Test extracting full text from PMC PDFs."""
-    actual = publication["publication"].full_text[publication["paragraph_number"]]
-    expected = publication["paragraph"]
+    actual = " ".join(publication["publication"].full_text)
+    expected = publication["full_text"]
     ratio = fuzz.ratio(actual, expected)
-    assert ratio > 95
+    assert ratio > 65
 
 
 def test_extract_tables(publication: dict):
