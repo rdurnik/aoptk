@@ -1,22 +1,29 @@
+import asyncio
+import calendar
+import datetime
 import json
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 import boto3
+from Bio import Entrez
 from botocore import UNSIGNED
 from botocore.client import Config
-from aoptk.literature.databases.europepmc import EuropePMC
+from tenacity import AsyncRetrying
+from tenacity import retry_if_exception_type
+from tenacity import stop_after_attempt
+from tenacity import wait_exponential
+from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
-from aoptk.literature.utils import is_europepmc_id
+from aoptk.literature.utils import AsyncRequestLimiter
 
 
-class PMC(GetPublication, GetPDF):
+class PMC(GetPublication, GetPDF, GetID):
     """Class for retrieving and parsing open access PMC publications."""
-
-    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
 
     s3 = boto3.client(
         "s3",
@@ -26,6 +33,16 @@ class PMC(GetPublication, GetPDF):
     bucket = "pmc-oa-opendata"
     paginator = s3.get_paginator("list_objects_v2")
 
+    max_pmc_results = 9998
+    max_concurrency = 4
+    max_requests_per_second = 3.0
+    minimal_year_publication = 1800
+    semaphore = asyncio.Semaphore(max_concurrency)
+    limiter = AsyncRequestLimiter(max_requests_per_second)
+    retries = 5
+    backoff_base = 1.0
+    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
+
     def __init__(
         self,
         query: str,
@@ -33,8 +50,7 @@ class PMC(GetPublication, GetPDF):
         figure_storage: str = "tests/figure_storage",
     ):
         self._query = query
-        ids = EuropePMC(self._query).get_id()
-        self.id_list = [publication_id for publication_id in ids if publication_id and is_europepmc_id(publication_id)]
+        self.id_list = asyncio.run(self.get_id())
 
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
@@ -59,6 +75,21 @@ class PMC(GetPublication, GetPDF):
         return [
             pub for pub in (self._get_publication(publication_id) for publication_id in self.id_list) if pub is not None
         ]
+
+    async def get_id(self) -> list[ID]:
+        """Retrieve a list of publication IDs based on the query."""
+        count, ids = await self._async_get_publication_count_and_ids()
+        if count <= self.max_pmc_results:
+            return [f"PMC{pmcid}" for pmcid in ids]
+
+        tasks = [
+            self._collect_ids_for_year(year)
+            for year in range(self.minimal_year_publication, datetime.datetime.now(datetime.UTC).year + 1)
+        ]
+        yearly_results = await asyncio.gather(*tasks)
+
+        ids = [f"PMC{pmcid}" for year_ids in yearly_results for pmcid in year_ids]
+        return list(set(ids))
 
     def _get_publication(self, publication_id: str) -> Publication:
         """Parse a single PDF and return a Publication object.
@@ -164,5 +195,72 @@ class PMC(GetPublication, GetPDF):
             return PDF(pdf_path)
         return None
 
+    def _get_publication_count_and_ids(
+        self,
+        mindate: str | None = None,
+        maxdate: str | None = None,
+    ) -> tuple[int, list[str]]:
+        handle = Entrez.esearch(
+            db="pmc",
+            term=self._query,
+            retmax=self.max_pmc_results,
+            mindate=mindate,
+            maxdate=maxdate,
+            datetype="pdat",
+        )
+        record = Entrez.read(handle)
+        handle.close()
+        count = int(record.get("Count", 0))
+        ids = record.get("IdList", [])
+        return count, ids
 
-obj = PMC("PMC12416454").get_publications()[0]
+    async def _async_get_publication_count_and_ids(
+        self,
+        mindate: str | None = None,
+        maxdate: str | None = None,
+    ) -> tuple[int, list[str]]:
+        async for attempt in AsyncRetrying(
+            retry=retry_if_exception_type(HTTPError),
+            wait=wait_exponential(multiplier=self.backoff_base),
+            stop=stop_after_attempt(self.retries),
+            reraise=True,
+        ):
+            with attempt:
+                async with self.semaphore:
+                    await self.limiter.wait_turn()
+                    return await asyncio.to_thread(
+                        self._get_publication_count_and_ids,
+                        mindate,
+                        maxdate,
+                    )
+        return None
+
+    async def _collect_ids_for_year(self, year: int) -> list[str]:
+        year_count, year_ids = await self._async_get_publication_count_and_ids(
+            mindate=f"{year}/01/01",
+            maxdate=f"{year}/12/31",
+        )
+        if year_count <= self.max_pmc_results:
+            return year_ids
+
+        return await self._collect_ids_split_by_months_days(year)
+
+    async def _collect_ids_split_by_months_days(self, year: int) -> list[str]:
+        year_month_days_ids = []
+        for month in range(1, 13):
+            days_in_month = calendar.monthrange(year, month)[1]
+            month_count, month_ids = await self._async_get_publication_count_and_ids(
+                mindate=f"{year}/{month:02d}/01",
+                maxdate=f"{year}/{month:02d}/{days_in_month:02d}",
+            )
+            if month_count <= self.max_pmc_results:
+                year_month_days_ids.extend(month_ids)
+                continue
+
+            for day in range(1, days_in_month + 1):
+                _day_count, day_ids = await self._async_get_publication_count_and_ids(
+                    mindate=f"{year}/{month:02d}/{day:02d}",
+                    maxdate=f"{year}/{month:02d}/{day:02d}",
+                )
+                year_month_days_ids.extend(day_ids)
+        return year_month_days_ids

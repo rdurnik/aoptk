@@ -11,7 +11,7 @@ test_figure_storage_dir = "tests/figure_storage"
 
 def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
-    actual = PMC("")
+    actual = PMC("PMC8614944")
     assert actual is not None
 
 
@@ -23,7 +23,7 @@ def test_implements_interface():
 
 def test_get_publication_data_not_empty():
     """Test that pdfs() method returns non-empty list."""
-    actual = PMC("").pdfs()
+    actual = PMC("PMC8614944").pdfs()
     assert actual is not None
 
 
@@ -51,3 +51,17 @@ def test_full_text_extraction(query: str, full_text_path: str, images_number: in
     assert actual[0].full_text == expected_full_text
     assert len(actual[0].figures) == images_number
     shutil.rmtree(test_figure_storage_dir, ignore_errors=True)
+
+
+def test_get_id_small_query():
+    """Test that get_id() method returns a list of publication IDs."""
+    actual = PMC("PMC12416454").id_list
+    expected = ["PMC12416454"]
+    assert actual == expected
+
+
+def test_get_id_large_query():
+    """Test that get_id() method returns a list of publication IDs."""
+    actual = len(PMC("mouse AND methotrexate OR thioacetamide AND cancer AND liver AND fibrosis").id_list)
+    expected = 11439
+    assert actual == expected
