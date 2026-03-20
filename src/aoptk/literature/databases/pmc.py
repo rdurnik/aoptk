@@ -2,6 +2,7 @@ import asyncio
 import calendar
 import datetime
 import json
+import os
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import urlparse
@@ -20,6 +21,8 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.utils import AsyncRequestLimiter
+
+Entrez.api_key = os.environ.get("NCBI_API_KEY")
 
 
 class PMC(GetPublication, GetPDF, GetID):
@@ -220,7 +223,7 @@ class PMC(GetPublication, GetPDF, GetID):
     ) -> tuple[int, list[str]]:
         async for attempt in AsyncRetrying(
             retry=retry_if_exception_type(HTTPError),
-            wait=wait_random_exponential(multiplier=0.5, max=60),
+            wait=wait_random_exponential(multiplier=0.5, max=30),
             stop=stop_after_attempt(self.retries),
             reraise=True,
         ):
