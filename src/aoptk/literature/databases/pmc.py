@@ -12,7 +12,7 @@ from botocore.client import Config
 from tenacity import AsyncRetrying
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
-from tenacity import wait_exponential
+from tenacity import wait_random_exponential
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
@@ -34,13 +34,12 @@ class PMC(GetPublication, GetPDF, GetID):
     paginator = s3.get_paginator("list_objects_v2")
 
     max_pmc_results = 9998
-    max_concurrency = 4
-    max_requests_per_second = 3.0
+    max_concurrency = 3
+    max_requests_per_second = 2.0
     minimal_year_publication = 1800
     semaphore = asyncio.Semaphore(max_concurrency)
     limiter = AsyncRequestLimiter(max_requests_per_second)
     retries = 5
-    backoff_base = 1.0
     image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
 
     def __init__(
@@ -221,7 +220,7 @@ class PMC(GetPublication, GetPDF, GetID):
     ) -> tuple[int, list[str]]:
         async for attempt in AsyncRetrying(
             retry=retry_if_exception_type(HTTPError),
-            wait=wait_exponential(multiplier=self.backoff_base),
+            wait=wait_random_exponential(multiplier=0.5, max=60),
             stop=stop_after_attempt(self.retries),
             reraise=True,
         ):
