@@ -62,6 +62,8 @@ def test_get_id_small_query():
 
 def test_get_id_large_query():
     """Test that get_id() method returns a list of publication IDs."""
-    actual = len(PMC("mouse AND methotrexate OR thioacetamide AND cancer AND liver AND fibrosis").id_list)
-    expected = 11439
+    actual = len(
+        PMC("methotrexate OR thioacetamide AND cancer AND liver AND fibrosis 1940/01/01:2026/03/22[epdat]").id_list,
+    )
+    expected = 12392
     assert actual == expected
