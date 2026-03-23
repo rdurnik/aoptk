@@ -1,13 +1,11 @@
 from __future__ import annotations
 import base64
-import json
 import os
 from itertools import product
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from openai import OpenAI
-from aoptk.abbreviations.abbreviation_translator import AbbreviationTranslator
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
@@ -21,7 +19,7 @@ from aoptk.relationships.relationship import Relationship
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator, NormalizeChemical):
+class TextGenerationAPI(FindChemical, FindRelationships, NormalizeChemical):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -30,10 +28,31 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     load_dotenv()
     client: None = None
 
+    chemical_prompt: str = """
+    Task:
+    Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
+    Replace all chemical abbreviations with their full chemical names.
+    Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
+    Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
+
+
+    Output requirements:
+    1. Return only chemical names.
+    2. Do not include explanations, labels, or any additional text.
+    3. Separate chemical names exactly with " ; " (space-semicolon-space).
+    4. Do not add leading or trailing separators.
+    5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space)
+    in chemical names.
+    6. If no chemical entities are present, return an empty string.
+
+    Context:
+    {text}
+    """
+
     relationship_text_prompt: str = """
     Task:
     Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
-    {prompt_specification}
+    {specification_relationship_text_prompt}
 
     Effect synonyms:
     - Treat common synonyms or equivalent terms as the same effect.
@@ -58,7 +77,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     {text}
     """
 
-    prompt_specificatiom: str = """
+    specification_relationship_text_prompt: str = """
     """
 
     relationship_text_images_prompt: str = """
@@ -97,131 +116,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
 
     Context:
     {text}
-    """
-
-    relationship_additional_prompt: str = """
-    Rules:
-    1. Use ONLY the information explicitly stated in the Context.
-    2. Do NOT use biological knowledge, assumptions, or inferred relationships.
-    3. Do NOT assume causal chains or indirect effects.
-    """
-
-    chemical_prompt: str = """
-    Task:
-    Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
-    Replace all chemical abbreviations with their full chemical names.
-    Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
-    Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
-
-
-    Output requirements:
-    1. Return only chemical names.
-    2. Do not include explanations, labels, or any additional text.
-    3. Separate chemical names exactly with " ; " (space-semicolon-space).
-    4. Do not add leading or trailing separators.
-    5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space)
-    in chemical names.
-    6. If no chemical entities are present, return an empty string.
-
-    Context:
-    {text}
-    """
-
-    abbreviation_prompt: str = """
-    You are expanding abbreviations in scientific and biomedical text.
-
-    TASK:
-    Rewrite the input text by replacing abbreviations with their full forms.
-
-    SCOPE:
-    - Expand ONLY:
-    1) Chemical entities (chemicals, compounds, pollutants)
-    2) Biological effects or processes (e.g., cell activation, toxicity,
-    fibrosis-related events)
-    - Do NOT expand:
-    - Cell lines, cell types names used as labels (e.g., HepaRG, THP-1)
-    - Genes or proteins unless they describe an effect
-    - Assays, methods, or analysis names (e.g., RHT)
-
-    RULES (in priority order):
-
-    1. CONTEXT FIRST (MANDATORY):
-    - If an abbreviation is explicitly defined in the text
-        (e.g., "thioacetamide (TAA)", "benzo[a]pyrene (BaP)",
-        "hepatic stellate cell (HSC) activation"),
-        you MUST use that definition.
-    - Treat the abbreviation and full form as equivalent.
-
-    2. SCIENTIFIC STANDARD INFERENCE (FALLBACK):
-    - If an abbreviation is NOT defined in the text,
-        expand it ONLY if it has a widely accepted, unambiguous meaning
-        in scientific or biomedical literature.
-    - Examples of acceptable inference:
-        - HSC activation → hepatic stellate cell activation
-        - ECM remodeling → extracellular matrix remodeling
-    - If the expansion is uncertain or ambiguous, leave it unchanged.
-
-    3. CONSISTENCY:
-    - Once an abbreviation is expanded, use the full form consistently
-        throughout the text.
-    - Do NOT reintroduce the abbreviation.
-
-    4. GRAMMAR:
-    - Preserve the original meaning, tense, and sentence structure.
-    - Only modify the expanded terms.
-
-    5. CAPITALIZATION:
-    - If an abbreviation appears at the start of a sentence, capitalize the
-    first letter of its expansion.
-    - Example: "TAA was studied..." → "Thioacetamide was studied..."
-    - Otherwise, preserve the original capitalization style of the
-    surrounding text.
-
-    6. CHARACTER ENCODING:
-    - Use ONLY standard ASCII punctuation characters.
-    - Use regular hyphens (-) NOT Unicode non-breaking hyphens (‑).
-    - Use regular apostrophes (') NOT Unicode prime symbols (′).
-
-    7. FORMATTING RULES:
-    - When expanding abbreviations in lists, maintain the original
-    parentheses structure.
-    - Example: "chemicals (A, B and C)" → "chemicals (expanded-A, expanded-B
-    and expanded-C)"
-    - Do NOT change parentheses to commas or other punctuation.
-    - Preserve all original punctuation except the abbreviations being
-    expanded.
-
-    OUTPUT:
-    - Return ONLY the rewritten text.
-    - Do NOT add explanations, comments, or formatting.
-
-    INPUT TEXT:
-    {text}
-    """
-
-    relationships_image_prompt: str = """
-    Analyze this scientific graph for the biological effect {effect}.
-    CRITICAL: Use ONLY what is explicitly visible. Zero tolerance for inference, assumptions, or interpretation.
-
-    Output format:
-    full_chemicalname_in_lowercase : relationship
-
-    Extraction rules:
-    - Extract ONLY individual chemicals explicitly named in the figure
-    - Expand abbreviations to full chemical names (e.g., TAA → thioacetamide)
-    - Exclude: abbreviations, chemical classes, mixtures, groups, vague terms
-    - Do not include running characters
-
-    Relationship rules:
-    - {rel_type.positive} = graph clearly shows chemical {rel_type.positive_verb} {effect}
-    - {rel_type.negative} = graph clearly shows chemical {rel_type.negative_verb} {effect}
-    - Include ONLY if 100% certain and visually unambiguous
-    - If significance, trend, or relationship requires ANY interpretation → EXCLUDE
-
-    STRICT: When in doubt, exclude.
-
-    If no chemicals qualify, output:
-    none
     """
 
     relationships_table_prompt: str = """
@@ -285,39 +179,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
     extra spaces are inserted between letters or words.
     """
 
-    normalization_mapping_prompt = """
-    You are a chemical name normalization assistant.
-
-    Task:
-    You will be given:
-    1. A LIST OF TARGET CHEMICAL NAMES
-    2. A REFERENCE LIST OF STANDARD CHEMICAL NAMES
-
-    For EACH target chemical:
-    - Determine whether it matches a chemical in the reference list.
-
-    Matching rules:
-    - Same chemical names should be considered a match
-    - Synonyms
-    - Abbreviations
-    - Alternate spellings or hyphenation
-    - Formatting differences
-    - Singular vs plural
-    - Common vs systematic names
-
-    Output format rules:
-    - Return a JSON dictionary
-    - Keys = original target names
-    - Values = matched reference name OR "none"
-    - Do NOT include explanations
-    - Do NOT include any text outside JSON
-
-    TARGET LIST:
-    {target_list}
-
-    REFERENCE LIST:
-    {reference_list}
-    """
     image_to_text_prompt = """
     You are analyzing an image extracted from a scientific publication.
 
@@ -366,7 +227,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
         """
         relationships = []
         for chemical, effect in product(chemicals, effects):
-            if (response := self._prompt_text(text, chemical, effect, relationship_type)) and (
+            if (response := self._relationship_prompt(text, chemical, effect, relationship_type)) and (
                 relationship := self._select_relationship_type(response, relationship_type)
             ):
                 relationships.append(
@@ -374,7 +235,13 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                 )
         return relationships
 
-    def _prompt_text(self, text: str, chemical: Chemical, effect: Effect, relationship_type: RelationshipType) -> str:
+    def _relationship_prompt(
+        self,
+        text: str,
+        chemical: Chemical,
+        effect: Effect,
+        relationship_type: RelationshipType,
+    ) -> str:
         """Classify the relationship between a chemical and an effect.
 
         Args:
@@ -397,7 +264,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                         effect=effect.name,
                         rel_type=relationship_type,
                         other_topics=", ".join([topic.positive for topic in other_topics]),
-                        prompt_specification=self.prompt_specificatiom,
+                        specification_relationship_text_prompt=self.specification_relationship_text_prompt,
                     ),
                 },
             ],
@@ -438,91 +305,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
         if response is None:
             return []
         return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
-
-    def translate_abbreviation(self, text: str) -> str:
-        """Translate abbreviations in the given text to their full forms.
-
-        Args:
-            text (str): The input text containing abbreviations.
-        """
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": self.abbreviation_prompt.format(text=text),
-                },
-            ],
-        )
-        response = completion.choices[0].message.content
-        return response if response is not None else text
-
-    def find_relationships_in_image(
-        self,
-        image_path: str,
-        relationship_type: RelationshipType,
-        effects: list[Effect],
-    ) -> list[Relationship]:
-        """Find relationships between chemicals and effects in an image.
-
-        Args:
-            image_path (str): Path to the image.
-            relationship_type (RelationshipType): The relationship type to classify.
-            effects (list[Effect]): List of effect entities.
-        """
-        relationships = []
-        for effect in effects:
-            relationships.extend(self._classify_relationships_in_image(image_path, effect, relationship_type))
-        return relationships
-
-    def _classify_relationships_in_image(
-        self,
-        image_path: str,
-        effect: Effect,
-        relationship_type: RelationshipType,
-    ) -> list[Relationship]:
-        """Classify relationships between chemicals and an effect in an image.
-
-        Args:
-            image_path (str): Path to the image.
-            effect (Effect): The effect entity.
-            relationship_type (RelationshipType): The relationship type to classify.
-
-        Returns:
-            list[Relationship]: List of relationships found in the image.
-        """
-        base64_image, mime_type = self._encode_image(image_path)
-
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": self.relationships_image_prompt.format(
-                                effect=effect.name,
-                                rel_type=relationship_type,
-                            ),
-                        },
-                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
-                    ],
-                },
-            ],
-        )
-        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            return self._process_colon_separated_response(
-                response,
-                effect,
-                relationship_type,
-                image_path,
-            )
-        return []
 
     def _encode_image(self, image_path: str) -> tuple[str, str]:
         """Encode the image at the given path to a base64 string and return MIME type.
@@ -803,45 +585,6 @@ class TextGenerationAPI(FindChemical, FindRelationships, AbbreviationTranslator,
                 ),
             )
         return relationships
-
-    def generate_normalization_mapping(
-        self,
-        target_chemicals: list[Chemical],
-        reference_chemicals: set[Chemical],
-    ) -> dict[str, str]:
-        """Return a mapping of target names to reference names that can be used for a dataframe.
-
-        Args:
-            target_chemicals (list[Chemical]): Chemicals to normalize.
-            reference_chemicals (set[Chemical]): Reference chemicals to match against.
-
-        Returns:
-            dict[str, str]: Mapping of target names to matched reference names or "none".
-        """
-        target_list = "\n".join(chem.name for chem in target_chemicals)
-        reference_list = "\n".join(chem.name for chem in reference_chemicals)
-
-        messages = [
-            {
-                "role": self.role,
-                "content": self.normalization_mapping_prompt.format(
-                    target_list=target_list,
-                    reference_list=reference_list,
-                ),
-            },
-        ]
-
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=messages,
-        )
-
-        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
-            mapping = json.loads(response)
-            return {str(key).strip().lower(): str(value).strip().lower() for key, value in mapping.items()}
-        return {}
 
     def convert_image_to_text(
         self,
