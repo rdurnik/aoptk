@@ -63,7 +63,7 @@ def test_extract_full_text_pmc(publication: dict):
     actual = pub.full_text.replace("\n\n", "").replace("\n", "").strip()
     expected = publication["full_text"].replace("\n\n", "").replace("\n", "").strip()
     ratio = fuzz.ratio(actual, expected)
-    assert ratio >= 25
+    assert ratio >= 35
 
 
 def test_extract_id():

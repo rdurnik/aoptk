@@ -168,8 +168,8 @@ class PymupdfParser(PDFParser):
     def _extract_text_blocks_without_irrelevant_border_text(
         self,
         pages: Iterable[tuple[int, pymupdf.Page]],
-        top_margin_frac: float = 0.08,
-        bottom_margin_frac: float = 0.08,
+        top_margin_frac: float = 0.075,
+        bottom_margin_frac: float = 0.075,
         side_margin_frac: float = 0.02,
     ) -> list[tuple[int, int, float, float, float, float, str]]:
         """Collect text blocks from pages within margin bounds."""
