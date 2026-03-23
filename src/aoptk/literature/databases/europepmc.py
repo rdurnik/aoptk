@@ -225,9 +225,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
         Args:
             publication_id (str): The ID of the publication to retrieve.
         """
-        xml_path = self._get_xml(publication_id)
-        tree = ET.parse(xml_path)
-        root = tree.getroot()
+        xml_tree = self._get_xml(publication_id)
+        root = xml_tree.getroot()
         return Publication(
             id=publication_id,
             abstract=self._parse_xml_abstract(root),
@@ -321,10 +320,12 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
                 timeout=self.timeout,
             )
             if response.ok:
-                filepath = Path(self.storage) / f"{publication_id}.xml"
-                with filepath.open("w", encoding="utf-8") as f:
+                xml_path = Path(self.storage) / f"{publication_id}.xml"
+                with xml_path.open("w", encoding="utf-8") as f:
                     f.write(response.text)
-                    return filepath
+                    tree = ET.parse(xml_path)
+                    Path.unlink(xml_path)
+                    return tree
             return None
         return None
 
@@ -343,6 +344,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
                 if file_info.filename.lower().endswith(self.image_extensions):
                     zip_ref.extract(file_info, base_dir)
                     image_paths.append(str(base_dir / file_info.filename))
+            Path.unlink(zip_path)
         return image_paths
 
     def _get_supplementary_zip_path(self, publication_id: str) -> str | None:
