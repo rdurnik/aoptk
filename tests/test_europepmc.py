@@ -238,6 +238,7 @@ def test_get_publication_metadata(test_data: dict):
     assert publication_metadata.search_date.month == datetime.now(UTC).month
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_extract_abstract_xml(provide_pdfs: dict):
     """Test extracting abstract from XMLs."""
     actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].abstract
@@ -248,6 +249,7 @@ def test_extract_abstract_xml(provide_pdfs: dict):
         shutil.rmtree(test_figure_storage_dir)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_extract_full_text(provide_pdfs: dict):
     """Test extracting full text from XMLs."""
     actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].full_text
@@ -258,6 +260,7 @@ def test_extract_full_text(provide_pdfs: dict):
         shutil.rmtree(test_figure_storage_dir)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_extract_figure_descriptions(provide_pdfs: dict):
     """Test extracting figure descriptions from XMLs."""
     actual = "".join(EuropePMC(provide_pdfs["id"]).get_publications()[0].figure_descriptions)
@@ -268,6 +271,7 @@ def test_extract_figure_descriptions(provide_pdfs: dict):
         shutil.rmtree(test_figure_storage_dir)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_extract_figures(provide_pdfs: dict):
     """Test extracting figures from XMLs."""
     if provide_pdfs["id"] == "PMC12416454":
@@ -279,6 +283,7 @@ def test_extract_figures(provide_pdfs: dict):
         shutil.rmtree(test_figure_storage_dir)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_extract_tables(provide_pdfs: dict):
     """Test extracting tables from XMLs."""
     actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].tables
