@@ -231,7 +231,6 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
             id=publication_id,
             abstract=self._parse_xml_abstract(root),
             full_text=self._parse_xml_full_text(root),
-            abbreviations={},
             figures=self._get_figures(publication_id),
             figure_descriptions=self._parse_xml_figure_descriptions(root),
             tables=self._parse_xml_tables(root),

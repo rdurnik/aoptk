@@ -62,7 +62,6 @@ class SpacyPDF(PymupdfParser):
         publication_id = ID(Path(pdf.path).stem)
         abstract = self._parse_abstract(doc, publication_id)
         full_text = self._parse_full_text(doc)
-        abbreviations = {}
         figures = self._extract_figures(pdf)
         figure_descriptions = _extract_figure_descriptions(doc)
         tables = _extract_tables(doc)
@@ -71,7 +70,6 @@ class SpacyPDF(PymupdfParser):
             id=publication_id,
             abstract=abstract,
             full_text=full_text,
-            abbreviations=abbreviations,
             figures=figures,
             figure_descriptions=figure_descriptions,
             tables=tables,

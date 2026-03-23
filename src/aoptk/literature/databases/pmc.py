@@ -102,7 +102,6 @@ class PMC(GetPublication, GetPDF, GetID):
         publication_id = ID(publication_id)
         abstract = ""
         full_text = self._get_full_text(publication_id)
-        abbreviations = {}
         figures = self._get_figures(publication_id)
         figure_descriptions = []
         tables = []
@@ -110,7 +109,6 @@ class PMC(GetPublication, GetPDF, GetID):
             id=publication_id,
             abstract=abstract,
             full_text=full_text,
-            abbreviations=abbreviations,
             figures=figures,
             figure_descriptions=figure_descriptions,
             tables=tables,

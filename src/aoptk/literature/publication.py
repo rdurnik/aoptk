@@ -12,7 +12,6 @@ class Publication:
     id: ID
     abstract: Abstract
     full_text: str | list[str]
-    abbreviations: dict
     tables: list[pd.DataFrame]
     figures: list
     figure_descriptions: list
