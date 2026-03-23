@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
-from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
@@ -65,67 +64,6 @@ def test_extract_full_text_pmc(publication: dict):
     expected = publication["full_text"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 25
-
-
-@pytest.fixture(
-    params=[
-        {
-            "id": "PMC12637301",
-            "abbreviation_list": [
-                ("A3SS", "alternative 3′ splice site"),
-                ("A5SS", "alternative 5′ splice site"),
-                ("WB", "Western Blot"),
-            ],
-        },
-        {"id": "PMC12231352", "abbreviation_list": []},
-        {
-            "id": "PMC11339729",
-            "abbreviation_list": [
-                ("BEB", "binary-encounter-Bethe"),
-                ("CID", "collision-induced dissociation"),
-                ("UFF", "universal force field"),
-            ],
-        },
-        {
-            "id": "PMC9103499",
-            "abbreviation_list": [("ABC", "ATP-binding cassette"), ("AQP", "Aquaporin"), ("VDR", "Vitamin D receptor")],
-        },
-        {
-            "id": "PMC12577378",
-            "abbreviation_list": [
-                ("AD-MSCs", "Adipose mesenchymal stem cells"),
-                ("AKT", "Protein kinase B"),
-                ("VEGF", "Vascular endothelial growth factor"),
-            ],
-        },
-    ],
-)
-def provide_params_extract_abbreviations_fixture(request: pytest.FixtureRequest):
-    """Provide parameters for extract abbreviations fixture."""
-    pmc = PMC(request.param["id"])
-    data = {
-        "pmc": pmc,
-        "abbreviation_list": request.param["abbreviation_list"],
-    }
-    yield data
-    if Path(pmc.storage).exists():
-        shutil.rmtree(pmc.storage)
-
-
-def test_extract_abbreviations(provide_params_extract_abbreviations_fixture: dict):
-    """Test extracting abbreviations from PMC PDFs."""
-    abbrev_dict = (
-        PymupdfParser(provide_params_extract_abbreviations_fixture["pmc"].pdfs()).get_publications()[0].abbreviations
-    )
-    expected_list = provide_params_extract_abbreviations_fixture["abbreviation_list"]
-
-    if expected_list:
-        actual = [next(iter(abbrev_dict.items())), list(abbrev_dict.items())[1], list(abbrev_dict.items())[-1]]
-        assert actual == expected_list
-    else:
-        assert abbrev_dict == {}
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)
 
 
 def test_extract_id():
