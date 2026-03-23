@@ -61,8 +61,8 @@ def test_extract_abstract_pmc(publication: dict):
 def test_extract_full_text_pmc(publication: dict):
     """Test extracting full text from PMC PDFs."""
     pub = publication["publication"]
-    actual = pub.full_text.replace("\n\n", "").replace("\n", "")
-    expected = publication["full_text"].replace("\n\n", "").replace("\n", "")
+    actual = pub.full_text
+    expected = publication["full_text"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 25
 
