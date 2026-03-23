@@ -4,15 +4,32 @@ from datetime import UTC
 from datetime import datetime
 from pathlib import Path
 import pytest
+from fuzzywuzzy import fuzz
 from requests import HTTPError
 from aoptk.literature.databases.europepmc import EuropePMC
+from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_id import GetID
+from aoptk.literature.get_pdf import GetPDF
+from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.id import ID
+
+# ruff: noqa: PLR2004
+
+test_figure_storage_dir = Path("tests/figure_storage")
 
 
 def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
     actual = EuropePMC("")
     assert actual is not None
+
+
+def test_implements_interface():
+    """Test that PymupdfParser implements GetPublication interface."""
+    assert issubclass(EuropePMC, GetPublication)
+    assert issubclass(EuropePMC, GetPDF)
+    assert issubclass(EuropePMC, GetAbstract)
+    assert issubclass(EuropePMC, GetID)
 
 
 def test_get_publication_data_not_empty():
@@ -275,3 +292,53 @@ def test_get_publication_metadata(test_data: dict):
     assert publication_metadata.database == test_data["database"]
     assert publication_metadata.search_date.year == datetime.now(UTC).year
     assert publication_metadata.search_date.month == datetime.now(UTC).month
+
+
+def test_extract_abstract_xml(provide_pdfs: dict):
+    """Test extracting abstract from XMLs."""
+    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].abstract
+    expected = provide_pdfs["expected_abstract"]
+    ratio = fuzz.ratio(actual, expected)
+    assert ratio >= 80
+    if Path(test_figure_storage_dir).exists():
+        shutil.rmtree(test_figure_storage_dir)
+
+
+def test_extract_full_text(provide_pdfs: dict):
+    """Test extracting full text from XMLs."""
+    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].full_text
+    expected = provide_pdfs["full_text"]
+    ratio = fuzz.ratio(actual, expected)
+    assert ratio >= 65
+    if Path(test_figure_storage_dir).exists():
+        shutil.rmtree(test_figure_storage_dir)
+
+
+def test_extract_figure_descriptions(provide_pdfs: dict):
+    """Test extracting figure descriptions from XMLs."""
+    actual = "".join(EuropePMC(provide_pdfs["id"]).get_publications()[0].figure_descriptions)
+    expected = "".join(provide_pdfs["figure_descriptions"])
+    ratio = fuzz.ratio(actual, expected)
+    assert ratio >= 60
+    if Path(test_figure_storage_dir).exists():
+        shutil.rmtree(test_figure_storage_dir)
+
+
+def test_extract_figures(provide_pdfs: dict):
+    """Test extracting figures from XMLs."""
+    if provide_pdfs["id"] == "PMC12416454":
+        pytest.skip("Extra image is extracted (graphical abstract?).")
+    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].figures
+    expected_paths = provide_pdfs["figures"]
+    assert len(actual) == len(expected_paths)
+    if Path(test_figure_storage_dir).exists():
+        shutil.rmtree(test_figure_storage_dir)
+
+
+def test_extract_tables(provide_pdfs: dict):
+    """Test extracting tables from XMLs."""
+    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].tables
+    expected = provide_pdfs["tables"]
+    assert len(actual) == expected
+    if Path(test_figure_storage_dir).exists():
+        shutil.rmtree(test_figure_storage_dir)

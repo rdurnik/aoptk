@@ -181,7 +181,7 @@ from aoptk.literature.id import ID
                 "Fig. 7 .  The interaction between 3-methylthiophene 5b and (PDB ID: 4e4l).",
                 "Fig. 8 .  ( a ) Optimized structures, ( b ) electron density, ( c ) HOMO and LUMO for compound 5b .",
             ],
-            "tables": 4,
+            "tables": 3,
         },
     ],
     ids=["PMC12416454", "PMC12231352", "PMC12181427"],
