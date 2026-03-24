@@ -40,7 +40,10 @@ jobs:
           uv lock
           uv sync --frozen --extra dev --extra publishing
       - name: Run unit tests
-        run: uv run python -m pytest -v
+        run: uv run python -m pytest "not openai" -v
+      - name: Run OpenAI unit tests (only one version to avoid hitting rate limits)
+        if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
+        run: uv run python -m pytest "openai" -v
       - name: Verify that we can build the package
         run: uv run python -m build
   lint:
