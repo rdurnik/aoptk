@@ -2,6 +2,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 import pytest
+from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
@@ -27,6 +28,7 @@ def test_get_publication_data_not_empty():
     assert actual is not None
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_open_access_pmc_pdf_file_exists():
     """Test that an open access PMC PDF can be retrieved and saved."""
     PMC("PMC8614944").pdfs()
@@ -43,6 +45,7 @@ def test_open_access_pmc_pdf_file_exists():
         ("PMC12416454", "tests/test-data/PMC12416454.txt", 6),
     ],
 )
+@pytest.mark.xfail(raises=HTTPError)
 def test_full_text_extraction(query: str, full_text_path: str, images_number: int):
     """Test that full text can be extracted from an open access PMC PDF."""
     actual = PMC(query, figure_storage=test_figure_storage_dir).get_publications()
@@ -53,6 +56,7 @@ def test_full_text_extraction(query: str, full_text_path: str, images_number: in
     shutil.rmtree(test_figure_storage_dir, ignore_errors=True)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_get_id_small_query():
     """Test that get_id() method returns a list of publication IDs."""
     actual = PMC("PMC12416454").id_list
@@ -60,6 +64,7 @@ def test_get_id_small_query():
     assert actual == expected
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_get_id_large_query():
     """Test that get_id() method returns a list of publication IDs."""
     actual = len(
