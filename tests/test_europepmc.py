@@ -239,10 +239,10 @@ def test_get_publication_metadata(test_data: dict):
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_abstract_xml(provide_pdfs: dict):
+def test_extract_abstract_xml(provide_publications: dict):
     """Test extracting abstract from XMLs."""
-    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].abstract
-    expected = provide_pdfs["expected_abstract"]
+    actual = EuropePMC(provide_publications["id"]).get_publications()[0].abstract
+    expected = provide_publications["expected_abstract"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 60
     if Path(test_figure_storage_dir).exists():
@@ -250,10 +250,10 @@ def test_extract_abstract_xml(provide_pdfs: dict):
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_full_text(provide_pdfs: dict):
+def test_extract_full_text(provide_publications: dict):
     """Test extracting full text from XMLs."""
-    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].full_text
-    expected = provide_pdfs["full_text"]
+    actual = EuropePMC(provide_publications["id"]).get_publications()[0].full_text
+    expected = provide_publications["full_text"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
     if Path(test_figure_storage_dir).exists():
@@ -261,10 +261,10 @@ def test_extract_full_text(provide_pdfs: dict):
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_figure_descriptions(provide_pdfs: dict):
+def test_extract_figure_descriptions(provide_publications: dict):
     """Test extracting figure descriptions from XMLs."""
-    actual = "".join(EuropePMC(provide_pdfs["id"]).get_publications()[0].figure_descriptions)
-    expected = "".join(provide_pdfs["figure_descriptions"])
+    actual = "".join(EuropePMC(provide_publications["id"]).get_publications()[0].figure_descriptions)
+    expected = "".join(provide_publications["figure_descriptions"])
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
     if Path(test_figure_storage_dir).exists():
@@ -272,22 +272,22 @@ def test_extract_figure_descriptions(provide_pdfs: dict):
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_figures(provide_pdfs: dict):
+def test_extract_figures(provide_publications: dict):
     """Test extracting figures from XMLs."""
-    if provide_pdfs["id"] == "PMC12416454":
+    if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
-    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].figures
-    expected_paths = provide_pdfs["figures"]
+    actual = EuropePMC(provide_publications["id"]).get_publications()[0].figures
+    expected_paths = provide_publications["figures"]
     assert len(actual) == len(expected_paths)
     if Path(test_figure_storage_dir).exists():
         shutil.rmtree(test_figure_storage_dir)
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_tables(provide_pdfs: dict):
+def test_extract_tables(provide_publications: dict):
     """Test extracting tables from XMLs."""
-    actual = EuropePMC(provide_pdfs["id"]).get_publications()[0].tables
-    expected = provide_pdfs["tables"]
+    actual = EuropePMC(provide_publications["id"]).get_publications()[0].tables
+    expected = provide_publications["tables"]
     assert len(actual) == expected
     if Path(test_figure_storage_dir).exists():
         shutil.rmtree(test_figure_storage_dir)

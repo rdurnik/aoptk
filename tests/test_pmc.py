@@ -40,10 +40,10 @@ def test_open_access_pmc_pdf_file_exists():
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_full_text(provide_pdfs: dict):
+def test_extract_full_text(provide_publications: dict):
     """Test extracting full text."""
-    actual = PMC(provide_pdfs["id"], figure_storage=test_figure_storage_dir).get_publications()[0].full_text
-    expected = provide_pdfs["full_text"]
+    actual = PMC(provide_publications["id"], figure_storage=test_figure_storage_dir).get_publications()[0].full_text
+    expected = provide_publications["full_text"]
     assert actual == expected
     if Path(test_figure_storage_dir).exists():
         shutil.rmtree(test_figure_storage_dir)

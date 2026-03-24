@@ -186,8 +186,8 @@ from aoptk.literature.id import ID
     ],
     ids=["PMC12416454", "PMC12231352", "PMC12181427"],
 )
-def provide_pdfs(request: pytest.FixtureRequest):
-    """Provide parameters for extract abstract/full text fixture."""
+def provide_publications(request: pytest.FixtureRequest):
+    """Provide parameters for publication fixture, including PDFs."""
     pmc = PMC(request.param["id"])
     request.param.update(
         {

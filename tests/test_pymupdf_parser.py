@@ -31,17 +31,17 @@ def test_get_publication_data_not_empty():
 
 
 @pytest.fixture(scope="module")
-def publication(provide_pdfs: dict):
+def publication(provide_publications: dict):
     """Second stage fixture which includes PDF parsing."""
-    parser = PymupdfParser(provide_pdfs["pdfs"])
+    parser = PymupdfParser(provide_publications["pdfs"])
     publications = parser.get_publications()
-    provide_pdfs.update(
+    provide_publications.update(
         {
             "publication": publications[0],
             "parser": parser,
         },
     )
-    yield provide_pdfs
+    yield provide_publications
 
     if Path(parser.figure_storage).exists():
         shutil.rmtree(parser.figure_storage)
