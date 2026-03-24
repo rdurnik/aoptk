@@ -123,8 +123,8 @@ class PMC(GetPublication, GetPDF, GetID):
         if txt_path := self._get_file(publication_id, "txt"):
             with Path.open(txt_path) as f:
                 txt = f.read()
-                Path.unlink(txt_path)
-                return txt
+            Path.unlink(txt_path)
+            return txt
         return None
 
     def _get_file(self, publication_id: str, file_format: str) -> PDF | str | None:

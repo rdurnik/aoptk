@@ -49,7 +49,7 @@ def test_open_access_pmc_pdf_file_exists():
 def test_full_text_extraction(query: str, full_text_path: str, images_number: int):
     """Test that full text can be extracted from an open access PMC PDF."""
     actual = PMC(query, figure_storage=test_figure_storage_dir).get_publications()
-    with Path.open(full_text_path) as f:
+    with Path.open(full_text_path, encoding="utf-8") as f:
         expected_full_text = f.read()
     assert actual[0].full_text == expected_full_text
     assert len(actual[0].figures) == images_number
@@ -68,7 +68,7 @@ def test_get_id_small_query():
 def test_get_id_large_query():
     """Test that get_id() method returns a list of publication IDs."""
     actual = len(
-        PMC("methotrexate OR thioacetamide AND cancer AND liver AND fibrosis 1940/01/01:2026/03/22[epdat]").id_list,
+        PMC("methotrexate OR thioacetamide AND cancer AND liver AND fibrosis 1940/01/01:2024/12/01[epdat]").id_list,
     )
-    expected = 12392
+    expected = 10129
     assert actual == expected
