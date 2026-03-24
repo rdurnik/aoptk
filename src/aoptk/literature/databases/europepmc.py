@@ -343,7 +343,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
                 if file_info.filename.lower().endswith(self.image_extensions):
                     zip_ref.extract(file_info, base_dir)
                     image_paths.append(str(base_dir / file_info.filename))
-            Path.unlink(zip_path)
+        Path.unlink(zip_path)
         return image_paths
 
     def _get_supplementary_zip_path(self, publication_id: str) -> str | None:
