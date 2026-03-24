@@ -91,7 +91,9 @@ ReadTheDocs = "https://aoptk.readthedocs.io"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
+markers = [
+    "openai: marks tests that require OpenAI API"
+]
 
 [tool.coverage.run]
 branch = true
