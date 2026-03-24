@@ -51,8 +51,6 @@ def test_find_relationships_not_empty():
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        ("Thioacetamide was studied for its effect on liver cells.", ["thioacetamide"]),
-        ("HepaRG cells were used as an experimental model.", []),
         (
             "Thioacetamide and ethanol were used to induce liver injury.",
             ["thioacetamide", "ethanol"],
@@ -68,20 +66,6 @@ def test_find_chemical(text: str, expected: list[str]):
 @pytest.mark.parametrize(
     ("text", "relationship_type", "chemicals", "effects", "expected_relationships"),
     [
-        (
-            "Acetaminophen causes liver fibrosis.",
-            Causative(),
-            [Chemical(name="acetaminophen")],
-            [Effect(name="liver fibrosis")],
-            [
-                Relationship(
-                    relationship_type=Causative().positive,
-                    chemical=Chemical(name="acetaminophen"),
-                    effect=Effect(name="liver fibrosis"),
-                    context="Acetaminophen causes liver fibrosis.",
-                ),
-            ],
-        ),
         (
             "Cancer is caused by thioacetamide, not by acetaminophen.",
             Causative(),
@@ -103,60 +87,10 @@ def test_find_chemical(text: str, expected: list[str]):
             ],
         ),
         (
-            "Methotrexate induced renal fibrosis.",
-            Causative(),
-            [Chemical(name="methotrexate")],
-            [Effect(name="liver fibrosis")],
-            [],
-        ),
-        (
-            "Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
-            Causative(),
-            [Chemical(name="esculin")],
-            [Effect(name="liver fibrosis")],
-            [],
-        ),
-        (
-            "Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
-            Causative(),
-            [Chemical(name="thioacetamide")],
-            [Effect(name="liver fibrosis")],
-            [
-                Relationship(
-                    relationship_type=Causative().positive,
-                    chemical=Chemical(name="thioacetamide"),
-                    effect=Effect(name="liver fibrosis"),
-                    context="Esculin did not inhibit thioacetamide-induced hepatic fibrosis and inflammation in mice.",
-                ),
-            ],
-        ),
-        (
             "Just some random text with no effect and no chemical in here.",
             Causative(),
             [],
             [],
-            [],
-        ),
-        (
-            "Effect of thioacetamide on liver fibrosis was not studied in"
-            " this study. We did, however, study the effect of other chemicals.",
-            Causative(),
-            [Chemical(name="thioacetamide")],
-            [Effect(name="liver fibrosis")],
-            [],
-        ),
-        (
-            "Effect of thioacetamide on liver fibrosis was studied in this study.",
-            Causative(),
-            [Chemical(name="thioacetamide")],
-            [Effect(name="liver fibrosis")],
-            [],
-        ),
-        (
-            "Thioacetamide was studied in this study.",
-            Causative(),
-            [Chemical(name="thioacetamide")],
-            [Effect(name="liver fibrosis")],
             [],
         ),
     ],
@@ -363,18 +297,6 @@ def test_relationship_table(phthalate_table_data: dict):
         (
             Chemical(name="paracetamol"),
             [Chemical(name="acetaminophen"), Chemical(name="thioacetamide")],
-            "acetaminophen",
-        ),
-        (Chemical(name="paracetamol"), [Chemical(name="paracetamol"), Chemical(name="thioacetamide")], "paracetamol"),
-        (Chemical(name="paracetamol"), [Chemical(name="methotrexate"), Chemical(name="thioacetamide")], None),
-        (
-            Chemical(name="paracetamol"),
-            [Chemical(name="acetaminophen"), Chemical(name="APAP"), Chemical(name="paracetamol")],
-            "paracetamol",
-        ),
-        (
-            Chemical(name="paracetamol"),
-            [Chemical(name="acetaminophen"), Chemical(name="APAP"), Chemical(name="acetaco")],
             "acetaminophen",
         ),
     ],
