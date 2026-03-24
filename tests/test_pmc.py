@@ -2,13 +2,10 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 import pytest
-from fuzzywuzzy import fuzz
 from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
-
-# ruff: noqa: PLR2004
 
 test_figure_storage_dir = "tests/figure_storage"
 
