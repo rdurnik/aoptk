@@ -15,6 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      CERIT_API_KEY: ${{ secrets.CERIT_API_KEY }}
       CI: True
     strategy:
       fail-fast: true
