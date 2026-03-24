@@ -199,7 +199,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, NormalizeChemical):
         self,
         model: str = "gpt-oss-120b",
         url: str = "https://llm.ai.e-infra.cz/v1",
-        api_key: str = os.getenv("CERIT_API_KEY"),
+        api_key: str = os.environ.get("CERIT_API_KEY"),
     ):
         self.model = model
         self.url = url
