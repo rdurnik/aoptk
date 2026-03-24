@@ -44,11 +44,10 @@ def test_open_access_pmc_pdf_file_exists():
 
 @pytest.mark.xfail(raises=HTTPError)
 def test_extract_full_text(provide_pdfs: dict):
-    """Test extracting full text from XMLs."""
-    actual = PMC(provide_pdfs["id"], figure_storage=test_figure_storage_dir).get_publications()
+    """Test extracting full text."""
+    actual = PMC(provide_pdfs["id"], figure_storage=test_figure_storage_dir).get_publications()[0].full_text
     expected = provide_pdfs["full_text"]
-    ratio = fuzz.ratio(actual, expected)
-    assert ratio >= 90
+    assert actual == expected
     if Path(test_figure_storage_dir).exists():
         shutil.rmtree(test_figure_storage_dir)
 
