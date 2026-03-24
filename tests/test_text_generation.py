@@ -23,12 +23,14 @@ def sort_key(r: Relationship) -> tuple[str, str, str]:
     return (r.relationship_type, r.chemical.name, r.effect.name)
 
 
+@pytest.mark.openai
 def test_can_create():
     """Can create ScispacyFindChemical instance."""
     actual = TextGenerationAPI()
     assert actual is not None
 
 
+@pytest.mark.openai
 def test_implements_interface_find_chemical():
     """ScispacyFindChemical implements FindChemical interface."""
     assert isinstance(TextGenerationAPI(), FindChemical)
@@ -36,18 +38,21 @@ def test_implements_interface_find_chemical():
     assert isinstance(TextGenerationAPI(), NormalizeChemical)
 
 
+@pytest.mark.openai
 def test_find_chemical_not_empty():
     """Test that find_chemical method returns a non-empty result."""
     actual = TextGenerationAPI().find_chemical("")
     assert actual is not None
 
 
+@pytest.mark.openai
 def test_find_relationships_not_empty():
     """Test that find_relationships method returns a non-empty result."""
     actual = TextGenerationAPI().find_relationships_in_text("", relationship_type=None, chemicals=[], effects=[])
     assert actual is not None
 
 
+@pytest.mark.openai
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
@@ -65,6 +70,7 @@ def test_find_chemical(text: str, expected: list[str]):
     assert actual == expected
 
 
+@pytest.mark.openai
 @pytest.mark.parametrize(
     ("text", "relationship_type", "chemicals", "effects", "expected_relationships"),
     [
@@ -341,6 +347,7 @@ def phthalate_table_data():
     }
 
 
+@pytest.mark.openai
 def test_relationship_table(phthalate_table_data: dict):
     """Test find_relationships_in_table method with a table."""
     actual = TextGenerationAPI().find_relationships_in_table(
@@ -357,6 +364,7 @@ def test_relationship_table(phthalate_table_data: dict):
     )
 
 
+@pytest.mark.openai
 @pytest.mark.parametrize(
     ("chemical", "list_of_chemicals", "expected_heading"),
     [
@@ -385,6 +393,7 @@ def test_normalize_chemical(chemical: str, list_of_chemicals: list[str], expecte
     assert actual.heading == expected_heading
 
 
+@pytest.mark.openai
 def test_extract_text_from_pdf_image():
     """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
     base64_str = (Path("tests/test-data/test_pdf_base64_image.txt").read_text()).strip()
@@ -395,6 +404,7 @@ def test_extract_text_from_pdf_image():
     assert ("Polycyclic aromatic hydrocarbons (PAHs), many of which are") in actual
 
 
+@pytest.mark.openai
 @pytest.mark.parametrize(
     ("text", "images", "expected_chemicals"),
     [
@@ -426,6 +436,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
             )
 
 
+@pytest.mark.openai
 def test_convert_image_to_text():
     """Test that convert_image_to_text method converts an image to text."""
     actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image_to_text(

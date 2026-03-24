@@ -143,6 +143,7 @@ def test_is_corrupted(text: str, expected: bool):
     assert parser._is_corrupted(text) == expected
 
 
+@pytest.mark.openai
 def test_extract_full_text_from_corrupted_pdf():
     """Test extracting full text from a corrupted PDF."""
     actual = PymupdfParser(pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")]).get_publications()[0].full_text
