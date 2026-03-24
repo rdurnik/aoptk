@@ -121,7 +121,7 @@ class PMC(GetPublication, GetPDF, GetID):
             publication_id (str): The publication ID to retrieve the full text for.
         """
         if txt_path := self._get_file(publication_id, "txt"):
-            with Path.open(txt_path) as f:
+            with Path.open(txt_path, encoding="utf-8") as f:
                 txt = f.read()
             Path.unlink(txt_path)
             return txt
