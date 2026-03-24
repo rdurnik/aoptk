@@ -322,9 +322,9 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
                 xml_path = Path(self.storage) / f"{publication_id}.xml"
                 with xml_path.open("w", encoding="utf-8") as f:
                     f.write(response.text)
-                    tree = ET.parse(xml_path)
-                    Path.unlink(xml_path)
-                    return tree
+                tree = ET.parse(xml_path)
+                Path.unlink(xml_path)
+                return tree
             return None
         return None
 
