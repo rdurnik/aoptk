@@ -37,7 +37,7 @@ class PMC(GetPublication, GetPDF, GetID):
     paginator = s3.get_paginator("list_objects_v2")
 
     max_pmc_results = 9998
-    max_concurrency = 3
+    max_concurrency = 2
     max_requests_per_second = 2.0
     minimal_year_publication = 1800
     semaphore = asyncio.Semaphore(max_concurrency)
