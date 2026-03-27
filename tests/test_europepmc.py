@@ -1,7 +1,6 @@
 from __future__ import annotations
 from datetime import UTC
 from datetime import datetime
-from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
 from requests import HTTPError
@@ -13,8 +12,6 @@ from aoptk.literature.get_publication import GetPublication
 
 # ruff: noqa: PLR2004
 # ruff: noqa: PLR0913
-
-test_figure_storage_dir = Path("tests/figure_storage")
 
 
 def test_can_create(provide_temp_storage: dict, provide_temp_storage_figures: dict):

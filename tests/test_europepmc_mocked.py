@@ -48,14 +48,22 @@ def mock_success_response(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.mark.usefixtures("mock_http_error")
-def test_generate_abstract_for_given_id_http_error():
+def test_generate_abstract_for_given_id_http_error(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test that HTTPError is raised when EuropePMC returns non-OK response."""
     with pytest.raises(HTTPError):
-        EuropePMC("12345678").get_abstracts()[0]
+        EuropePMC(
+            "12345678",
+            storage=provide_temp_storage,
+            figure_storage=provide_temp_storage_figures,
+        ).get_abstracts()[0]
 
 
 @pytest.mark.usefixtures("mock_success_response")
-def test_generate_abstract_for_given_id_success():
+def test_generate_abstract_for_given_id_success(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test successful abstract retrieval with mocked response."""
-    result = EuropePMC("12345678").get_abstracts()[0]
+    result = EuropePMC(
+        "12345678",
+        storage=provide_temp_storage,
+        figure_storage=provide_temp_storage_figures,
+    ).get_abstracts()[0]
     assert result.text == "Test abstract text"
