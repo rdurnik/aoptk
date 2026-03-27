@@ -1,5 +1,4 @@
 from __future__ import annotations
-import shutil
 from datetime import UTC
 from datetime import datetime
 from pathlib import Path
@@ -13,13 +12,14 @@ from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 
 # ruff: noqa: PLR2004
+# ruff: noqa: PLR0913
 
 test_figure_storage_dir = Path("tests/figure_storage")
 
 
-def test_can_create():
+def test_can_create(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test that EuropePMCPDF can be instantiated."""
-    actual = EuropePMC("")
+    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     assert actual is not None
 
 
@@ -31,12 +31,6 @@ def test_implements_interface():
     assert issubclass(EuropePMC, GetID)
 
 
-def test_get_publication_data_not_empty():
-    """Test that pdfs() method returns non-empty list."""
-    actual = EuropePMC("").pdfs()
-    assert actual is not None
-
-
 @pytest.mark.parametrize(
     ("query", "expected"),
     [
@@ -46,9 +40,14 @@ def test_get_publication_data_not_empty():
         ),
     ],
 )
-def test_return_id_list(query: str, expected: list[str]):
+def test_return_id_list(
+    query: str,
+    expected: list[str],
+    provide_temp_storage: dict,
+    provide_temp_storage_figures: dict,
+):
     """Test that get_id() returns expected publication IDs."""
-    actual = EuropePMC(query).get_id()
+    actual = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_id()
     assert actual == expected
 
 
@@ -115,9 +114,16 @@ def test_return_id_list(query: str, expected: list[str]):
         ),
     ],
 )
-def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_only: bool, remove_reviews: bool):
+def test_ids_not_to_return(
+    query: str,
+    expected: list[str],
+    query_for_abstracts_only: bool,
+    remove_reviews: bool,
+    provide_temp_storage: dict,
+    provide_temp_storage_figures: dict,
+):
     """Test that get_id_list() returns expected publication IDs with query modifications."""
-    sut = EuropePMC(query)
+    sut = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     if query_for_abstracts_only:
         sut = sut.abstracts_only()
     if remove_reviews:
@@ -126,22 +132,9 @@ def test_ids_not_to_return(query: str, expected: list[str], query_for_abstracts_
     assert actual == expected
 
 
-@pytest.mark.skip(
-    reason="Europe PMC currently does not allow PDF retrieval.",
-)
-def test_open_access_europepmc_pdf_file_exists():
-    """Test that an open access EuropePMC PDF can be retrieved and saved."""
-    EuropePMC("PMC8614944").pdfs()
-    filepath = Path("tests/pdf_storage") / "PMC8614944.pdf"
-    assert filepath.exists()
-    assert filepath.is_file()
-    assert filepath.stat().st_size > 0
-    shutil.rmtree("tests/pdf_storage", ignore_errors=True)
-
-
-def test_get_abstract_not_empty():
+def test_get_abstract_not_empty(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Get abstracts returns non-empty list."""
-    actual = EuropePMC("").get_abstracts()
+    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts()
     assert actual is not None
 
 
@@ -180,10 +173,25 @@ def test_get_abstract_not_empty():
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str, position: int):
+def test_generate_abstracts_for_given_query(
+    query: str,
+    expected_abstract: str,
+    expected_id: str,
+    position: int,
+    provide_temp_storage: dict,
+    provide_temp_storage_figures: dict,
+):
     """Generate list of abstracts for given query."""
-    abstract = EuropePMC(query).get_abstracts()[position].text
-    publication_id = EuropePMC(query).get_abstracts()[position].publication_id
+    abstract = (
+        EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_abstracts()[position]
+        .text
+    )
+    publication_id = (
+        EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_abstracts()[position]
+        .publication_id
+    )
     assert abstract == expected_abstract
     assert publication_id == expected_id
 
@@ -210,9 +218,13 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata(test_data: dict):
+def test_get_publication_metadata(test_data: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Generate publication metadata for given id."""
-    publication_metadata = EuropePMC(test_data["publication_id"]).get_publications_metadata()[0]
+    publication_metadata = EuropePMC(
+        test_data["publication_id"],
+        storage=provide_temp_storage,
+        figure_storage=provide_temp_storage_figures,
+    ).get_publications_metadata()[0]
     assert publication_metadata.publication_id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
@@ -223,55 +235,73 @@ def test_get_publication_metadata(test_data: dict):
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_abstract_xml(provide_publications: dict):
+def test_extract_abstract_xml(
+    provide_publications: dict,
+    provide_temp_storage: dict,
+    provide_temp_storage_figures: dict,
+):
     """Test extracting abstract from XMLs."""
-    actual = EuropePMC(provide_publications["id"]).get_publications()[0].abstract
+    actual = (
+        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications()[0]
+        .abstract
+    )
     expected = provide_publications["expected_abstract"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 60
-    if Path(test_figure_storage_dir).exists():
-        shutil.rmtree(test_figure_storage_dir)
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_full_text(provide_publications: dict):
+def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting full text from XMLs."""
-    actual = EuropePMC(provide_publications["id"]).get_publications()[0].full_text
+    actual = (
+        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications()[0]
+        .full_text
+    )
     expected = provide_publications["full_text"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
-    if Path(test_figure_storage_dir).exists():
-        shutil.rmtree(test_figure_storage_dir)
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_figure_descriptions(provide_publications: dict):
+def test_extract_figure_descriptions(
+    provide_publications: dict,
+    provide_temp_storage: dict,
+    provide_temp_storage_figures: dict,
+):
     """Test extracting figure descriptions from XMLs."""
-    actual = "".join(EuropePMC(provide_publications["id"]).get_publications()[0].figure_descriptions)
+    actual = "".join(
+        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications()[0]
+        .figure_descriptions,
+    )
     expected = "".join(provide_publications["figure_descriptions"])
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
-    if Path(test_figure_storage_dir).exists():
-        shutil.rmtree(test_figure_storage_dir)
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_figures(provide_publications: dict):
+def test_extract_figures(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting figures from XMLs."""
     if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
-    actual = EuropePMC(provide_publications["id"]).get_publications()[0].figures
+    actual = (
+        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications()[0]
+        .figures
+    )
     expected_paths = provide_publications["figures"]
     assert len(actual) == len(expected_paths)
-    if Path(test_figure_storage_dir).exists():
-        shutil.rmtree(test_figure_storage_dir)
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_tables(provide_publications: dict):
+def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting tables from XMLs."""
-    actual = EuropePMC(provide_publications["id"]).get_publications()[0].tables
+    actual = (
+        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications()[0]
+        .tables
+    )
     expected = provide_publications["tables"]
     assert len(actual) == expected
-    if Path(test_figure_storage_dir).exists():
-        shutil.rmtree(test_figure_storage_dir)

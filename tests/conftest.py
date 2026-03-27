@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 import pytest
 from aoptk.literature.databases.pmc import PMC
@@ -186,14 +185,30 @@ from aoptk.literature.id import ID
     ],
     ids=["PMC12416454", "PMC12231352", "PMC12181427"],
 )
-def provide_publications(request: pytest.FixtureRequest):
+def provide_publications(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory):
     """Provide parameters for publication fixture, including PDFs."""
-    pmc = PMC(request.param["id"])
+    pmc = PMC(
+        request.param["id"],
+        storage=tmp_path_factory.mktemp(f"{request.param['id']}"),
+        figure_storage=tmp_path_factory.mktemp(f"{request.param['id']}_figures"),
+    )
     request.param.update(
         {
             "pdfs": pmc.pdfs(),
         },
     )
-    yield request.param
-    if Path(pmc.storage).exists():
-        shutil.rmtree(pmc.storage)
+    return request.param
+
+
+@pytest.fixture(scope="module")
+def provide_temp_storage(provide_publications: dict, tmp_path_factory: pytest.TempPathFactory):
+    """Provide temporary directories for storage of full text and figures."""
+    pub_id = provide_publications["id"]
+    return tmp_path_factory.mktemp(f"{pub_id}")
+
+
+@pytest.fixture(scope="module")
+def provide_temp_storage_figures(provide_publications: dict, tmp_path_factory: pytest.TempPathFactory):
+    """Provide temporary directories for storage of full text and figures."""
+    pub_id = provide_publications["id"]
+    return tmp_path_factory.mktemp(f"{pub_id}_figures")

@@ -40,7 +40,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
     }
     image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff")
 
-    def __init__(self, query: str, storage: str = "tests/storage", figure_storage: str = "tests/figure_storage"):
+    def __init__(self, query: str, storage: str, figure_storage: str):
         self._query = query
         self.storage = storage
         self.figure_storage = figure_storage
