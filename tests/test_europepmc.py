@@ -139,22 +139,6 @@ def test_open_access_europepmc_pdf_file_exists():
     shutil.rmtree("tests/pdf_storage", ignore_errors=True)
 
 
-@pytest.mark.parametrize("pubmed_id", ["41107038", "26733159"])
-@pytest.mark.skip(
-    reason="PDF not available in Europe PMC. Metapub was removed due to dependency issues.",
-)
-def test_metapub_pdf_file_exists(pubmed_id: str):
-    """Test that a PDF retrieved via PubMed can be saved."""
-    storage = Path("tests/pdf_storage")
-    sut = EuropePMC(pubmed_id, storage=storage)
-    sut.pdfs()
-    filepath = storage / f"{pubmed_id}.pdf"
-    assert filepath.exists()
-    assert filepath.is_file()
-    assert filepath.stat().st_size > 0
-    shutil.rmtree(storage, ignore_errors=True)
-
-
 def test_get_abstract_not_empty():
     """Get abstracts returns non-empty list."""
     actual = EuropePMC("").get_abstracts()
