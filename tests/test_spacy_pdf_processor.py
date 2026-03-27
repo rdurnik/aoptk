@@ -8,11 +8,12 @@ from aoptk.literature.pymupdf_parser import PymupdfParser
 from aoptk.spacy_pdf_processor import SpacyPDF
 
 # ruff: noqa: PLR2004
+# ruff: noqa: SLF001
 
 
-def test_can_create():
+def test_can_create(provide_temp_storage_figures: dict):
     """Can create SpacyPDF instance."""
-    actual = SpacyPDF([])
+    actual = SpacyPDF([], figure_storage=provide_temp_storage_figures)
     assert actual is not None
 
 
@@ -21,15 +22,18 @@ def test_implements_pymupdfparser():
     assert issubclass(SpacyPDF, PymupdfParser)
 
 
-def test_get_publications_not_empty():
+def test_get_publications_not_empty(provide_temp_storage_figures: dict):
     """Test that get_publications method returns a non-empty result."""
-    actual = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")]).get_publications()
+    actual = SpacyPDF(
+        [PDF("tests/test_pdfs/test_pdf.pdf")],
+        figure_storage=provide_temp_storage_figures,
+    ).get_publications()
     assert actual is not None
 
 
-def test_extract_id():
+def test_extract_id(provide_temp_storage_figures: dict):
     """Test extracting publication ID from user-provided PDF."""
-    parser = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")])
+    parser = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")], figure_storage=provide_temp_storage_figures)
     actual = parser.get_publications()[0].id
     expected = "test_pdf"
     assert str(actual) == expected
@@ -54,16 +58,18 @@ def test_extract_id():
         ),
     ],
 )
-def test_is_page_header_footer(potential_footer_header: str, output: bool):
+def test_is_page_header_footer(potential_footer_header: str, output: bool, provide_temp_storage_figures: dict):
     """Test identifying page headers and footers."""
-    actual = SpacyPDF([])._is_page_header_footer(text=potential_footer_header)  # noqa: SLF001
+    actual = SpacyPDF([], figure_storage=provide_temp_storage_figures)._is_page_header_footer(
+        text=potential_footer_header,
+    )
     assert actual == output
 
 
 @pytest.fixture(scope="module")
-def publication(provide_publications: dict):
+def publication(provide_publications: dict, provide_temp_storage_figures: dict):
     """Second stage fixture which includes PDF parsing."""
-    parser = SpacyPDF(provide_publications["pdfs"])
+    parser = SpacyPDF(provide_publications["pdfs"], figure_storage=provide_temp_storage_figures)
     publications = parser.get_publications()
     provide_publications.update(
         {

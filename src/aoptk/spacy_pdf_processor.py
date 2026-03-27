@@ -17,7 +17,7 @@ from aoptk.text_utils import ends
 class SpacyPDF(PymupdfParser):
     """Process PDF using Spacy package."""
 
-    def __init__(self, pdfs: list[PDF], model: str = "en", figure_storage: str = "tests/figures_storage"):
+    def __init__(self, pdfs: list[PDF], figure_storage: str, model: str = "en"):
         """Initialize with a spaCy model.
 
         Args:
