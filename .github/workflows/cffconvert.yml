@@ -18,6 +18,6 @@ jobs:
         name: Check out a copy of the repository
 
       - name: Check whether the citation metadata from CITATION.cff is valid
-        uses: citation-file-format/cffconvert-github-action@2.0.0
+        uses: citation-file-format/cffconvert-github-action@3.0.0
         with:
           args: "--validate"
