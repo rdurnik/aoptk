@@ -197,7 +197,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         response.raise_for_status()
         return response.json()
 
-    def _get_publication_metadata(self, publication_id: str) -> PublicationMetadata:
+    def _get_publication_metadata(self, publication_id: str) -> PublicationMetadata | None:
         """Return abstract from Europe PMC for a given publication ID.
 
         Args:
@@ -225,7 +225,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             )
         return None
 
-    def _get_publication(self, publication_id: str) -> Publication:
+    def _get_publication(self, publication_id: str) -> Publication | None:
         """Return a Publication object for a given publication ID.
 
         Args:
@@ -313,7 +313,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             rows.append(cells)
         return rows
 
-    def _get_xml(self, publication_id: str) -> str:
+    def _get_xml(self, publication_id: str) -> str | None:
         """Retrieve the XML content for a given publication ID.
 
         Args:

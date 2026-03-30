@@ -28,10 +28,11 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY")
 class PMC(GetPublication, GetPDF, GetID):
     """Class for retrieving and parsing open access PMC publications."""
 
+    aws_region = "us-east-1"
     s3 = boto3.client(
         "s3",
         config=Config(signature_version=UNSIGNED),
-        region_name="us-east-1",
+        region_name=aws_region,
     )
     bucket = "pmc-oa-opendata"
     paginator = s3.get_paginator("list_objects_v2")
@@ -114,7 +115,7 @@ class PMC(GetPublication, GetPDF, GetID):
             tables=tables,
         )
 
-    def _get_full_text(self, publication_id: str) -> str:
+    def _get_full_text(self, publication_id: str) -> str | None:
         """Retrieve the full text for a given publication ID.
 
         Args:
@@ -182,7 +183,7 @@ class PMC(GetPublication, GetPDF, GetID):
                 figures_paths.append(str(image_path))
         return figures_paths
 
-    def _get_json(self, publication_id: str) -> str:
+    def _get_json(self, publication_id: str) -> str | None:
         """Retrieve the json for a given publication ID.
 
         Args:
@@ -227,7 +228,7 @@ class PMC(GetPublication, GetPDF, GetID):
         self,
         mindate: str | None = None,
         maxdate: str | None = None,
-    ) -> tuple[int, list[str]]:
+    ) -> tuple[int, list[str]] | None:
         async for attempt in AsyncRetrying(
             retry=retry_if_exception_type(HTTPError),
             wait=wait_random_exponential(multiplier=0.5, max=30),

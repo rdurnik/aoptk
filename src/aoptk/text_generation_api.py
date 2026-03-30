@@ -364,8 +364,8 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     def find_relationships_in_table(
         self,
         table_df: pd.DataFrame,
-        relationship_type: RelationshipType,
         effects: list[Effect],
+        relationship_type: RelationshipType,
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in a table.
 
@@ -438,7 +438,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
             chemical.heading = matching_name
         return chemical
 
-    def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
+    def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical | None:
         """Find a matching chemical name in the chemical list.
 
         Args:
