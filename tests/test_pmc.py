@@ -1,4 +1,5 @@
 from __future__ import annotations
+from http.client import RemoteDisconnected
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC
@@ -68,7 +69,7 @@ def test_get_id_small_query(tmp_path_factory: pytest.TempPathFactory):
     assert actual == expected
 
 
-@pytest.mark.xfail(raises=HTTPError)
+@pytest.mark.xfail(raises=(HTTPError, RemoteDisconnected))
 def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_id() method returns a list of publication IDs."""
     actual = len(
