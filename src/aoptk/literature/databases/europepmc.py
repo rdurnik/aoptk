@@ -231,16 +231,17 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         Args:
             publication_id (str): The ID of the publication to retrieve.
         """
-        xml_tree = self._get_xml(publication_id)
-        root = xml_tree.getroot()
-        return Publication(
-            id=publication_id,
-            abstract=self._parse_xml_abstract(root),
-            full_text=self._parse_xml_full_text(root),
-            figures=self._get_figures(publication_id),
-            figure_descriptions=self._parse_xml_figure_descriptions(root),
-            tables=self._parse_xml_tables(root),
-        )
+        if xml_tree := self._get_xml(publication_id):
+            root = xml_tree.getroot()
+            return Publication(
+                id=publication_id,
+                abstract=self._parse_xml_abstract(root),
+                full_text=self._parse_xml_full_text(root),
+                figures=self._get_figures(publication_id),
+                figure_descriptions=self._parse_xml_figure_descriptions(root),
+                tables=self._parse_xml_tables(root),
+            )
+        return None
 
     def _parse_xml_abstract(self, root: ET.Element) -> str:
         """Return the full text content of the first <abstract> element as a single string.
