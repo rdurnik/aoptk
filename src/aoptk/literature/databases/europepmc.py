@@ -64,9 +64,9 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
 
-        self.id_list = self.get_id()
+        self.id_list = self.get_ids()
 
-    def pdfs(self) -> list[PDF]:
+    def get_pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""
         return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
 
@@ -96,7 +96,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             if publication_metadata is not None
         ]
 
-    def get_id(self) -> list[ID]:
+    def get_ids(self) -> list[ID]:
         """Get a list of publication IDs from EuropePMC based on the query."""
         cursor_mark = "*"
         id_list = []

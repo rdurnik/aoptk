@@ -13,13 +13,13 @@ from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
 from aoptk.relationship_type import RelationshipType
-from aoptk.relationships.find_relationship import FindRelationships
+from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
 
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationships, NormalizeChemical):
+class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -284,7 +284,7 @@ class TextGenerationAPI(FindChemical, FindRelationships, NormalizeChemical):
             return relationship_type.negative
         return None
 
-    def find_chemical(self, text: str) -> list[Chemical]:
+    def find_chemicals(self, text: str) -> list[Chemical]:
         """Find chemicals in the given text.
 
         Args:

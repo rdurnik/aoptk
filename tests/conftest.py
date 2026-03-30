@@ -194,7 +194,7 @@ def provide_publications(request: pytest.FixtureRequest, tmp_path_factory: pytes
     )
     request.param.update(
         {
-            "pdfs": pmc.pdfs(),
+            "pdfs": pmc.get_pdfs(),
         },
     )
     return request.param

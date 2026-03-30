@@ -23,7 +23,7 @@ def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory
     actual = PMC(
         "PMC8614944",
         storage=tmp_path_factory.mktemp("pmc_storage"),
-    ).pdfs()
+    ).get_pdfs()
     assert actual is not None
 
 
@@ -31,7 +31,7 @@ def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory
 def test_open_access_pmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactory):
     """Test that an open access PMC PDF can be retrieved and saved."""
     storage_dir = tmp_path_factory.mktemp("pmc_storage")
-    PMC("PMC8614944", storage=storage_dir).pdfs()
+    PMC("PMC8614944", storage=storage_dir).get_pdfs()
     filepath = storage_dir / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()

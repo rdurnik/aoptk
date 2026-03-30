@@ -25,7 +25,7 @@ def spacy_test_env(mocker):
 def test_find_chemical_not_empty(spacy_test_env):
     """Test that find_chemical method returns a non-empty result."""
     spacy_test_env.return_value.return_value.ents = []
-    actual = SpacyText().find_chemical("")
+    actual = SpacyText().find_chemicals("")
     assert actual is not None
 
 
@@ -57,7 +57,7 @@ def test_find_chemical_chemical(spacy_test_env, sentence: str, expected: list[st
     mock_doc.ents = mock_entities
     spacy_test_env.return_value.return_value = mock_doc
 
-    actual = [chem.name for chem in SpacyText().find_chemical(sentence)]
+    actual = [chem.name for chem in SpacyText().find_chemicals(sentence)]
     assert actual == expected
 
 
@@ -197,7 +197,7 @@ def test_find_chemical_filters_non_chemical_entities(spacy_test_env):
     mock_doc.ents = [mock_chem1, mock_disease, mock_chem2]
     spacy_test_env.return_value.return_value = mock_doc
 
-    result = SpacyText().find_chemical("test sentence")
+    result = SpacyText().find_chemicals("test sentence")
 
     assert len(result) == 2
     assert result[0].name == "aspirin"
@@ -227,7 +227,7 @@ def test_find_chemical_empty_string(spacy_test_env):
     """Test that find_chemical handles empty string input."""
     spacy_test_env.return_value.return_value.ents = []
 
-    result = SpacyText().find_chemical("")
+    result = SpacyText().find_chemicals("")
     assert result == []
 
 
@@ -262,5 +262,5 @@ def test_find_chemical_case_preservation(spacy_test_env):
     mock_doc.ents = [mock_ent]
     spacy_test_env.return_value.return_value = mock_doc
 
-    result = SpacyText().find_chemical("Aspirin is a drug")
+    result = SpacyText().find_chemicals("Aspirin is a drug")
     assert result[0].name == "aspirin"

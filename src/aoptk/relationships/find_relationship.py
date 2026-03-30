@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from aoptk.relationships.relationship import Relationship
 
 
-class FindRelationships(ABC):
+class FindRelationship(ABC):
     """Interface for finding relationships in text."""
 
     @abstractmethod

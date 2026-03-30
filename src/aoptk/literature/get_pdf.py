@@ -11,5 +11,5 @@ class GetPDF(ABC):
     """Abstract base class for retrieving PDF data."""
 
     @abstractmethod
-    def pdfs(self) -> list[PDF]:
+    def get_pdfs(self) -> list[PDF]:
         """Return a list of PDF paths."""

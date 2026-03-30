@@ -2,7 +2,7 @@ from __future__ import annotations
 import pytest
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
-from aoptk.relationships.find_relationship import FindRelationships
+from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
 from aoptk.relationships.zero_shot_classification_multiple import ZeroShotClassificationMultiple
 
@@ -15,7 +15,7 @@ def test_can_create():
 
 def test_implements_interface():
     """Test that ZeroShotClassification implements FindRelationships interface."""
-    assert issubclass(ZeroShotClassificationMultiple, FindRelationships)
+    assert issubclass(ZeroShotClassificationMultiple, FindRelationship)
 
 
 def test_normalize_chemical_not_empty():

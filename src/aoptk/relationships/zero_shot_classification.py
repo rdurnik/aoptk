@@ -5,7 +5,7 @@ from itertools import product
 from typing import TYPE_CHECKING
 import pandas as pd
 from transformers import pipeline
-from aoptk.relationships.find_relationship import FindRelationships
+from aoptk.relationships.find_relationship import FindRelationship
 
 if TYPE_CHECKING:
     from aoptk.chemical import Chemical
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from aoptk.relationships.relationship import Relationship
 
 
-class ZeroShotClassification(FindRelationships, ABC):
+class ZeroShotClassification(FindRelationship, ABC):
     """Base class for zero shot classification."""
 
     task = "zero-shot-classification"

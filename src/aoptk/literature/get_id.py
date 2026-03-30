@@ -11,5 +11,5 @@ class GetID(ABC):
     """Abstract base class for retrieving IDs."""
 
     @abstractmethod
-    def get_id(self) -> list[ID]:
+    def get_ids(self) -> list[ID]:
         """Return a list of IDs."""

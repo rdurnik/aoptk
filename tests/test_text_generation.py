@@ -9,7 +9,7 @@ from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
 from aoptk.relationship_type import RelationshipType
-from aoptk.relationships.find_relationship import FindRelationships
+from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
 from aoptk.text_generation_api import TextGenerationAPI
 
@@ -34,14 +34,14 @@ def test_can_create():
 def test_implements_interface_find_chemical():
     """ScispacyFindChemical implements FindChemical interface."""
     assert isinstance(TextGenerationAPI(), FindChemical)
-    assert isinstance(TextGenerationAPI(), FindRelationships)
+    assert isinstance(TextGenerationAPI(), FindRelationship)
     assert isinstance(TextGenerationAPI(), NormalizeChemical)
 
 
 @pytest.mark.openai
 def test_find_chemical_not_empty():
     """Test that find_chemical method returns a non-empty result."""
-    actual = TextGenerationAPI().find_chemical("")
+    actual = TextGenerationAPI().find_chemicals("")
     assert actual is not None
 
 
@@ -64,7 +64,7 @@ def test_find_relationships_not_empty():
 )
 def test_find_chemical(text: str, expected: list[str]):
     """Test that find_chemical method finds chemicals in text."""
-    actual = [chem.name for chem in TextGenerationAPI().find_chemical(text)]
+    actual = [chem.name for chem in TextGenerationAPI().find_chemicals(text)]
     assert actual == expected
 
 

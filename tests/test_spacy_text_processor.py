@@ -22,7 +22,7 @@ def test_implements_interface_find_chemical():
 
 def test_find_chemical_not_empty():
     """Test that find_chemical method returns a non-empty result."""
-    actual = SpacyText().find_chemical("")
+    actual = SpacyText().find_chemicals("")
     assert actual is not None
 
 
@@ -65,7 +65,7 @@ def test_find_chemical_not_empty():
 )
 def test_find_chemical_chemical(sentence: str, expected: list[str]):
     """Test that find_chemical method finds chemicals in text."""
-    actual = [chem.name for chem in SpacyText().find_chemical(sentence)]
+    actual = [chem.name for chem in SpacyText().find_chemicals(sentence)]
     assert actual == expected
 
 
