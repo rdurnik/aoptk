@@ -152,26 +152,26 @@ class PMC(GetPublication, GetPDF, GetID):
         Args:
             publication_id (str): The publication ID to retrieve the figure files for.
         """
-        metadata = self._get_json(publication_id)
+        if metadata := self._get_json(publication_id):
+            supplementary_files = metadata.get("media_urls", [])
+            downloaded = []
 
-        supplementary_files = metadata.get("media_urls", [])
-        downloaded = []
+            base_dir = Path(self.figure_storage) / f"{publication_id}"
+            base_dir.mkdir(parents=True, exist_ok=True)
 
-        base_dir = Path(self.figure_storage) / f"{publication_id}"
-        base_dir.mkdir(parents=True, exist_ok=True)
+            for supplement in supplementary_files:
+                parsed = urlparse(supplement)
 
-        for supplement in supplementary_files:
-            parsed = urlparse(supplement)
+                key = parsed.path.lstrip("/")
+                if key.lower().endswith(self.image_extensions):
+                    image_name = Path(parsed.path).name
+                    image_path = base_dir / image_name
+                    image_path.parent.mkdir(parents=True, exist_ok=True)
+                    self.s3.download_file(self.bucket, key, str(image_path))
+                    downloaded.append(str(image_path))
 
-            key = parsed.path.lstrip("/")
-            if key.lower().endswith(self.image_extensions):
-                image_name = Path(parsed.path).name
-                image_path = base_dir / image_name
-                image_path.parent.mkdir(parents=True, exist_ok=True)
-                self.s3.download_file(self.bucket, key, str(image_path))
-                downloaded.append(str(image_path))
-
-        return downloaded
+            return downloaded
+        return []
 
     def _get_json(self, publication_id: str) -> str:
         """Retrieve the json for a given publication ID.
