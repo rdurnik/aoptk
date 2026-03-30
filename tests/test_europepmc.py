@@ -12,7 +12,6 @@ from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 
 # ruff: noqa: PLR2004
-# ruff: noqa: PLR0913
 
 
 def test_can_create():
@@ -175,16 +174,8 @@ def test_generate_abstracts_for_given_query(
     position: int,
 ):
     """Generate list of abstracts for given query."""
-    abstract = (
-        EuropePMC(query)
-        .get_abstracts()[position]
-        .text
-    )
-    publication_id = (
-        EuropePMC(query)
-        .get_abstracts()[position]
-        .publication_id
-    )
+    abstract = EuropePMC(query).get_abstracts()[position].text
+    publication_id = EuropePMC(query).get_abstracts()[position].publication_id
     assert abstract == expected_abstract
     assert publication_id == expected_id
 
@@ -214,7 +205,7 @@ def test_generate_abstracts_for_given_query(
 def test_get_publication_metadata(test_data: dict):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
-        test_data["publication_id"]
+        test_data["publication_id"],
     ).get_publications_metadata()[0]
     assert publication_metadata.publication_id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
