@@ -31,8 +31,8 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     def __init__(self, query: str):
         self._query = query
         self.id_list = self.get_ids()
-        self.publication_count = self.get_publication_count()
-        if self.get_publication_count() >= self.maximum_results:
+        self.publication_count = self._get_publication_count()
+        if self._get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
 
     def get_abstracts(self) -> list[Abstract]:
@@ -55,12 +55,12 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         return [
             publication_metadata
             for publication_metadata in (
-                self.get_publication_metadata(publication_id) for publication_id in self.id_list
+                self._get_publication_metadata(publication_id) for publication_id in self.id_list
             )
             if publication_metadata is not None
         ]
 
-    def get_publication_count(self) -> int:
+    def _get_publication_count(self) -> int:
         """Return the number of publications matching the query in PubMed."""
         handle = Entrez.esearch(db="pubmed", term=self._query, retmax=0)
         record = Entrez.read(handle)
@@ -74,7 +74,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         handle.close()
         return record.get("IdList", [])
 
-    def get_abstract(self, pmid: str) -> Abstract:
+    def _get_abstract(self, pmid: str) -> Abstract:
         """Get the abstract for a given PubMed ID."""
         handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml")
         record = Entrez.read(handle)
@@ -85,7 +85,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             return Abstract(text=abstract_text, publication_id=ID(pmid))
         return Abstract(text="", publication_id=ID(pmid))
 
-    def get_publication_metadata(self, pmid: str) -> PublicationMetadata:
+    def _get_publication_metadata(self, pmid: str) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
         handle = Entrez.esummary(db="pubmed", id=pmid)
         summary_records = Entrez.read(handle)

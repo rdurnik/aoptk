@@ -33,7 +33,7 @@ def test_get_abstract_not_empty():
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_count():
     """Get publication count returns correct number."""
-    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_publication_count()
+    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))')._get_publication_count()
     expected = 4
     assert actual == expected
 
