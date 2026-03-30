@@ -31,8 +31,8 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     def __init__(self, query: str):
         self._query = query
         self.id_list = self.get_ids()
-        self.publication_count = self._get_publication_count()
-        if self._get_publication_count() >= self.maximum_results:
+        self.publication_count = self.get_publication_count()
+        if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
 
     def get_abstracts(self) -> list[Abstract]:
@@ -60,7 +60,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             if publication_metadata is not None
         ]
 
-    def _get_publication_count(self) -> int:
+    def get_publication_count(self) -> int:
         """Return the number of publications matching the query in PubMed."""
         handle = Entrez.esearch(db="pubmed", term=self._query, retmax=0)
         record = Entrez.read(handle)
