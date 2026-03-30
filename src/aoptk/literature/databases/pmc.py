@@ -48,8 +48,8 @@ class PMC(GetPublication, GetPDF, GetID):
     def __init__(
         self,
         query: str,
-        storage: str = "./storage",
-        figure_storage: str = "./figure_storage",
+        storage: str,
+        figure_storage: str,
     ):
         self._query = query
         self.id_list = asyncio.run(self.get_ids())

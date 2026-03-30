@@ -44,8 +44,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
     def __init__(
         self,
         query: str,
-        storage: str = "./storage",
-        figure_storage: str = "./figure_storage",
+        storage: str,
+        figure_storage: str,
     ):
         self._query = query
         self.storage = storage
