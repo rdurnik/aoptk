@@ -1,8 +1,6 @@
 import pytest
 from aoptk.literature.utils import is_europepmc_id
 
-# ruff: noqa: F821
-
 
 @pytest.mark.parametrize(
     ("publication_id", "expected"),
@@ -15,4 +13,3 @@ def test_is_europepmc_id(publication_id: str, expected: bool):
     """Test the is_europepmc_id function."""
     actual = is_europepmc_id(publication_id)
     assert actual == expected
-
