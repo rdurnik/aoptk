@@ -6,13 +6,9 @@ from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 
 
-def test_can_create(tmp_path_factory: pytest.TempPathFactory):
+def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
-    actual = PMC(
-        "PMC8614944",
-        storage=tmp_path_factory.mktemp("pmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-    )
+    actual = PMC("PMC8614944")
     assert actual is not None
 
 
@@ -27,7 +23,6 @@ def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory
     actual = PMC(
         "PMC8614944",
         storage=tmp_path_factory.mktemp("pmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     ).pdfs()
     assert actual is not None
 
@@ -36,8 +31,7 @@ def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory
 def test_open_access_pmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactory):
     """Test that an open access PMC PDF can be retrieved and saved."""
     storage_dir = tmp_path_factory.mktemp("pmc_storage")
-    figure_storage_dir = tmp_path_factory.mktemp("pmc_storage_figures")
-    PMC("PMC8614944", storage=storage_dir, figure_storage=figure_storage_dir).pdfs()
+    PMC("PMC8614944", storage=storage_dir).pdfs()
     filepath = storage_dir / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()
@@ -57,25 +51,21 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: dic
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_id_small_query(tmp_path_factory: pytest.TempPathFactory):
+def test_get_id_small_query():
     """Test that get_id() method returns a list of publication IDs."""
     actual = PMC(
         "PMC12416454",
-        storage=tmp_path_factory.mktemp("pmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     ).id_list
     expected = ["PMC12416454"]
     assert actual == expected
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
+def test_get_id_large_query():
     """Test that get_id() method returns a list of publication IDs."""
     actual = len(
         PMC(
             "methotrexate OR thioacetamide AND cancer AND fibrosis 1940/01/01:2023/01/30[epdat]",
-            storage=tmp_path_factory.mktemp("pmc_storage"),
-            figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         ).id_list,
     )
     expected = 10127

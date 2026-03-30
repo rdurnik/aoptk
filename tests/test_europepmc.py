@@ -15,9 +15,9 @@ from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 # ruff: noqa: PLR0913
 
 
-def test_can_create(provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_can_create():
     """Test that EuropePMCPDF can be instantiated."""
-    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+    actual = EuropePMC("")
     assert actual is not None
 
 
@@ -42,11 +42,9 @@ def test_implements_interface():
 def test_return_id_list(
     query: str,
     expected: list[str],
-    provide_temp_storage: dict,
-    provide_temp_storage_figures: dict,
 ):
     """Test that get_id() returns expected publication IDs."""
-    actual = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_id()
+    actual = EuropePMC(query).get_id()
     assert actual == expected
 
 
@@ -118,11 +116,9 @@ def test_ids_not_to_return(
     expected: list[str],
     query_for_abstracts_only: bool,
     remove_reviews: bool,
-    provide_temp_storage: dict,
-    provide_temp_storage_figures: dict,
 ):
     """Test that get_id_list() returns expected publication IDs with query modifications."""
-    sut = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+    sut = EuropePMC(query)
     if query_for_abstracts_only:
         sut = sut.abstracts_only()
     if remove_reviews:
@@ -131,9 +127,9 @@ def test_ids_not_to_return(
     assert actual == expected
 
 
-def test_get_abstract_not_empty(provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_get_abstract_not_empty():
     """Get abstracts returns non-empty list."""
-    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts()
+    actual = EuropePMC("").get_abstracts()
     assert actual is not None
 
 
@@ -177,17 +173,15 @@ def test_generate_abstracts_for_given_query(
     expected_abstract: str,
     expected_id: str,
     position: int,
-    provide_temp_storage: dict,
-    provide_temp_storage_figures: dict,
 ):
     """Generate list of abstracts for given query."""
     abstract = (
-        EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query)
         .get_abstracts()[position]
         .text
     )
     publication_id = (
-        EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query)
         .get_abstracts()[position]
         .publication_id
     )
@@ -217,12 +211,10 @@ def test_generate_abstracts_for_given_query(
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata(test_data: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_get_publication_metadata(test_data: dict):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
-        test_data["publication_id"],
-        storage=provide_temp_storage,
-        figure_storage=provide_temp_storage_figures,
+        test_data["publication_id"]
     ).get_publications_metadata()[0]
     assert publication_metadata.publication_id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
