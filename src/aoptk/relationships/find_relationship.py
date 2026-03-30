@@ -25,7 +25,7 @@ class FindRelationship(ABC):
     @abstractmethod
     def find_relationships_in_table(
         self,
-        table_data: pd.DataFrame,
+        table_df: pd.DataFrame,
         effects: list[Effect],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given table data."""
