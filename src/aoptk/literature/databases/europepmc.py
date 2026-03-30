@@ -14,6 +14,7 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
@@ -21,7 +22,7 @@ from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.utils import is_europepmc_id
 
 
-class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication):
+class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetadata):
     """Class to get PDFs from EuropePMC based on a query."""
 
     page_size = 1000

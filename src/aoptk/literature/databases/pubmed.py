@@ -6,6 +6,7 @@ from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 
@@ -21,7 +22,7 @@ class QueryTooLargeError(Exception):
         super().__init__(f"Query returned {count} results. Maximum allowed is {maximum - 1}.")
 
 
-class PubMed(GetAbstract, GetID):
+class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     """Class to get data from PubMed based on a query."""
 
     maximum_results = 10000

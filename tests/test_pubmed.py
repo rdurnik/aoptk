@@ -5,6 +5,8 @@ import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_id import GetID
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -17,6 +19,8 @@ def test_can_create():
 def test_implements_interface():
     """PubMed implements GetAbstract interface."""
     assert issubclass(PubMed, GetAbstract)
+    assert issubclass(PubMed, GetID)
+    assert issubclass(PubMed, GetPublicationMetadata)
 
 
 @pytest.mark.xfail(raises=HTTPError)

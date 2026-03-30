@@ -9,6 +9,7 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 
 # ruff: noqa: PLR2004
 # ruff: noqa: PLR0913
@@ -26,6 +27,7 @@ def test_implements_interface():
     assert issubclass(EuropePMC, GetPDF)
     assert issubclass(EuropePMC, GetAbstract)
     assert issubclass(EuropePMC, GetID)
+    assert issubclass(EuropePMC, GetPublicationMetadata)
 
 
 @pytest.mark.parametrize(
