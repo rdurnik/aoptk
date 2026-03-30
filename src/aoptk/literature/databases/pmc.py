@@ -154,24 +154,33 @@ class PMC(GetPublication, GetPDF, GetID):
         """
         if metadata := self._get_json(publication_id):
             supplementary_files = metadata.get("media_urls", [])
-            downloaded = []
+            return self._extract_figures_from_supplements(publication_id, supplementary_files)
 
-            base_dir = Path(self.figure_storage) / f"{publication_id}"
-            base_dir.mkdir(parents=True, exist_ok=True)
-
-            for supplement in supplementary_files:
-                parsed = urlparse(supplement)
-
-                key = parsed.path.lstrip("/")
-                if key.lower().endswith(self.image_extensions):
-                    image_name = Path(parsed.path).name
-                    image_path = base_dir / image_name
-                    image_path.parent.mkdir(parents=True, exist_ok=True)
-                    self.s3.download_file(self.bucket, key, str(image_path))
-                    downloaded.append(str(image_path))
-
-            return downloaded
         return []
+
+    def _extract_figures_from_supplements(self, publication_id: str, supplementary_files: list[str]) -> list[str]:
+        """Extract figure files from the supplementary files.
+
+        Args:
+            publication_id (str): The publication ID to retrieve the figure files for.
+            supplementary_files (list[str]): A list of supplementary file URLs to extract figures from.
+        """
+        figures_paths = []
+
+        base_dir = Path(self.figure_storage) / f"{publication_id}"
+        base_dir.mkdir(parents=True, exist_ok=True)
+
+        for supplement in supplementary_files:
+            parsed = urlparse(supplement)
+
+            key = parsed.path.lstrip("/")
+            if key.lower().endswith(self.image_extensions):
+                image_name = Path(parsed.path).name
+                image_path = base_dir / image_name
+                image_path.parent.mkdir(parents=True, exist_ok=True)
+                self.s3.download_file(self.bucket, key, str(image_path))
+                figures_paths.append(str(image_path))
+        return figures_paths
 
     def _get_json(self, publication_id: str) -> str:
         """Retrieve the json for a given publication ID.
