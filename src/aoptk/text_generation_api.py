@@ -173,7 +173,8 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     """
 
     extract_text_from_pdf_scan_prompt: str = """
-    Extract the complete text from the provided scientific publication image, preserving all original line breaks, spacing,
+    Extract the complete text from the provided scientific publication image,
+    preserving all original line breaks, spacing,
     and paragraph structure exactly as shown.
     Output only the extracted text with no additional commentary or formatting, and ensure that no
     extra spaces are inserted between letters or words.
@@ -192,6 +193,17 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     - Do not speculate beyond what is visible in the image and supported by the publication context.
 
     Publication context:
+    {text}
+    """
+
+    find_relevant_publications_prompt = """
+    Based on the provided text, answer the following question with YES or NO:
+    {question}
+
+    Answer YES if the text contains information relevant to the question, even if only briefly.
+    Answer NO if the text does not contain relevant information.
+
+    Text:
     {text}
     """
 
@@ -619,3 +631,25 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
         if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
             return response
         return ""
+
+    def find_relevant_publications(self, question: str, text: str) -> str:
+        """Answer the question based on a given text.
+
+        Args:
+            question (str): The question to search for relevant publications.
+            text (str): The input text to search for chemicals.
+        """
+        completion = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            messages=[
+                {
+                    "role": self.role,
+                    "content": self.find_relevant_publications_prompt.format(question=question, text=text),
+                },
+            ],
+        )
+        if response := completion.choices[0].message.content:
+            return response.strip().lower()
+        return None

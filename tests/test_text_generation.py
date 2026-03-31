@@ -366,3 +366,27 @@ def test_convert_image_to_text():
         text="These images are about gap junction intercellular communication.",
     )
     assert "gjic" in actual.lower()
+
+
+@pytest.mark.openai
+@pytest.mark.parametrize(
+    ("question", "text", "expected"),
+    [
+        (
+            "Does this publication contain data about drug carriers in HepG2 cells?",
+            "Bile acid-based drug carriers were studied here. "
+            "Both HepG2 and HepaRG spheroids were used as an experimental model.",
+            "yes",
+        ),
+        (
+            "Does this publication contain data about drug carriers in HeLa cells?",
+            "Bile acid-based drug carriers were studied here. "
+            "Both HepG2 and HepaRG spheroids were used as an experimental model.",
+            "no",
+        ),
+    ],
+)
+def test_find_relevant_publications(question: str, text: str, expected: str):
+    """Test that find_relevant_publications method finds relevant publications."""
+    actual = TextGenerationAPI().find_relevant_publications(question=question, text=text)
+    assert actual == expected
