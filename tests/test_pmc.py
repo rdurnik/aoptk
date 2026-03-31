@@ -79,5 +79,5 @@ def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         ).id_list,
     )
-    expected = 10127
+    expected = 10130
     assert actual == expected
