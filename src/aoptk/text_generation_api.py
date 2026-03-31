@@ -172,8 +172,8 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     {list_of_chemical_names}
     """
 
-    extract_text_from_image_prompt: str = """
-    Extract the complete text from the provided scientific paper image, preserving all original line breaks, spacing,
+    extract_text_from_pdf_scan_prompt: str = """
+    Extract the complete text from the provided scientific publication image, preserving all original line breaks, spacing,
     and paragraph structure exactly as shown.
     Output only the extracted text with no additional commentary or formatting, and ensure that no
     extra spaces are inserted between letters or words.
@@ -494,7 +494,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
                     "content": [
                         {
                             "type": "text",
-                            "text": self.extract_text_from_image_prompt,
+                            "text": self.extract_text_from_pdf_scan_prompt,
                         },
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
                     ],
