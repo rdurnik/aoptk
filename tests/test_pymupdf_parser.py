@@ -1,32 +1,32 @@
 import os
-import shutil
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
+from aoptk.inject_text_generation import TextGenerationInjector
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
+from aoptk.text_generation_api import TextGenerationAPI
 
 # ruff: noqa: PLR2004
 # ruff: noqa: SLF001
 
-output_dir = "tests/figure_storage"
 
-
-def test_can_create(provide_temp_storage_figures: dict):
+def test_can_create(tmp_path_factory: pytest.TempPathFactory):
     """Test that PymupdfParser can be instantiated."""
-    actual = PymupdfParser(str, figure_storage=provide_temp_storage_figures)
+    actual = PymupdfParser(str, figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"))
     assert actual is not None
 
 
 def test_implements_interface():
     """Test that PymupdfParser implements GetPublication interface."""
     assert issubclass(PymupdfParser, GetPublication)
+    assert issubclass(PymupdfParser, TextGenerationInjector)
 
 
-def test_get_publication_data_not_empty(provide_temp_storage_figures: dict):
+def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications method returns non-empty list."""
-    actual = PymupdfParser("", figure_storage=provide_temp_storage_figures).get_publications()
+    actual = PymupdfParser("", figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")).get_publications()
     assert actual is not None
 
 
@@ -63,17 +63,18 @@ def test_extract_full_text_pmc(publication: dict):
     assert ratio >= 25
 
 
-def test_extract_id(provide_temp_storage_figures: dict):
+def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
     actual = (
-        PymupdfParser([PDF("tests/test_pdfs/test_pdf.pdf")], figure_storage=provide_temp_storage_figures)
+        PymupdfParser(
+            [PDF("tests/test_pdfs/test_pdf.pdf")],
+            figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+        )
         .get_publications()[0]
         .id
     )
     expected = "test_pdf"
     assert str(actual) == expected
-    if Path(output_dir).exists():
-        shutil.rmtree(output_dir)
 
 
 def test_extract_figure_descriptions(publication: dict):
@@ -132,20 +133,21 @@ def test_is_too_short(text: str, expected: bool):
         ),
     ],
 )
-def test_is_corrupted(text: str, expected: bool, provide_temp_storage_figures: dict):
+def test_is_corrupted(text: str, expected: bool, tmp_path_factory: pytest.TempPathFactory):
     """Test that is_corrupted correctly identifies texts with excessive control characters."""
-    parser = PymupdfParser([], figure_storage=provide_temp_storage_figures)
+    parser = PymupdfParser([], figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"))
     assert parser._is_corrupted(text) == expected
 
 
 @pytest.mark.openai
-def test_extract_full_text_from_corrupted_pdf(provide_temp_storage_figures: dict):
+def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
             pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
-            figure_storage=provide_temp_storage_figures,
+            figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
+        .inject_text_generation(TextGenerationAPI(model="redhatai-scout"))
         .get_publications()[0]
         .full_text
     )
