@@ -169,8 +169,6 @@ class PymupdfParser(PDFParser, TextGenerationInjector):
             str: The extracted full text from the images.
         """
         full_text = ""
-        if self.text_generation is None:
-            return full_text
         for img_base64 in pdf_as_images:
             text_from_image = self.text_generation.convert_pdf_scan(img_base64, mime_type="image/png")
             full_text += text_from_image + "\n"
