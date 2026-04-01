@@ -4,28 +4,38 @@ import re
 from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
+from typing import Self
 import pymupdf
+from aoptk.inject_text_generation import TextGenerationInjector
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
-from aoptk.text_generation_api import TextGenerationAPI
 
 if TYPE_CHECKING:
     from aoptk.literature.pdf import PDF
+    from aoptk.text_generation_api import TextGenerationAPI
 
 
-class PymupdfParser(PDFParser):
+class PymupdfParser(PDFParser, TextGenerationInjector):
     """Parse PDFs using PyMuPDF."""
-
-    model: str = "llama-4-scout-17b-16e-instruct"
 
     def __init__(self, pdfs: list[PDF], figure_storage: str = "tests/figure_storage"):
         self.figure_storage = figure_storage
         self.pdfs = pdfs
         self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
+        self.text_generation = None
+
+    def inject_text_generation(self, text_generation: TextGenerationAPI) -> Self:
+        """Inject text generation dependency (voluntary).
+
+        Args:
+            text_generation (TextGenerationAPI): The text generation API to use for converting PDF scans to text.
+        """
+        self.text_generation = text_generation
+        return self
 
     def get_publications(self) -> list[Publication]:
         """Get a list of publications."""
@@ -93,7 +103,7 @@ class PymupdfParser(PDFParser):
                 pages=enumerate(doc, start=0),
             )
             full_text = "\n".join(block[6] for block in text_blocks)
-            if self._is_corrupted(full_text) or self._is_too_short(full_text):
+            if (self._is_corrupted(full_text) or self._is_too_short(full_text)) and self.text_generation:
                 pdf_as_images = self._extract_pdf_as_images(pdf)
                 full_text = self._extract_full_text_from_images(pdf_as_images)
 
@@ -159,9 +169,10 @@ class PymupdfParser(PDFParser):
             str: The extracted full text from the images.
         """
         full_text = ""
-        text_generation = TextGenerationAPI(model=self.model)
+        if self.text_generation is None:
+            return full_text
         for img_base64 in pdf_as_images:
-            text_from_image = text_generation.extract_text_from_pdf_image(img_base64, mime_type="image/png")
+            text_from_image = self.text_generation.convert_pdf_scan(img_base64, mime_type="image/png")
             full_text += text_from_image + "\n"
         return full_text
 
