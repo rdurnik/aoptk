@@ -11,9 +11,9 @@ from aoptk.spacy_pdf_processor import SpacyPDF
 # ruff: noqa: SLF001
 
 
-def test_can_create(provide_temp_storage_figures: dict):
+def test_can_create(tmp_path_factory: pytest.TempPathFactoryt):
     """Can create SpacyPDF instance."""
-    actual = SpacyPDF([], figure_storage=provide_temp_storage_figures)
+    actual = SpacyPDF([], figure_storage=tmp_path_factory.mktemp("spacy_pdf_processor_figures"))
     assert actual is not None
 
 
@@ -22,18 +22,21 @@ def test_implements_pymupdfparser():
     assert issubclass(SpacyPDF, PymupdfParser)
 
 
-def test_get_publications_not_empty(provide_temp_storage_figures: dict):
+def test_get_publications_not_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications method returns a non-empty result."""
     actual = SpacyPDF(
         [PDF("tests/test_pdfs/test_pdf.pdf")],
-        figure_storage=provide_temp_storage_figures,
+        figure_storage=tmp_path_factory.mktemp("spacy_pdf_processor_figures"),
     ).get_publications()
     assert actual is not None
 
 
-def test_extract_id(provide_temp_storage_figures: dict):
+def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
-    parser = SpacyPDF([PDF("tests/test_pdfs/test_pdf.pdf")], figure_storage=provide_temp_storage_figures)
+    parser = SpacyPDF(
+        [PDF("tests/test_pdfs/test_pdf.pdf")],
+        figure_storage=tmp_path_factory.mktemp("spacy_pdf_processor_figures"),
+    )
     actual = parser.get_publications()[0].id
     expected = "test_pdf"
     assert str(actual) == expected
@@ -58,9 +61,9 @@ def test_extract_id(provide_temp_storage_figures: dict):
         ),
     ],
 )
-def test_is_page_header_footer(potential_footer_header: str, output: bool, provide_temp_storage_figures: dict):
+def test_is_page_header_footer(potential_footer_header: str, output: bool, tmp_path_factory: pytest.TempPathFactory):
     """Test identifying page headers and footers."""
-    actual = SpacyPDF([], figure_storage=provide_temp_storage_figures)._is_page_header_footer(
+    actual = SpacyPDF([], figure_storage=tmp_path_factory.mktemp("spacy_pdf_processor_figures"))._is_page_header_footer(
         text=potential_footer_header,
     )
     assert actual == output
