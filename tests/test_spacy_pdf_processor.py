@@ -5,7 +5,7 @@ import pytest
 from fuzzywuzzy import fuzz
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
-from aoptk.spacy_pdf_processor import SpacyPDF
+from aoptk.literature.spacy_pdf_processor import SpacyPDF
 
 # ruff: noqa: PLR2004
 # ruff: noqa: SLF001
