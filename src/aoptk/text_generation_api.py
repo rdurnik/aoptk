@@ -11,6 +11,7 @@ from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
 from aoptk.literature.convert_image import ConvertImage
 from aoptk.literature.convert_pdf_scan import ConvertPDFScan
+from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
@@ -21,7 +22,14 @@ from aoptk.relationships.relationship import Relationship
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical, ConvertPDFScan, ConvertImage):
+class TextGenerationAPI(
+    FindChemical,
+    FindRelationship,
+    NormalizeChemical,
+    ConvertPDFScan,
+    ConvertImage,
+    FindRelevantPublication,
+):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -639,7 +647,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical, Conve
 
         Args:
             question (str): The question to search for relevant publications.
-            text (str): The input text to search for chemicals.
+            text (str): The extracted text of the publication.
         """
         completion = self.client.chat.completions.create(
             model=self.model,

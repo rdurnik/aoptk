@@ -7,6 +7,7 @@ from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
 from aoptk.literature.convert_image import ConvertImage
 from aoptk.literature.convert_pdf_scan import ConvertPDFScan
+from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
@@ -40,6 +41,7 @@ def test_implements_interface_find_chemical():
     assert isinstance(TextGenerationAPI(), NormalizeChemical)
     assert isinstance(TextGenerationAPI(), ConvertPDFScan)
     assert isinstance(TextGenerationAPI(), ConvertImage)
+    assert isinstance(TextGenerationAPI(), FindRelevantPublication)
 
 
 @pytest.mark.openai
