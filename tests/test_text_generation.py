@@ -5,6 +5,8 @@ import pytest
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.literature.convert_image import ConvertImage
+from aoptk.literature.convert_pdf_scan import ConvertPDFScan
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
@@ -36,6 +38,8 @@ def test_implements_interface_find_chemical():
     assert isinstance(TextGenerationAPI(), FindChemical)
     assert isinstance(TextGenerationAPI(), FindRelationship)
     assert isinstance(TextGenerationAPI(), NormalizeChemical)
+    assert isinstance(TextGenerationAPI(), ConvertPDFScan)
+    assert isinstance(TextGenerationAPI(), ConvertImage)
 
 
 @pytest.mark.openai
@@ -319,7 +323,7 @@ def test_normalize_chemical(chemical: str, list_of_chemicals: list[str], expecte
 def test_extract_text_from_pdf_image():
     """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
     base64_str = (Path("tests/test-data/test_pdf_base64_image.txt").read_text()).strip()
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").extract_text_from_pdf_image(
+    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_pdf_scan(
         base64_str,
         mime_type="image/jpeg",
     )
@@ -361,7 +365,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
 @pytest.mark.openai
 def test_convert_image_to_text():
     """Test that convert_image_to_text method converts an image to text."""
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image_to_text(
+    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image(
         "tests/test_figures/gjic.jpeg",
         text="These images are about gap junction intercellular communication.",
     )

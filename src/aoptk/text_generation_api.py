@@ -9,6 +9,8 @@ from openai import OpenAI
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
+from aoptk.literature.convert_image import ConvertImage
+from aoptk.literature.convert_pdf_scan import ConvertPDFScan
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationship_type import Causative
 from aoptk.relationship_type import Inhibitive
@@ -19,7 +21,7 @@ from aoptk.relationships.relationship import Relationship
 topics = {Inhibitive(), Causative()}
 
 
-class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
+class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical, ConvertPDFScan, ConvertImage):
     """Text generation API using OpenAI."""
 
     role: str = "user"
@@ -172,7 +174,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     {list_of_chemical_names}
     """
 
-    extract_text_from_pdf_scan_prompt: str = """
+    convert_pdf_scan_prompt: str = """
     Extract the complete text from the provided scientific publication image,
     preserving all original line breaks, spacing,
     and paragraph structure exactly as shown.
@@ -180,7 +182,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
     extra spaces are inserted between letters or words.
     """
 
-    image_to_text_prompt = """
+    convert_image_prompt = """
     You are analyzing an image extracted from a scientific publication.
 
     Task:
@@ -482,7 +484,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
             return response
         return None
 
-    def extract_text_from_pdf_image(
+    def convert_pdf_scan(
         self,
         img_base64: str,
         mime_type: str,
@@ -506,7 +508,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
                     "content": [
                         {
                             "type": "text",
-                            "text": self.extract_text_from_pdf_scan_prompt,
+                            "text": self.convert_pdf_scan_prompt,
                         },
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
                     ],
@@ -598,7 +600,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
             )
         return relationships
 
-    def convert_image_to_text(
+    def convert_image(
         self,
         image_path: str,
         text: str,
@@ -621,7 +623,7 @@ class TextGenerationAPI(FindChemical, FindRelationship, NormalizeChemical):
                     "content": [
                         {
                             "type": "text",
-                            "text": self.image_to_text_prompt.format(text=text),
+                            "text": self.convert_image_prompt.format(text=text),
                         },
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
                     ],
