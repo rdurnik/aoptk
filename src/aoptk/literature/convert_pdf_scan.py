@@ -7,6 +7,6 @@ class ConvertPDFScan(ABC):
     """Abstract base class for converting PDF scans to text."""
 
     @abstractmethod
-    def convert_pdf_scan(self, img_base64: str) -> str:
+    def convert_pdf_scan(self) -> str:
         """Return converted text data."""
         ...
