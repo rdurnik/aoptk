@@ -21,6 +21,10 @@ from aoptk.relationships.relationship import Relationship
 
 topics = {Inhibitive(), Causative()}
 
+class LLMFailureException(Exception):
+    def __init__(self):
+        pass
+
 
 class TextGenerationAPI(
     FindChemical,
@@ -273,6 +277,19 @@ class TextGenerationAPI(
             relationship_type (RelationshipType): The relationship type to classify.
         """
         other_topics = topics.difference({relationship_type})
+        content = self.relationship_text_prompt.format(
+                        text=text,
+                        chem=chemical.name,
+                        effect=effect.name,
+                        rel_type=relationship_type,
+                        other_topics=", ".join([topic.positive for topic in other_topics]),
+                        specification_relationship_text_prompt=self.specification_relationship_text_prompt,
+                    )
+
+        completion = self._prompt(content)
+        return completion.choices[0].message.content.strip().lower()
+
+    def _prompt(self, content: str) -> str:
         completion = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
@@ -280,18 +297,14 @@ class TextGenerationAPI(
             messages=[
                 {
                     "role": self.role,
-                    "content": self.relationship_text_prompt.format(
-                        text=text,
-                        chem=chemical.name,
-                        effect=effect.name,
-                        rel_type=relationship_type,
-                        other_topics=", ".join([topic.positive for topic in other_topics]),
-                        specification_relationship_text_prompt=self.specification_relationship_text_prompt,
-                    ),
+                    "content": content,
                 },
             ],
         )
-        return completion.choices[0].message.content.strip().lower()
+        
+        if response:= completion.choices[0].message.content:
+            return response.strip().lower()
+        raise LLMFailureException()
 
     def _select_relationship_type(self, response: str, relationship_type: RelationshipType) -> str | None:
         """Select the relationship type based on the response.
@@ -312,18 +325,7 @@ class TextGenerationAPI(
         Args:
             text (str): The input text to search for chemicals.
         """
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": self.chemical_prompt.format(text=text),
-                },
-            ],
-        )
-        response = completion.choices[0].message.content
+        response = self._prompt(self.chemical_prompt.format(text=text))
         if response is None:
             return []
         return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
@@ -425,24 +427,13 @@ class TextGenerationAPI(
         """
         table_text = table_df.to_csv(index=False)
 
-        messages = [
-            {
-                "role": self.role,
-                "content": self.relationships_table_prompt.format(
+        content = self.relationships_table_prompt.format(
                     effect=effect.name,
                     rel_type=relationship_type,
                     table=table_text,
-                ),
-            },
-        ]
-
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=messages,
-        )
-        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+                )
+       
+        if response := self._prompt(content):
             return self._process_colon_separated_response(response, effect, relationship_type, "table")
         return []
 
@@ -470,23 +461,12 @@ class TextGenerationAPI(
         Returns:
             Chemical: The matching chemical name, or None if no match is found.
         """
-        messages = [
-            {
-                "role": self.role,
-                "content": self.normalization_prompt.format(
+        content = self.normalization_prompt.format(
                     chem=chemical.name,
                     list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
-                ),
-            },
-        ]
+                )
 
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=messages,
-        )
-        if response := completion.choices[0].message.content.strip().lower():
+        if response := self._prompt(content):
             if response == "none":
                 return None
             return response
@@ -506,24 +486,15 @@ class TextGenerationAPI(
         Returns:
             str: Extracted text from the image.
         """
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": [
+        content = [
                         {
                             "type": "text",
                             "text": self.convert_pdf_scan_prompt,
                         },
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
-                    ],
-                },
-            ],
-        )
-        if (content := completion.choices[0].message.content) and (response := content.strip()):
+                    ]
+
+        if response := self._prompt(content):
             return response
         return ""
 
@@ -590,14 +561,9 @@ class TextGenerationAPI(
             for img, mime_type in encoded_images
         )
 
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[{"role": self.role, "content": content}],
-        )
+        response = self._prompt(content)
 
-        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+        if response:
             relationships.extend(
                 self._process_colon_separated_response(
                     response,
@@ -621,24 +587,15 @@ class TextGenerationAPI(
         """
         base64_image, mime_type = self._encode_image(image_path)
 
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": [
+        content = [
                         {
                             "type": "text",
                             "text": self.convert_image_prompt.format(text=text),
                         },
                         {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
-                    ],
-                },
-            ],
-        )
-        if (content := completion.choices[0].message.content) and (response := content.strip().lower()):
+                    ]
+
+        if response := self._prompt(content):
             return response
         return ""
 
@@ -649,17 +606,7 @@ class TextGenerationAPI(
             question (str): The question to search for relevant publications.
             text (str): The extracted text of the publication.
         """
-        completion = self.client.chat.completions.create(
-            model=self.model,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": self.find_relevant_publications_prompt.format(question=question, text=text),
-                },
-            ],
-        )
-        if response := completion.choices[0].message.content:
-            return response.strip().lower()
+
+        if response := self._prompt(self.find_relevant_publications_prompt.format(question=question, text=text)):
+            return response
         return None
