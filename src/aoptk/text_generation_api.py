@@ -24,6 +24,7 @@ topics = {Inhibitive(), Causative()}
 
 class LLMFailureError(Exception):
     """Base class for capturing LLM failures."""
+
     def __init__(self):
         pass
 
