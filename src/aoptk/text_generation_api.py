@@ -21,7 +21,9 @@ from aoptk.relationships.relationship import Relationship
 
 topics = {Inhibitive(), Causative()}
 
-class LLMFailureException(Exception):
+
+class LLMFailureError(Exception):
+    """Base class for capturing LLM failures."""
     def __init__(self):
         pass
 
@@ -278,13 +280,13 @@ class TextGenerationAPI(
         """
         other_topics = topics.difference({relationship_type})
         content = self.relationship_text_prompt.format(
-                        text=text,
-                        chem=chemical.name,
-                        effect=effect.name,
-                        rel_type=relationship_type,
-                        other_topics=", ".join([topic.positive for topic in other_topics]),
-                        specification_relationship_text_prompt=self.specification_relationship_text_prompt,
-                    )
+            text=text,
+            chem=chemical.name,
+            effect=effect.name,
+            rel_type=relationship_type,
+            other_topics=", ".join([topic.positive for topic in other_topics]),
+            specification_relationship_text_prompt=self.specification_relationship_text_prompt,
+        )
 
         completion = self._prompt(content)
         return completion.choices[0].message.content.strip().lower()
@@ -301,10 +303,10 @@ class TextGenerationAPI(
                 },
             ],
         )
-        
-        if response:= completion.choices[0].message.content:
+
+        if response := completion.choices[0].message.content:
             return response.strip().lower()
-        raise LLMFailureException()
+        raise LLMFailureError
 
     def _select_relationship_type(self, response: str, relationship_type: RelationshipType) -> str | None:
         """Select the relationship type based on the response.
@@ -428,11 +430,11 @@ class TextGenerationAPI(
         table_text = table_df.to_csv(index=False)
 
         content = self.relationships_table_prompt.format(
-                    effect=effect.name,
-                    rel_type=relationship_type,
-                    table=table_text,
-                )
-       
+            effect=effect.name,
+            rel_type=relationship_type,
+            table=table_text,
+        )
+
         if response := self._prompt(content):
             return self._process_colon_separated_response(response, effect, relationship_type, "table")
         return []
@@ -462,9 +464,9 @@ class TextGenerationAPI(
             Chemical: The matching chemical name, or None if no match is found.
         """
         content = self.normalization_prompt.format(
-                    chem=chemical.name,
-                    list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
-                )
+            chem=chemical.name,
+            list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
+        )
 
         if response := self._prompt(content):
             if response == "none":
@@ -487,12 +489,12 @@ class TextGenerationAPI(
             str: Extracted text from the image.
         """
         content = [
-                        {
-                            "type": "text",
-                            "text": self.convert_pdf_scan_prompt,
-                        },
-                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
-                    ]
+            {
+                "type": "text",
+                "text": self.convert_pdf_scan_prompt,
+            },
+            {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
+        ]
 
         if response := self._prompt(content):
             return response
@@ -588,12 +590,12 @@ class TextGenerationAPI(
         base64_image, mime_type = self._encode_image(image_path)
 
         content = [
-                        {
-                            "type": "text",
-                            "text": self.convert_image_prompt.format(text=text),
-                        },
-                        {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
-                    ]
+            {
+                "type": "text",
+                "text": self.convert_image_prompt.format(text=text),
+            },
+            {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
+        ]
 
         if response := self._prompt(content):
             return response
@@ -606,7 +608,6 @@ class TextGenerationAPI(
             question (str): The question to search for relevant publications.
             text (str): The extracted text of the publication.
         """
-
         if response := self._prompt(self.find_relevant_publications_prompt.format(question=question, text=text)):
             return response
         return None
