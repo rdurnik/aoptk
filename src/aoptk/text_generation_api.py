@@ -60,7 +60,7 @@ class TextGenerationAPI(
     4. Do not add leading or trailing separators.
     5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space)
     in chemical names.
-    6. If no chemical entities are present, return an empty string.
+    6. If no chemical entities are present, return exactly "none"
 
     Context:
     {text}
@@ -327,10 +327,11 @@ class TextGenerationAPI(
         Args:
             text (str): The input text to search for chemicals.
         """
-        response = self._prompt(self.chemical_prompt.format(text=text)).lower()
-        if response is None:
-            return []
-        return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
+        if response := self._prompt(self.chemical_prompt.format(text=text)).lower():
+            if response == "none":
+                return []
+            return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
+        return []
 
     def _encode_image(self, image_path: str) -> tuple[str, str]:
         """Encode the image at the given path to a base64 string and return MIME type.
