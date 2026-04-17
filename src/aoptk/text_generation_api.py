@@ -289,8 +289,7 @@ class TextGenerationAPI(
             specification_relationship_text_prompt=self.specification_relationship_text_prompt,
         )
 
-        completion = self._prompt(content)
-        return completion.choices[0].message.content.strip().lower()
+        return self._prompt(content)
 
     def _prompt(self, content: str) -> str:
         completion = self.client.chat.completions.create(
@@ -306,7 +305,7 @@ class TextGenerationAPI(
         )
 
         if response := completion.choices[0].message.content:
-            return response.strip().lower()
+            return response.strip()
         raise LLMFailureError
 
     def _select_relationship_type(self, response: str, relationship_type: RelationshipType) -> str | None:
@@ -328,7 +327,7 @@ class TextGenerationAPI(
         Args:
             text (str): The input text to search for chemicals.
         """
-        response = self._prompt(self.chemical_prompt.format(text=text))
+        response = self._prompt(self.chemical_prompt.format(text=text)).lower()
         if response is None:
             return []
         return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
@@ -469,7 +468,7 @@ class TextGenerationAPI(
             list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
         )
 
-        if response := self._prompt(content):
+        if response := self._prompt(content).lower():
             if response == "none":
                 return None
             return response
@@ -609,6 +608,6 @@ class TextGenerationAPI(
             question (str): The question to search for relevant publications.
             text (str): The extracted text of the publication.
         """
-        if response := self._prompt(self.find_relevant_publications_prompt.format(question=question, text=text)):
+        if response := self._prompt(self.find_relevant_publications_prompt.format(question=question, text=text)).lower():
             return response
         return None
