@@ -609,6 +609,8 @@ class TextGenerationAPI(
             question (str): The question to search for relevant publications.
             text (str): The extracted text of the publication.
         """
-        if response := self._prompt(self.find_relevant_publications_prompt.format(question=question, text=text)).lower():
+        if response := self._prompt(
+            self.find_relevant_publications_prompt.format(question=question, text=text),
+        ).lower():
             return response
         return None

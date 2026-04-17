@@ -66,11 +66,11 @@ def test_find_relationships_not_empty():
             "Thioacetamide and ethanol were used to induce liver injury.",
             ["thioacetamide", "ethanol"],
         ),
-                (
+        (
             "Thioacetamide was used to induce liver injury.",
             ["thioacetamide"],
         ),
-                (
+        (
             "No chemical was studied here.",
             [],
         ),
@@ -124,7 +124,7 @@ def test_find_chemical(text: str, expected: list[str]):
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="liver fibrosis"),
                     context="Thioacetamide was studied. Acetaminophen caused liver fibrosis.",
-                )
+                ),
             ],
         ),
     ],
