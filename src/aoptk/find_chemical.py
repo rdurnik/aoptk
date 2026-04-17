@@ -11,5 +11,5 @@ class FindChemical(ABC):
     """Interface for finding chemicals in text."""
 
     @abstractmethod
-    def find_chemical(self, sentence: str) -> list[Chemical]:
+    def find_chemicals(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""

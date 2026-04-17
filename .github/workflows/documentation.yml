@@ -20,17 +20,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.0.0
       - name: Python info
         shell: bash -e {0}
         run: |
           which python
           python --version
-      - name: Upgrade pip and install dependencies
+      - name: Install dependencies with uv
         run: |
-          python -m pip install --upgrade pip setuptools
-          python -m pip install .[dev,publishing]
+          uv sync --extra dev --extra publishing
       - name: Install pandoc using apt
-        run: sudo apt install pandoc        
+        run: sudo apt install pandoc
       - name: Build documentation
-        run: make coverage doctest html
-        working-directory: docs
+        run: uv run make -C docs coverage doctest html

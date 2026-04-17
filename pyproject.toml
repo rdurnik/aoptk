@@ -18,16 +18,16 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
     "pandas",
-    "pymupdf",
-    "metapub",
+    "pymupdf<=1.27",
     "requests",
+    "scipy>=1.16.3",
     "scispacy",
+    "numpy>=1.26,<2.0",
     "spacy>=3.0.0,<3.8.0",
     "beautifulsoup4",
     "biopython",
@@ -37,14 +37,17 @@ dependencies = [
     "click>=8.1",
     "openai",
     "python-dotenv",
-    "spacy-layout"
+    "setuptools",
+    "spacy-layout",
+    "tenacity",
+    "en-ner-bc5cdr-md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
 license = {file = "LICENSE"}
 name = "aoptk"
 readme = {file = "README.md", content-type = "text/markdown"}
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 version = "0.2.0"
 
 [project.scripts]
@@ -65,7 +68,9 @@ dev = [
     "myst_parser",
     "jupyter",
     "ipykernel",
-    "fuzzywuzzy"
+    "fuzzywuzzy",
+    "pytest-mock",
+    "boto3",
 ]
 docs = [
     "sphinx",
@@ -86,6 +91,9 @@ ReadTheDocs = "https://aoptk.readthedocs.io"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "openai: marks tests that require OpenAI API"
+]
 
 
 [tool.coverage.run]

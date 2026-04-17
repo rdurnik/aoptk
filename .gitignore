@@ -68,3 +68,7 @@ venv.bak/
 *.swp
 *.swo
 *.orig
+
+# application directories
+src/aoptk/application/fibrosis/
+src/aoptk/application/gjic/

@@ -1,6 +1,11 @@
+## AOP-toolkit (aoptk)
+
+AOP-toolkit (aoptk) is a Python package for mining and analyzing toxicological and biomedical literature. Originally developed to support the construction of Adverse Outcome Pathways (AOPs), it provides general-purpose tools for retrieving, processing, and analyzing scientific publications.
+
+The toolkit enables users to collect literature from databases such as PubMed Central and Europe PMC, extract information from full-text articles, analyze unstructured text and images using large language models, and normalize chemical names across publications to improve data consistency and interoperability.
+
 ## Badges
 
-(Customize these badges with your own links, and check https://shields.io/ or https://badgen.net/ to see which other badges are available.)
 
 | fair-software.eu recommendations | |
 | :-- | :--  |
@@ -16,9 +21,6 @@
 | Build                              | [![build](https://github.com/rdurnik/aoptk/actions/workflows/build.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/build.yml) |
 | Citation data consistency          | [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml) |## How to use aoptk
 
-Tools to support data mining for the development of (q)AOPs
-
-The project setup is documented in [project_setup.md](project_setup.md). Feel free to remove this document (and/or the link to this document) if you don't need it.
 
 ## Installation
 
@@ -32,7 +34,7 @@ python -m pip install .
 
 ## Documentation
 
-Include a link to your project's full documentation here.
+TBA
 
 ## Contributing
 
