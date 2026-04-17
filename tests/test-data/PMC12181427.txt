@@ -1,0 +1,491 @@
+
+JOURNAL INFORMATION
+==============================
+NLM Title Abbreviation: Sci Rep
+Journal ID: Sci Rep
+
+Scientific Reports
+
+EISSN: 2045-2322
+Publisher: Nature Publishing Group
+
+ARTICLE INFORMATION
+==============================
+PMCID: PMC12181427
+PMID: 40542057
+DOI: 10.1038/s41598-025-05691-w
+Article ID: 5691
+Article version: 1
+Subjects: Article
+
+Tuning surface properties of thiophene-based thin films on glass substrates for cancer cell adhesion, drug release control, and computational analysis
+
+Metwally Heba M. hebama@mans.edu.eg
+1
+El-Banna Omar M. 1
+Abdel-Latif Ehab 1
+Gabal Raghda Abo raghdaabogabal@gmail.com
+2
+1 https://ror.org/01k8vtd75 grid.10251.37 0000 0001 0342 6662 Department of Chemistry, Faculty of Science, Mansoura University, Mansoura, 35516 Egypt
+2 https://ror.org/01k8vtd75 grid.10251.37 0000 0001 0342 6662 Center of Excellence for Genome and Cancer Research, Urology and Nephrology Center, Mansoura University, El Dakhlia, Egypt
+Electronic publication date: 2025 Jun 20
+Publication date: 2025
+Volume: 15
+Electronic Location ID: 20170
+Received 2024 Dec 22; Accepted 2025 Jun 4
+Copyright: © The Author(s) 2025
+Copyright year: 2025
+License: Open Access This article is licensed under a Creative Commons Attribution 4.0 International License, which permits use, sharing, adaptation, distribution and reproduction in any medium or format, as long as you give appropriate credit to the original author(s) and the source, provide a link to the Creative Commons licence, and indicate if changes were made. The images or other third party material in this article are included in the article’s Creative Commons licence, unless indicated otherwise in a credit line to the material. If material is not included in the article’s Creative Commons licence and your intended use is not permitted by statutory regulation or exceeds the permitted use, you will need to obtain permission directly from the copyright holder. To view a copy of this licence, visit http://creativecommons.org/licenses/by/4.0/.
+License URL: https://creativecommons.org/licenses/by/4.0/
+
+Keywords: Thiophene, Thin film glass, Hepatocellular, Thin film, Cancer adhesion, Drug release, Docking, DFT
+Keywords: Biophysics, Cancer, Computational biology and bioinformatics, Chemistry, Materials science, Nanoscience and technology, Physics
+
+Funding: Mansoura University Open access funding provided by The Science, Technology & Innovation Funding Authority (STDF) in cooperation with The Egyptian Knowledge Bank (EKB).
+
+issue-copyright-statement: © Springer Nature Limited 2025
+
+==============================
+This study explores the potential of six novel thiophene derivative thin films (THIOs) for reducing cancer cell adhesion and enhancing controlled drug release on inert glass substrates. Thiophene derivatives 3a–c and 5a–c were synthesized and characterized using IR, 1H NMR, 13C NMR, and elemental analysis before being spin-coated onto glass to form thin films. SEM analysis and roughness measurements were used to assess their structural and functional properties. Biological evaluations demonstrated that the films significantly reduced HepG2 liver cancer cell adhesion (~ 78% decrease vs. control) and enabled controlled drug release, validated through the Korsmeyer-Peppas model (R2 > 0.99). Theoretical studies, including in-silico target prediction, molecular docking with JAK1 (PDB: 4E4L), and DFT calculations, provided insights into the electronic properties and chemical reactivity of these compounds. Notably, compound 5b exhibited the best binding energy (-7.59 kcal/mol) within the JAK1 pocket, aligning with its observed apoptotic behavior in cell culture. DFT calculations further revealed that 5b had the lowest calculated energy values; -4.89 eV (HOMO) and − 3.22 eV (LUMO), and the energy gap was found to be 1.66 eV, supporting its role in JAK1 inhibition and cancer cell adhesion reduction. These findings underscore the promise of thiophene derivatives in biomedical applications, potentially leading to safer surgical procedures and more effective localized drug delivery systems.
+
+Supplementary Information
+
+The online version contains supplementary material available at 10.1038/s41598-025-05691-w.
+
+1. Introduction
+
+Surgical tools used for tumor biopsy, resection, or ablation are susceptible to cancer cell adherence when they come into direct contact with tumor tissue, which can cause complications. These attached cancer cells may stay viable and spread to surrounding healthy tissues, potentially triggering the development of new tumors1,2. Cancer seeding along the needle tract has been notably observed in patients undergoing percutaneous needle biopsy (PNB) for breast and metastatic colorectal cancers3,4. Intriguingly, concerning data reveal that 26.7% of patients with primary or secondary liver tumor exhibit proliferative cancer cells on the ablation needles used during RFA procedures, explaining the 12.5% incidence of cancer seeding along the needle tract in RFA for primary liver cancer5. To address this challenge, researchers have explored various interventions6.
+
+The tendency of surgical instruments to facilitate cancer cell adhesion highlights the importance of understanding and mitigating potential risks, particularly in liver cancer, bladder cancer, and renal cell carcinoma treatments. Although tumor seeding along the needle tract is uncommon, it has been documented in cancers such as breast, metastatic colorectal, and papillary renal cell carcinoma, with renal biopsies exhibiting an incidence of less than 1%. Risk factors, including multiple needle passes and the use of larger gauge needles, may contribute to this phenomenon. Similarly, while bladder cancer biopsies are rare due to the preference for transurethral resection, isolated cases of tumor seeding have been reported. Investigating the application of THIO coatings in these cancers could provide valuable insights into their potential to minimize cell adhesion and improve surgical safety across various tumor environments7. Expanding research to include bladder cancer, renal cell carcinoma, and other cancer types such as breast (MCF-7, MDA-MB-231)8, colorectal (HCT116, SW480)9, lung (A549, H1975)10, prostate (LNCaP, PC-3)11 and ovarian (SKOV3)12 cancer could help evaluate the broader efficacy of these coatings, predominantly in avoiding tumor cell adhesion during biopsy and surgical procedures.
+
+Radiofrequency ablation (RFA) emerges as a crucial therapeutic approach for health care recipients with unresectable liver malignancies. However, alarming findings indicate that a substantial proportion of patients 26.7% of those with primary or secondary liver malignancies-harbor proliferative cancer cells exposed on the ablation needles used during RFA procedures13,14. This revelation raises a critical concern: the potential for cancer cell dissemination and seeding during RFA, leading to disease recurrence and complications15. Understanding the mechanisms underlying cancer cell adhesion to surgical instruments and their impact on patient outcomes is imperative. Cancer cell attachment is influenced by hydrophobicity, roughness, stiffness, topography, charge, and curvature16,17. The interplay of these factors shapes adhesion strength and specificity, impacting drug delivery, biomaterials, and targeted therapies18,19. By unraveling these mechanisms, researchers and clinicians can devise strategies to mitigate the risk of cancer cell dissemination and enhance the efficacy of liver cancer treatments such as RFA20,21. Chitosan films incorporating a 2-aminothiophene derivative exhibited antifungal effects against Candida species22. Alternative materials have been more extensively studied, such as a thermosensitive anti-adhesive agent based on a human-derived acellular dermal matrix23, which showed promise in preventing postoperative adhesions. Similarly, visible-light curable furfuryl gelatin derivatives loaded with ibuprofen have demonstrated effectiveness as biocompatible, drug-loaded anti-adhesion barriers24.
+
+Heterocyclic compounds shows unlimited significance in both medicinal and organic chemistry because of their extensive biological activities. Compounds containing sulfur, nitrogen, and oxygen in their structures consistently attract the interest of medicinal chemists and researchers due to their wide-ranging pharmacological properties25–31. One such heterocycle is thiophene, a five-membered ring with a sulfur heteroatom. Thiophene-containing compounds have been extensively studied for their potential as pharmaceutical agents, demonstrating a wide range of pharmacological activities32,33. For many years, thiophene derivatives, including mono-substituted, di-substituted, and tri-substituted forms, have been identified as effective anticancer drugs. Several anticancer drugs currently on the market incorporate a thiophene nucleus in their composition. Thiophene-based coatings generally exhibit stability under physiological conditions, including variations in pH and temperature. Quinoid-thiophene-based covalent organic polymers have demonstrated resilience even under conditions harsher than room temperature34. However studies have shown that thiophene-containing photosensitizers can react with singlet oxygen, leading to potential degradation35,36.
+
+These activities include antimicrobial37,38, antifungal39, antiviral40, antitumor41, anti-inflammatory42, and antioxidant43 properties. Thiophene derivatives have attracted interest in cancer research because of their capacity to affect several cellular processes related to tumor growth. When conjugated with folate, thiophene-based compounds can specifically target these receptors44. In particular, some tetrahydrobenzo[b]thiophene derivatives function as destabilizers of tubulin polymerization, inhibitors of histone deacetylase (HDAC), and blockers of topoisomerases45. These varied mechanisms emphasize the adaptability of thiophene derivatives in cancer treatment, providing various pathways for targeted therapeutic approaches.
+
+Many available thiophene based drugs exhibiting anticancer action through multiple pathways involved in cancer46–57. Raloxifene, thiophene analogue, is commonly used in reduction risk of invasive breast cancer in post-menopausal women58. Also, Tyrosine Kinase Inhibitor OSI-930 for both tumor cell proliferation and tumor angiogenesis in a variety of cancers59. Teniposide, is used in childhood acute lymphocytic leukemia treatment protocol60. Positron emission tomography, PET-imaging of inflammation biomarkers were used to track metabolic processes radiolabeled with thiophene61. Scientists and researchers aim to design and develop innovative, target-specific, and advanced thiophene derivatives. Thiophene derivatives can be engineered to enhance drug delivery systems, enabling targeted therapies for cancer by directing nanoparticles to specific cells45. Introducing polar groups (e.g., –COOH or –X) carboxy or halogeno derivatives could improve hydrophilicity and binding to cancer-specific receptors62.
+
+The tumor microenvironment plays a critical role in drug resistance and chemotherapy success63,64. Partly by influencing signaling pathways such as JAK/STAT, which regulate cancer cell adhesion, proliferation, and migration. Inhibiting this pathway can alter adhesion dynamics65. Certain thiophene compounds have demonstrated the ability to inhibit vascular endothelial growth factor receptor 2 (VEGFR-2) and AKT, key proteins involved in cancer cell proliferation and survival66.
+
+It was observed that apoptosis sensitivity increases by direct contact with specific extracellular matrix (ECM) components67. Previous research has underscored the critical role of surface topography, surface free energy, and chemical composition in determining cellular adhesion strength68. Therefore, our focus was on assessing the impact of thio-modified glass (THIOMG) surfaces specifically on cancer cell adhesion, as well as their potential for controlled drug release applications69,70. By selecting an inert glass substrate, we could isolate the effects of the THIOs and analyze their potential as biomedical coatings.
+
+This research hypothesizes that thiophene-based (THIO) thin film coatings on glass substrates can effectively reduce cancer cell adhesion, enhance biocompatibility, and enable controlled drug release, making them promising candidates for biomedical applications, particularly in implantable medical devices and surgical instruments. Additionally, it is proposed that different THIO derivatives-methyl, methoxy, and chloride will exhibit distinct biological effects on cancer cells due to their varying electronic properties, influencing cell adhesion, viability, and proliferation71.
+
+Six novel thiophene-based derivatives were chemically synthesized and characterized using spectroscopic methods. These compounds were spin-coated onto glass substrates, forming thin films, whose quality was assessed through scanning electron microscopy (SEM) and surface roughness analysis. Additionally, drug release kinetics were investigated to understand the controlled release behavior of these coatings. To evaluate the biomedical potential of these coatings, HepG2 liver cancer cells were seeded onto the THIO-coated glass substrates, allowing for the assessment of their cytotoxic effects on cancer cell adhesion, viability, and proliferation. Molecular docking studies were also conducted to determine the binding affinities and interactions of the synthesized THIO derivatives with key biomolecules associated with liver cancer, providing insights into their roles as potential inhibitors or modulators of cancer-related pathways.
+
+Materials and methods
+
+Chemistry experimental
+
+All data related to the devices utilized in the chemistry section were included in the supplementary materials.
+
+Synthesis of 3-hydroxythiophene compounds 3a–c
+
+The 2-(arylhydrazono)-2-ethoxycarbonyl-thioacetanilide derivative 2a–c was prepared as reported72 and (0.002 mol) of each was dissolved in sodium ethoxide solution (which was prepared from 0.04 g Na and 20 mL absolute ethanol). The mixture was stirred for 10 min then 2-chloro-N-(4-sulfamoylphenyl)acetamide (1) (0.510 g, 0.002 mol) was added. Then, the mixture was refluxed for 2 h at 80 °C and the formed precipitate on hot was dried out and crystallized from ethanol to give the targeted 3-hydroxythiophenes 3a–c. These conditions were optimized based on prior studies77.
+
+3-hydroxy-5-(phenylamino)-N-(4-sulfamoylphenyl)-4-(p-tolyldiazenyl)thiophene-2-carboxamide (3a)
+
+Black solid, yield = 64.1%, m.p. = above 300 °C. IR (ν/cm− 1): 3529, 3189 (NH & NH2), 1621 (C=O), 1325 and 1157 (SO2). 1H NMR (δ/ppm): 2.29 (s, 3 H, CH3), 6.99 (d, J = 7.5 Hz, 1H, Ar-H), 7.05–7.22 (m, 6 H, Ar-H&2NH), 7.28–7.47 (m, 5 H, Ar-H), 7.64–7.68 (m, 4 H, Ar-H&OH), 11.68&12.47 (s, 1H, cis/trans conformers NH), 14.59&15.03 (s, 1H, cis/trans conformers NH). 13C NMR (δ/ppm): 20.51, 90.71, 91.14, 112.42, 113.77, 115.44, 116.97, 120.50, 121.32 (2 C), 125.01, 126.89, 129.02, 129.26 (2 C), 129.95, 133.05, 135.25, 141.72, 144.14, 147.83, 157.79, 162.95, 167.09. Anal. Calcd. %for C24H21N5O4S2 (507.10): C, 56.79; H, 4.17; N, 13.80% Found: C, 56.50; H, 4.32; N, 13.65%.
+
+3-hydroxy-4-((4-methoxyphenyl)diazenyl)-5-(phenylamino)-N-(4-sulfamoylphenyl)thiophene-2-carboxamide (3b)
+
+Black solid, yield = 61.1%, m.p. = above 300 °C. IR (ν/cm− 1): 3558, 3511, 3359 (OH& NH &NH2), 1634 (C=O), 1303 and 1154 (SO2). 1H NMR (δ/ppm): 3.77 (s, 3 H, OCH3), 6.93 (d, J = 9.5 Hz, 1H, Ar-H), 6.95–7.14 (m, 4 H, Ar-H&2NH), 7.18 (t, J = 7.25 Hz, 1H, Ar-H), 7.22–7.34 (m, 3 H, Ar-H), 7.41–7.48 (m, 3 H, Ar-H), 7.62–7.70 (m, 4 H, Ar-H&OH), 11.66&12.47 (s, 1H, cis/trans conformers NH), 14.38&15.05 (s, 1H, cis/trans conformers NH). Analysis calculated for C24H21N5O5S2 (523.10): C, 55.06; H, 4.04; N, 13.38% Found: C, 55.36; H, 4.19; N, 13.58%.
+
+4-((4-chlorophenyl)diazenyl)-3-hydroxy-5-(phenylamino)-N-(4-sulfamoylphenyl)thiophene-2-carboxamide (3c)
+
+Black solid, yield = 73.6%, m.p. = 295 °C. IR (ν/cm− 1): 3422(OH), 3309, 3201, 3240 (NH&NH2), 1646 (C =O), 1304 and 1162(SO2). 1H NMR (δ/ppm): 7.00 (d, J = 7.5 Hz, 1H, Ar-H), 7.10–7.18 (m, 2 H, Ar-H), 7.21 (t, J = 7.25 Hz, 1H, Ar-H), 7.29–7.46 (m, 8 H, Ar-H& 2NH), 7.60–7.70 (m, 4 H, Ar-H&OH), 11.67&12.43 (s, 1H, cis/trans conformers NH), 14.55&15.06 (s, 1H, cis/trans conformers NH). Anal. Calcd. for C23H18ClN5O4S2 (527.05): C, 52.32; H, 3.44; N, 13.26% Found: C, 52.08; H, 3.59; N, 13.44%.
+
+Synthesis of 3-methylthiophene compounds 5a–c
+
+The 2-acetyl-2-arylazo-thioacetanilide derivatives 4a-c was prepared as reported72,77 and (0.002 mol) of each was dissolved in sodium ethoxide solution (which was prepared from 0.04 g Na and 20 mL absolute ethanol). The mixture was stirred for 10 min then 2-chloro-N-(4-sulfamoylphenyl)acetamide (1) (0.510 g, 0.002 mol) was added. The mixture was refluxed for 2 h then the formed precipitate on hot was dried and crystallized from ethanol to give the targeted 3-methylthiophenes 5a–c. These conditions were optimized based on prior studies72,77.
+
+3-methyl-5-(phenylamino)-N-(4-sulfamoylphenyl)-4-(p-tolyldiazenyl)thiophene-2-carboxamide (5a)
+
+Orange solid, yield = 62.9%, m.p. = above 300 °C. IR (ν/cm− 1): 3380&3270 (NH&NH2), 1642 (C=O), 1311 and 1154 (SO2). 1H NMR (δ/ppm): 2.31 (s, 3 H, CH3), 2.49 (s, 3 H, CH3), 7.20–7.32 (m, 2 H, Ar-H), 7.38 (d, J = 7.5 Hz, 2 H, Ar-H), 7.45–7.53 (m, 6 H, Ar-H&NH2), 7.65–7.80 (m, 4 H, Ar-H), 12.30 &13.04 (s, 1H, cis/trans conformers NH), 15.08&16.65 (s, 1H, cis/trans conformers NH). 13C NMR (δ/ppm): 13.01, 20.67, 116.90 (2 C), 120.12 (2 C), 120.82 (3 C), 125.78, 126.49 (2 C), 129.68 (3 C), 130.06 (2 C), 135.27, 135.71, 136.53, 138.66, 142.65, 146.40, 155.14, 161.50.Anal. Calcd. for C25H23N5O3S2 (505.12): C, 59.39; H, 4.59; N, 13.85% Found: C, 59.62; H, 4.70; N, 13.75%.
+
+4-((4-methoxyphenyl)diazenyl)-3-methyl-5-(phenylamino)-N-(4-sulfamoylphenyl)thiophene-2-carboxamide (5b)
+
+Orange solid, yield = 45%, m.p. = 293–295 °C. IR (ν/cm− 1): 3364 and 3262 (NH&NH2), 1639 (C=O), 1311 and 1153 (SO2) .1H NMR (δ/ppm): 2.57 (s, 3 H, CH3), 3.81 (s, 3 H, OCH3), 7.05 (d, J = 9 Hz, 2 H, Ar-H), 7.24 (t, J = 7.25 Hz 1H, Ar-H), 7.41–7.55 (m, 5 H, Ar-H&2NH), 7.63–7.83 (m, 7 H, Ar-H), 10.15 (s, 1H, NH) 13.62 (s, 1H, NH). 13C NMR (δ/ppm): 13.32, 55.49, 114.75, 118.33, 120.04 (2 C), 120.20, 120.41 (3 C), 125.30, 126.54 (2 C), 129.75 (3 C), 134.24, 138.52, 138.64, 141.44, 142.10, 143.73, 151.21, 158.84, 161.46. Anal. Calcd. for C25H23N5O4S2 (521.61): C, 57.57; H, 4.44; N, 13.43% Found: C, 57.49; H, 4.59; N, 13.28%.
+
+4-((4-chlorophenyl)diazenyl)-3-methyl-5-(phenylamino)-N-(4-sulfamoylphenyl)thiophene-2-carboxamide (5c)
+
+Orange solid, yield = 71.4% %, m.p. = above 300 °C. IR (ν/cm− 1): 3374 and 3266 (NH&NH2), 1634 (C=O), 1312 and 1154 (SO2). 1H NMR (δ/ppm): 2.52 (s, 3 H, CH3), 7.26–7.90 (m, 15 H, Ar-H&2NH), 10.76 (s, 1H, NH) 14.15 (s, 1H, NH). Anal. Calcd. for C24H20ClN5O3S2 (525.07): C, 54.80; H, 3.83; N, 13.31% Found: C, 54.75; H, 3.98; N, 13.15%.
+
+Fabrication of thiophene-glass thin film derivatives
+
+The six novel thiophene powders (3a–c and 5a–c) were dissolved in DMSO at room temperature. Each thiophene derivative (55 mg) was individually dissolved in 5 mL of DMSO and filtered. Using the spin coating method, thiophene thin films were applied to cleaned optical glass substrates with a VTC100A Compact Spin Coater, set to 8000 rpm for 4-inch wafers. The speed of the spin coater was adjusted to 2500 rpm, and a drop of each solution was placed onto the rotating substrate to form the films. The films were allowed to dry for 48 h at room temperature in the dark.
+
+Characterization of thiophene-glass thin film derivatives
+
+Field emission scanning electron microscopy (FE-SEM)
+
+Field emission scanning electron microscopy (FE-SEM) using a JEOL JSM-IT100 (Japan) provided comprehensive information about the size and morphology of the deposited materials. To improve conductivity, three samples were coated with a thin gold layer (1.5–3 nm) at 30 kV and 30 µA. The surface roughness was assessed to analyze the synthesized surface profile on the PCL scaffolds. For quantitative evaluation, J-Image software was utilized to measure the arithmetical mean roughness (Ra), the root mean square roughness (Rq), Skewness (Rsk), Kurtosis (Rku), Maximum peak height (Rp), the lowest valley(Rz)72,73.
+
+In vitro release studies
+
+In vitro release studies for all samples were conducted in PBS (pH 7.4) with 0.2% Tween 80. Each sample was dispersed in 2 mL of the release medium contained within a Falcon tube holding 50 mL of PBS. At set time intervals, 2 mL was withdrawn and replaced with fresh media. After generating a standard curve, the concentration of the drug released from each sample was quantified using UV-Vis spectroscopy at the relevant wavelengths. The release kinetics were analyzed using various models, including Zero-Order Kinetics, First-Order Kinetics, the Higuchi Model, and the Korsmeyer-Peppas Model. A cumulative release curve was then created, plotting the percentage of drug released over time, with data collected in triplicate, and presented as mean ± standard deviation (SD).
+
+Sterilization of materials for cell culture studies
+
+For cell culture experiments, materials were organized as thin films and located at the underside of tissue culture plastic dishes. These films were sterilized by soaking in 75% ethanol for 10 min, followed by rinsing with PBS to remove any remaining alcohol. Finally, the films were sterilized using UV light.
+
+Setting up cell cultures on experimental films
+
+The study investigated the cytotoxic effects of different materials on HepG2 human liver cancer cells. HepG2 cell lines were purchased from Nawah Scientific Company, Egypt. HepG2 cells were grown in DMEM high glucose medium supplemented with 10% fetal bovine serum (FBS) and antibiotics. The cells were seeded at a density of 2 × 104 cells/cm2 in 3 ml of serum-containing medium on either material films as a control. After the incubation period, the culture plates were removed, and the medium was discarded. The glass surfaces were washed three times with phosphate-buffered saline (PBS) to remove any unattached or loosely adhered cells. Cytotoxicity was assessed by measuring the reduction in cell growth using J-image analysis, which involved capturing images to evaluate cell viability and proliferation74. Cell area measurements were conducted to assess the morphological changes of HepG2 cells in response to various treatment conditions. The cells were cultured under standard conditions and divided into several groups: an untreated control group (HepG2) and six treatment groups labeled 3a, 3b, 3c, 5a, 5b, and 5c. The cell area was quantified through Python utilizing libraries skimage. A minimum of 100 cells per group were analyzed to ensure statistical reliability, and the experiment was repeated across independent replicates to validate the consistency of the observed trends. To optimize data accuracy, image preprocessing steps including grayscale conversion, background subtraction, and noise filtering were applied. These procedures allowed for a clear and reliable assessment of cell morphology, ensuring robust data for subsequent statistical analysis.
+
+Theoretical calculations
+
+In silico-target prediction
+
+In Silico-Target Prediction was performed using https://www.swisstargetprediction.ch made by Swiss Institute of Bioinformatics. For determining the target-affinity prediction of our compounds to specific kinase enzyme, computational Tools for Analyzing PPI and Chemico-Protein Interactions was used. The primary sources of data incorporated into STRING include experimental interaction data, computationally annotated complexes and pathways from existing databases, automated text mining from scientific literature, genomic context predictions, and evidence transferred from other organisms, accessible at https://string-db.org/. The interaction scores provided by STRING range from 0 to 1, with 1 indicating the highest confidence level. Additionally, the PPI networks generated by STRING can be visualized using the Cytoscape plaThioorm (https://cytoscape.org/), facilitating a comprehensive understanding of the interaction landscape.
+
+Molecular docking
+
+To study the binding capabilities of the target compounds, Molecular Operating Environment (MOE, 2019.01) software was exploited for docking purpose. Refer to the Supporting Information for further details. The crystal structure of JAK1 Gene-Janus Kinase 1 was downloaded from Protein Data Bank (PDB: 4E4L). Docking simulation of the synthesized compounds at JAK1 kinase active site was carried out in comparison with Jak1 gene protein codes downloaded from protein data bank (PDB: 3EYG, 3EYH, 4E4N and 4E5W).
+
+DFT-calculation
+
+The compounds were subjected to DFT simulations to verify the intended geometries of the molecules under inquiry. The DFT calculations were carried out utilizing the DMol3/BIOVIA-MS platform75 via GGA/RPBE functionality and the DNP basis set. DFT parameters were obtained by employing HOMO and LUMO values of energy to represent the chemical reactivity of compounds76–79.
+
+Statistical analysis
+
+ImageJ 64-bit software was utilized to quantify roughness results. Data are presented as mean ± standard deviation (SD). For Microscopic images, Statistical analysis was conducted using Python (version 3.12.7). To compare the control group with all treated groups (3a, 3b, 3c, 5a, 5b, 5c), the Kruskal-Wallis test (non-parametric method) was applied. The results indicated a statistically significant difference among the groups (p < 0.05), suggesting that at least one treatment group exhibited a distinct cell area distribution compared to the others. To explore differences between the control group and each individual treated group, Mann–Whitney U tests were performed. These pairwise comparisons confirmed statistically significant reductions in cell area variability across all treated groups relative to the control (p < 0.05), in agreement with the patterns observed in the boxplot visualizations. Results were expressed as medians with interquartile ranges (IQR).
+
+Results and discussion
+
+Chemistry
+
+The targeted novel thiophene derivatives 3a–c and 5a–c were synthesized using a one-step process. This involved condensing 2-chloro-N-(4-sulfamoylphenyl)acetamide (1) with different functionalized thiocarbamoyl compounds 2 and 4, respectively. The reported method has been used to prepare the multipurpose chloroacetamide compound, 2-chloro-N-(4-sulfamoylphenyl)acetamide (1)80. In an ethanolic hot sodium ethoxide solution, 2-chloro acetamide 1 was reacted with 2-(arylhydrazono)-2-ethoxycarbonyl-thioacetanilide (2a–c)43,81 (Scheme 1). Spectroscopic methods like IR, 1HNMR, 13CNMR and mass spectroscopy of the newly synthesized compounds were entirely in agreement with the designated molecular structures. Synthesis of our intended thiophene derivatives 5a–c was carried out using the aforesaid successful one step approach. Thus, the reaction of 2-chloro acetamide 1 with 2-acetyl-2-arylazo-thioacetanilide derivatives (4a–c)82,83 in ethanol containing sodium ethoxide gave the corresponding 3-methyl thiophene-2-carboxamide derivatives 5a–c (Scheme 1). The newly synthesized compound’s structures were confirmed using IR and 1H NMR data, which validated the assigned molecular structures.
+
+Scheme 1 Synthesis of the novel 3-hydroxy thiophenes 3a–c and 3-methyl thiophenes 5a–c.
+
+Characterization of thiophene-glass thin film derivatives
+
+Field emission scanning electron microscopy (FE-SEM)
+
+As shown in (Fig. 1), the SEM images demonstrate distinct differences in the surface morphology of thin films. In Image 3a, Fig. 1, the surface is irregular and uneven, with large aggregates and voids, indicating poor uniformity and inconsistent deposition. Image 3b, Fig. 1, shows a more uniform distribution of spherical particles, though there is a noticeable central cluster, possibly caused by localized defects or impurities during the spin-coating process. In Image 3c, Fig. 1, the surface is the most uniform and smooth, with evenly distributed spherical particles and minimal defects, suggesting better control over the deposition process. This image represents the best thin film formation, featuring a smooth and consistent surface.
+
+Similarly, the SEM images (Fig. 1 and 5a, 5b, and 5c) highlight noticeable differences in the thin films surface morphology produced by spin coating. Figure 1 and 5a and 5b, exhibit fibrous, flaky structures with irregular shapes and random orientations, reflecting poor uniformity in the deposition process. Both images display elongated particles, but 5b has a denser and more interwoven fiber arrangement, indicating a slight improvement in uniformity compared to 5a. In contrast, Fig. 1 and 5c shows evenly distributed flower-like structures, indicating better control over the spin coating process and leading to higher-quality thin film formation.
+
+Fig. 1 Scan electron microscope images for samples 3a–c, 5a–c (1000× magnification) showing surface morphology of thin films prepared via spin coating.
+
+Fig. 2 Surface plot and surface roughness curves for samples 3a–c and 5a–c.
+
+Table 1 Surface roughness parameters for samples 3a-c and 5a-c, showing root mean square roughness (Rq), average roughness (Ra), skewness (Rsk), kurtosis (Rku), maximum peak height (Rp), the lowest valley(Rz).The table reflects the differences in surface texture, sharpness, and peak distribution across the samples.
+
+Sample	Rq	Ra	Rsk	Rku	Rp	Rz	
+3a	25.5783	16.2791	3.9777	28.8427	255	0	
+3b	42.2802	24.7138	3.0804	9.7554	255	0	
+3c	38.01	27.29	1.60	4.61	255	0	
+5a	40.97	28.14	2.44	6.82	255	0	
+5b	43.61	31.07	1.20	4.88	255	0	
+5c	21.36	11.32	5.12	39.59	255	0	
+
+The roughness figures presented in the Fig. 2 reveal significant variation in surface topography across the samples with is corresponding surface profile curves, providing insight into the texture and features of each surface. The structural variations in the thiophene-2-carboxamide derivatives 3a–c and 5a–c play a crucial role in determining their behavior during thin-film formation on glass substrates. Compound 3a, with its hydroxyl group and p-tolyl diazenyl substitution, exhibits rough surface morphology with large aggregates, indicating poor uniformity, likely due to limited interaction with the glass substrate and irregular solvent evaporation. In contrast, 3b and 3c, also featuring hydroxyl groups, demonstrate stronger hydrogen bonding with the substrate, leading to better adhesion and more uniform films. This is particularly evident in 3c, where the presence of a chlorine atom adds a hydrophobic character but still allows for smoother deposition due to a balanced interaction between polar and non-polar regions. The 3-methyl-substituted compounds 5a–c show reduced adhesion due to the absence of the hydroxyl group, resulting in rougher surfaces and less uniform film coverage. Among these, 5c, with a chlorine substitution, displays improved uniformity compared to 5a, likely due to the electron-withdrawing nature of the chlorine atom. Overall, the presence of hydrophilic groups (as in 3b and 3c) enhances film smoothness, while hydrophobic substitutions (as in 5a and 5b) result in rougher, less uniform thin films. The balance between polarity, hydrophobicity, and functional groups defines the quality and morphology of the thin films formed via spin coating.
+
+As shown in Table 1 the surface roughness analysis of samples 3a–c and 5a–c reveals distinct characteristics across the set. Sample 3a demonstrates moderate roughness, with an Rq of 25.58 and Ra of 16.28, and a strongly positive skewness (Rsk = 3.98) indicating a surface with more peaks, along with sharp features as reflected by its high kurtosis (Rku = 28.84). Sample 3b, with a higher Rq (42.28) and Ra (24.71), is rougher than 3a, but with less extreme skewness and kurtosis, though it maintains similar peak height. Sample 3c has similar roughness to 3b but with lower skewness (Rsk = 1.60) and kurtosis (Rku = 4.61), suggesting fewer sharp features. Sample 5a shows comparable roughness to 3b and 3c, though it has sharper features than 3b, as indicated by its kurtosis (Rku = 6.82). Sample 5b is the roughest of all (Rq = 43.61, Ra = 31.07), with a moderate skewness and kurtosis. In contrast, sample 5c has the lowest roughness values (Rq = 21.36, Ra = 11.32) but exhibits the most extreme skewness (Rsk = 5.12) and kurtosis (Rku = 39.59), indicating a surface with sharp, tall peaks. All samples exhibit high maximum peak heights (Rp = 255), suggesting significant variations in surface topography across the set.
+
+In vitro release studies
+
+Table 2 The fit parameters for different mathematical models (zero-order, first-order, higuchi, and Korsmeyer-Peppas models) used to analyze drug release from thin films.
+
+Compounds	Zero order fit	First order fit	Higuchi fit		Korsmeyer-Peppas fit	
+K0(µg.h−1)	Intercept	R 2	K1(h−1)	Intercept	R 2	KH(µg.h−1/2)	Intercept	R 2	n	Intercept	Kp	R 2	
+3a	17.81	111.80	0.96	0.22	6.44	0.86	569.01	1247.70	0.93	0.59	1.38	23.99	0.99	
+3b	51.37	39.72	0.94	0.19	8.00	0.92	1515.36	3414.65	0.92	0.54	1.37	23.44	0.99	
+3c	0.44	20.97	0.74	0.15	2.77	0.92	49.15	87.73	0.97	0.85	1.37	23.44	0.99	
+5a	8.3	422.54	0.88	0.19	6.09	0.95	969.64	1712.27	0.97	0.88	1.38	23.99	1	
+5b	12.1	569.06	0.88	0.20	6.53	0.97	1331.62	2364.58	0.97	1.13	-1.57	0.027	0.99	
+5c	10.26	17.48	0.94	0.19	6.35	0.94	258.86	612.63	0.91	2.39	-3.31	0.001	0.99	
+
+Table 2 presents the fit parameters obtained from zero-order, first-order, Higuchi, and Korsmeyer-Peppas models for drug release profiles of various thin films labeled as 3a–c and 5a–c. The goodness-of-fit for each model is indicated by the R2 values. The intercept represents the initial burst release or initial conditions of the model. A more negative intercept suggests a higher initial burst or a deviation from the ideal linear model at early times. The highest R2 value for each model signifies the best fitting model for the respective thin film.
+
+Fig. 3 Korsmeyer–Peppas drug release model for samples 3a–c, 5a–c: excellent fit with R2 values ranging from 0.99 to 1, indicating high correlation between experimental and theoretical data.
+
+Figure S16A, B shows that for the First and Zero Order Fits, the R2 values for these fits are generally lower than those for Korsmeyer–Peppas and Higuchi, indicating that these models may not describe the release kinetics as accurately as the others. These findings suggest that the Korsmeyer–Peppas Fig. 3 and Higuchi Fig. S16C models are most suitable for describing the drug release profiles of these compounds, with Korsmeyer-Peppas providing the best fit overall. The Korsmeyer–Peppas model Fig. 3 appears to provide the best fit overall, suggesting that it captures the complexity of the drug release mechanisms more effectively than the other models. The zero-order and Higuchi models are also useful but may not fully describe the complex release behaviors seen in these compounds.
+
+The Korsmeyer–Peppas data reveals distinct patterns in the release kinetics of the compounds, with variations in the release exponent n, intercept, and release rate constant Kn across the different structures. For compounds with n values between 0.54 and 0.88, such as 3a, 3b, and 3c, the release mechanism is governed by anomalous transport, where the release is a combination of diffusion and matrix effects. These compounds exhibit relatively high Kn around 23.99 and 23.44, suggesting faster release rates, which is typical for hydrophilic compounds that dissolve more readily in PBS. In contrast, for compounds 5b, and 5c, n values greater than 1 indicate a shift towards super case II transport. The lower Kn values for these compounds suggest slower, more controlled release profiles, which can be attributed to the presence of hydrophobic groups. These groups reduce the solubility of the compounds in PBS, resulting in a sustained release rather than rapid dissolution.
+
+The surface morphology of thin films plays a pivotal role in dictating drug release kinetics. Enhanced surface roughness increases the surface area, facilitating greater interaction with the release medium and potentially accelerating drug diffusion. Studies have demonstrated that rougher surfaces can improve drug release rates due to this increased interaction84. Additionally, the porosity of a film influences its drug release behavior; higher porosity provides more pathways for drug diffusion, leading to faster release profiles85. Furthermore, the chemical composition and proportion of polymers used in film formation affect surface properties and dissolution rates. Variations in composition can alter surface energy and hydrophilicity, impacting drug release mechanisms.
+
+Setting up cell cultures on experimental films
+
+Figure 4 represents typical optical micrographs of living HepG2 cancer cells obtained using an inverted microscope. The cell lines displayed an epithelial morphology and adherent properties in cell culture on bare glass. As shown in Fig. 4, our results revealed a reduction in the number of cancer cells on the THIO-coated surfaces. The number of cells on the THIO-coated surfaces (3a–c) is even lower than on the bare glass surfaces. The cells on THIO-coated surfaces (5a–c) exhibited apoptotic and necrotic behavior compared with the control and THIO-coated surfaces (3a–c).
+
+In control cells, the cells appear well-distributed with typical morphology seen in healthy HepG-2 cells. They are elongated and spindle-shaped, indicating that they are alive and attached to the substrate. The even distribution and healthy appearance suggest that the control cells are thriving under standard culture conditions. In 3a, the cells in this image appear more irregular in shape compared to the control. Some cells seem rounded and detached from the surface, which is often a sign of cell death or stress. In 3b, there is a mix of cell morphologies. Some cells retain a more elongated form, while others appear more rounded and darker, which may indicate that some cells are alive but stressed, while others are undergoing cell death. In 3c, the HepG2 cells cultured on this substrate exhibit typical epithelial morphology but may show slightly less attachment and proliferation compared to the control cells. In 5a The HepG2 cells on this substrate could display increased apoptosis or reduced proliferation. In 5b, HepG2 cells on this surface might exhibit pronounced apoptotic and necrotic. In 5c, HepG2 are likely more detached or dead, displaying features of both apoptosis and necrosis.
+
+There is moderate impact on cell adhesion and proliferation due to the hydrophobic nature of the methyl group in methyl derivatives 3a, 5a, cells show apoptotic behavior. Cells may be rounded and exhibit early signs of apoptosis. While, methoxy derivatives 3b, 5b, show typical epithelial morphology, but potentially fewer in number compared to the control. Chloride Derivatives 3c, 5c, show the strongest impact on cell viability86. The chemical groups (methyl, methoxy, and chloride) modulate the surface’s polarity and hydrophobicity, which in turn influences how HepG2 cells adhere, proliferate, and survive. The films significantly reduced HepG2 liver cancer cell adhesion (~ 78% decrease vs. control).
+
+The boxplot Fig. 5, illustrates a comparison of cell area between the control group HepG2 cell and THIO-coated surfaces (3a, 3b, 3c, 5a, 5b, 5c). The control group displays a significantly wider range of area values, with numerous high outliers extending up to approximately 4900 μm2, indicating substantial variability and the presence of enlarged cells under normal conditions. The median area in the control group is around 350 μm2, but the large spread and high number of outliers reflect natural heterogeneity. In contrast, all THIO-coated surfaces exhibit a notably narrower distribution of cell area, with median values clustered between approximately 250 and 350 μm2. These THIO-coated surfaces also show fewer and smaller outliers, suggesting a more consistent cell size following treatment. 3b shows a slightly wider spread than others, with some outliers reaching around 1000 μm2, whereas THIO-coated surface 3a presents a tighter distribution with a lower median. 5a, 5b, and 5c show relatively similar patterns, but 5c appears to have a slightly higher median and more upper-range outliers than 5a or 5b.
+
+The potential application of THIO thin films in implantable medical devices lies in their ability to reduce cancer cell adhesion and enhance controlled drug release. To adapt these films for biomedical use, it is critical to optimize their biocompatibility, mechanical stability, and surface modification capabilities. By leveraging these characteristics, THIO thin films could be engineered to minimize biofouling, correct tissue compatibility, and increase the functional lifespan of implantable devices. Such innovations would contribute to the development of next-generation biomedical implants that maintain performance and biostability in physiological environments.
+
+Fig. 4 Displays optical micrographs captured using an inverted microscope, showing HepG-2 cancer cells on various substrates: (a) 3a–c and 5a–c, rounded, detached cells are often indicative of dying cells, while those maintaining the typical elongated shape are likely still alive, control cells: (b) morphology and distribution of HepG-2 cells without substrate intervention.
+
+Fig. 5 Boxplot comparison of cell area across the control and treated groups. Cell area (µm2), vs. experimental groups. The control group shows the highest variability and extreme outliers, while all treated groups exhibit reduced spread and fewer outliers, indicating more uniform cell sizes post-treatment.
+
+Theoretical calculations
+
+In silico-target prediction
+
+The Swiss Target Prediction software was used to scan the novel compounds 3a–c and 5a–c, revealing their notable potential to bind with kinases, especially protein tyrosine kinase, as depicted in (Fig. 6). Compounds 5b and 5c exhibited the highest kinase affinities of 66.7% and 73.3%, respectively, whereas compound 3c showed a kinase affinity of 26.7%. Additionally, the kinase affinities for compounds 3a, 3b, and 5a were recorded at 20%, 13.3%, and 6.7%, respectively. PPI Network Analysis and Functional Enrichment was used to express the functional categories of significantly altered proteins in HEpg2 cells (Fig. S17). Janus kinase 1 (JAK1) is a critical component of the JAK-STAT signaling pathway, playing a key role in mediating the effects of various cytokines and growth factors. In the interleukin-2 (IL-2) pathway, JAK1, along with JAK3, is activated upon IL-2 binding to its receptor, leading to T cell proliferation and differentiation. Similarly, in the interferon-gamma (IFN-γ) pathway, JAK1 partners with JAK2 to phosphorylate STAT1, driving immune responses. JAK1 also collaborates with JAK2 in the interleukin-6 (IL-6) pathway, where it activates STAT3 to mediate inflammation and immune responses. Furthermore, JAK1 is essential in the type I interferon (IFN) signaling pathway, working with TYK2 to phosphorylate STAT1 and STAT2, forming the ISGF3 complex that induces antiviral gene expression. In the growth hormone receptor (GHR) pathway, JAK1 assists JAK2 in phosphorylating STAT proteins to regulate growth-related genes87.
+
+Fig. 6 Swiss target prediction scanning for compounds 3a–c, 5a–c.
+
+Molecular docking
+
+The interesting target-affinity prediction of our compounds to protein tyrosine kinase enzyme was further investigated using molecular docking studies. Table 3, shows docking score, root mean square deviation RMSD and the ligand interactions with PDB 4E4L. The amino acids involved in the interaction were Arg 877, Arg1007, Glu 1033, Glu 883, Lys 876, Ile 878, Tyr 1059, Ser 1137, Asp 1021.
+
+These interactions were either hydrogen bonding (donor or acceptor) or hydrophobic interactions (π –H interaction). The interaction through the amino acid Arg 877 was a common feature between the synthesized compounds and the active ligand site, as primarily depicted.in Table 3. Sorafenib as standard drug was sharing the same amino acid interaction. Compound 5b as 3-methyl thiophene showed the best binding energy to the pocket (7.59 kcal/mol) and it also showed a remarkable apoptosis behavior against HepG2 cells, Fig. 7, S18–S23. Also compounds 5a and 5c having the docking scores (6.48 and 6.59 kcal/mol) shares the uniqe apoptosis performance against HepG2 cells. Compound 5c expressed the lowest RMSD value, with 0.73 A. 3-hydroxy thioehene derivatives 3a–c exhibited docking scores 6.58, 6.55, 6.44 kcal/mol, respectively. They also share similar behaviour on HepG2 cells.
+
+Table 3 Interaction between ligands and protein 4E4L, showing energy of binding, RMSD, 2D structure, interaction type and distance with specific receptor.
+
+Fig. 7 The interaction between 3-methylthiophene 5b and (PDB ID: 4e4l).
+
+DFT-calculation
+
+To gain insight into electronic properties and chemical reactivity of investigated compounds, computational method is utilized to analyze frontier molecular orbitals (FMOs) and molecular electrostatic potential (MEP). The optimized structures and the numbering of atoms of 3a–c and 5a–c are shown in Fig. 8, S24–S28. Where calculated isodensities of LUMO (lowest unoccupied molecular orbital) and HOMO (highest occupied molecular orbital) of the investigated molecules are presented in Table 4. These parameters were indicative of their electron accepting and donating nature, respectively. The HOMO-LUMO energy gap, ΔEH−L = EH–EL, and MEP plots illustrates the molecule’s chemical stability, charge transfer and reactive sites88,89. Molecule bioactivity claims a decrease of HOMO-LUMO energy gap validating more ease charge transfer interactions within the molecule90. Also easier HOMO-LUMO electron transfer by absorbing light energy of a specific wavelength91 and recent studies offer valuable comparative frameworks92,93. The energy levels of HOMO and LUMO and ΔEH−L was theoretically estimated in Table 4.
+
+The HOMO plots of 3a, 5a consists of the non-bonding lone pair of heteroatoms π-orbitals of N-C-O carboxamide group, N-phenyl moiety except two carbons, thiophene carbons except C-OH or C-Me, azophenyl moiety except two carbons and 4-methyl substituent. The HOMO plots of 3b, 5b consists of the non-bonding lone pair of heteroatoms π-orbitals N-C-O carboxamide group, N-phenyl moiety except two carbons, thiophene carbons except C-OH or C-Me, azophenyl moiety except 4-methyl substituent. The HOMO plots of 3c, 5c consists of the non-bonding lone pair of heteroatoms π-orbitals N-C-O carboxamide group, N-phenyl moiety except two carbons, thiophene carbons except C-OH, azophenyl moiety except two carbons. While, the LUMO plots of 3a-c consists of the non-bonding lone pairs of N-aniline, π-orbitals of thiophene carbons except C-carboxamide group, azophenyl moiety except two carbons and (4-methyl substituent or Cl gp). The LUMO plots of 5a-c consists of the non-bonding lone pairs of N-aniline, π-orbitals of thiophene ring except C-Azo, C-O carboxamide group, azophenyl moiety except two carbons and (4-methyl substituent or Cl gp).
+
+The observed interactions were reflected on the EH and EL values as the EH of all compounds, ranging closely between − 4.89 and − 5.24 eV, while EL values between − 3.22 and − 3.46 eV. Among these, the methyl derivative 5b exhibited the lowest EH value compared to its counterparts, suggesting a ranking of the hydroxy and methyl derivatives from highest to lowest as b > a > c based on their EH and EL values. Furthermore, the HOMO-LUMO energy gap data, ΔEH−L, ranging from 1.66 to 1.78 eV, indicated that the hydroxy derivative 3c had the highest gap value among both the hydroxy and methyl groups, 3a–c and 5a–c respectively, with the hydroxyl derivatives generally exhibiting higher values than the corresponding methyl derivatives. The values of ΔEH−L, for the hydroxy and methyl derivatives ordered b > a > c. Finally, the hydroxy derivatives, 3c, showed higher EHOMO and ΔEH−L while lower ELUMO than other derivatives, while methyl derivative 5b, showed the lowest EHOMO, ELUMO and ΔEH−L, which is clearly has shown curiously as apoptotic behavior against HepG2 cells. Recent studies93–95highlighted the role ΔEH−L influencing chemical reactivity and docking behavior, which aligns with our findings for compound 5b. The MEP surface map Fig. 8b, provides a comprehensive visualization of the compound 5b electrostatic potential as follow; the red region (e.g., near N and O) indicate electron-rich regions, conductive for electrophilic interactions. While blue region indicate electron-poor sites, which are suitable for nucleophilic reactions or hydrogen bonding.
+
+Table 4 The HOMO energy (EHOMO), LUMO energy (ELUMO), HOMO–LUMO energy gap (ΔEH−L) in eV.
+
+Compound	HOMO eV	LUMO eV	ΔEH−L	
+3a	− 5.09	− 3.32	1.77	
+3b	− 4.99	− 3.22	1.77	
+3c	− 5.24	− 3.46	1.78	
+5a	− 4.97	− 3.30	1.68	
+5b	− 4.89	− 3.22	1.66	
+5c	− 5.15	− 3.45	1.69	
+
+Fig. 8 (a) Optimized structures, (b) electron density, (c) HOMO and LUMO for compound 5b.
+
+Conclusion
+
+This study successfully modifies glass substrate surfaces using six novel thiophene-based (THIO) coatings to minimize cancer cell adhesion and enable controlled drug release. The results highlight the potential of THIO coatings in improving the biocompatibility and functionality of medical implants by reducing biofouling and lowering post-surgical risks. Cytotoxicity analysis demonstrated that different THIO derivatives exhibit distinct biological effects: methyl derivatives moderately affect HepG2 cell adhesion and proliferation, methoxy derivatives significantly induce apoptosis due to their electron-donating properties and hydrophilicity, while chloride derivatives exert the strongest cytotoxic effects by disrupting cellular ionic balance and triggering apoptosis and necrosis.
+
+The ability of THIO coatings to regulate drug release and selectively impact cancer cell viability suggests their suitability for targeted biomedical applications, particularly in oncology. Further investigations using transmission electron microscopy (TEM) could provide deeper insights into how THIOs interact with various cancer cell types, aiding in the development of customized thiophene-based therapies. Expanding research to bladder cancer and renal cell carcinoma could help assess the broader effectiveness of these coatings, especially in relation to preventing tumor cell adhesion in biopsy and surgical procedures.
+
+To translate THIO coatings into clinical applications, several critical aspects must be addressed, including biocompatibility, durability, functional performance, large-scale production, and regulatory approval. Before THIO-based coatings can be used in clinical applications, several critical challenges must be addressed. These include ensuring their biocompatibility, long-term stability, and effectiveness in vivo, which would require extensive preclinical testing. Regulatory approval processes, such as those from the FDA or EMA, would need to be navigated, requiring rigorous clinical trials to demonstrate safety and efficacy. Additionally, challenges related to manufacturing scalability, reproducibility, and cost-effectiveness must be addressed to ensure widespread commercialization. Collaborations with industry partners will be essential to overcome these obstacles and bring THIO coatings to market for real-world medical use. Beyond liver cancer applications, the research assesses the potential of THIO coatings in biomedical fields, particularly in implantable medical devices and surgical instruments, by analyzing their cytotoxicity, biocompatibility, and stability. Future investigations will explore their effectiveness in preventing tumor seeding during biopsies and their role in treating bladder cancer and renal cell carcinoma, expanding their applicability in diverse oncological environments. Future research should focus on conducting further in vitro and in vivo studies to validate the selective targeting of cancer cells and explore the long-term safety and efficacy of the approach. Additionally, clinical trials will be essential to determine its potential for translating into a viable treatment option for cancer patients.
+
+Electronic supplementary material
+
+Below is the link to the electronic supplementary material.
+
+Supplementary Material 1
+
+Acknowledgements
+
+The project is funded by The Science, Technology & Innovation Funding Authority STDF project number 48741.
+
+Author contributions
+
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper. H.M.M. conceptualization, modelling and docking studies, writing original draft, data analysis, proofreading, manuscript handling, OMB synthesis, methodology, characterization of compounds, E.A.-L. supervision, initial corrections, RAG biological evaluation, data curation writing original draft, data analysis, proofreading. All the authors read and approved the final manuscript.
+
+Funding
+
+Open access funding provided by The Science, Technology & Innovation Funding Authority (STDF) in cooperation with The Egyptian Knowledge Bank (EKB).
+
+Data availability
+
+The datasets used and/or analyzed during the current study available from the corresponding author on reasonable request.
+
+Declarations
+
+Competing interests
+
+The authors declare no competing interests.
+
+Publisher’s note
+
+Springer Nature remains neutral with regard to jurisdictional claims in published maps and institutional affiliations.
+
+
+References
+
+1. Alieva M van Rheenen J Broekman, e. metastasis, potential impact of invasive surgical procedures on primary tumor growth and metastasis Clin. Exp. Metastasis 2018 35 319 331 10.1007/s10585-018-9896-8 29728948 PMC6063335
+Alieva, M. & van Rheenen, J. Broekman, e. metastasis, potential impact of invasive surgical procedures on primary tumor growth and metastasis. Clin. Exp. Metastasis. 35, 319–331 (2018).29728948 10.1007/s10585-018-9896-8 PMC6063335
+2. Alieva M Preventing inflammation inhibits biopsy-mediated changes in tumor cell behavior Sci. Rep. 2017 7 1 7529 7533 10.1038/s41598-017-07660-4 28790339 PMC5548904
+Alieva, M. et al. Preventing inflammation inhibits biopsy-mediated changes in tumor cell behavior. Sci. Rep. 7 (1), 7529–7533 (2017).28790339 10.1038/s41598-017-07660-4 PMC5548904
+3. Giuliani M Can breast cancer biopsy influence Sentinel lymph node status?? Clin. Breast. Cancer. 2016 16 6 e153 e157 10.1016/j.clbc.2016.06.005 27400807
+Giuliani, M. et al. Can breast cancer biopsy influence Sentinel lymph node status?? Clin. Breast. Cancer. 16 (6), e153–e157 (2016).27400807 10.1016/j.clbc.2016.06.005
+4. Sennerstam RB Franzén BSH Wiksell HOT Auer GU Core-needle biopsy of breast cancer is associated with a higher rate of distant metastases 5 to 15 years after diagnosis than FNA biopsy Cancer Cytopathol. 2017 125 10 748 756 10.1002/cncy.21909 28837268
+Sennerstam, R. B., Franzén, B. S. H., Wiksell, H. O. T. & Auer, G. U. Core-needle biopsy of breast cancer is associated with a higher rate of distant metastases 5 to 15 years after diagnosis than FNA biopsy. Cancer Cytopathol. 125 (10), 748–756 (2017).28837268 10.1002/cncy.21909
+5. Francica G Needle track seeding after radiofrequency ablation for hepatocellular carcinoma: prevalence, impact, and management challenge J. Hepatocell Carcinoma 2017 4 23 27 10.2147/JHC.S106558 28176952 PMC5268370
+Francica, G. Needle track seeding after radiofrequency ablation for hepatocellular carcinoma: prevalence, impact, and management challenge. J. Hepatocell Carcinoma. 4, 23–27 (2017).28176952 10.2147/JHC.S106558 PMC5268370
+6. Yayan J Franke KJ Berger M Windisch W Rasche K Adhesion, metastasis, and Inhibition of cancer cells: a comprehensive review Mol. Biol. Rep. 2024 51 1 165 177 10.1007/s11033-023-08920-5 38252369 PMC10803487
+Yayan, J., Franke, K. J., Berger, M., Windisch, W. & Rasche, K. Adhesion, metastasis, and Inhibition of cancer cells: a comprehensive review. Mol. Biol. Rep. 51 (1), 165–177 (2024).38252369 10.1007/s11033-023-08920-5 PMC10803487
+7. Rayappan George Edwin PE Bajpai S Santra TS Tseng FG Single cell adhesion in cancer progression Handbook of Single-Cell Technologies 2022 Singapore Springer Singapore 729 766
+Rayappan George Edwin, P. E. & Bajpai, S. Single cell adhesion in cancer progression. In Handbook of Single-Cell Technologies, 729–766 (eds Santra, T. S. & Tseng, F. G.) (Springer Singapore, 2022).
+8. Holliday DL Speirs V Choosing the right cell line for breast cancer research Breast Cancer Res. 2011 13 4 215 222 10.1186/bcr2889 21884641 PMC3236329
+Holliday, D. L. & Speirs, V. Choosing the right cell line for breast cancer research. Breast Cancer Res. 13 (4), 215–222 (2011).21884641 10.1186/bcr2889 PMC3236329
+9. Ahmed D Epigenetic and genetic features of 24 colon cancer cell lines Oncogenesis 2013 2 9 e71 e71 10.1038/oncsis.2013.35 24042735 PMC3816225
+Ahmed, D. et al. Epigenetic and genetic features of 24 colon cancer cell lines. Oncogenesis. 2 (9), e71–e71 (2013).24042735 10.1038/oncsis.2013.35 PMC3816225
+10. Gazdar AF Girard L Lockwood WW Lam WL Minna JD Lung Cancer cell lines as tools for biomedical discovery and research, JNCI J. Natl. Cancer Inst. 2010 102 17 1310 1321 10.1093/jnci/djq279 20679594 PMC2935474
+Gazdar, A. F., Girard, L., Lockwood, W. W., Lam, W. L. & Minna, J. D. Lung Cancer cell lines as tools for biomedical discovery and research, JNCI. J. Natl. Cancer Inst. 102 (17), 1310–1321 (2010).20679594 10.1093/jnci/djq279 PMC2935474
+11. Sadar MD Sobel RE Cell lines used in prostate cancer research: a compendium of old and new lines–part 1 J. Urol. 2025 173 2 17 35 10.1097/01.ju.0000149989.01263.dc 15643173
+Sadar, M. D. & Sobel, R. E. Cell lines used in prostate cancer research: a compendium of old and new lines–part 1. J. Urol. 173 (2), 17–35 (2025).10.1097/01.ju.0000149989.01263.dc 15643173
+12. Hernandez L Characterization of ovarian cancer cell lines as in vivo models for preclinical studies Gynecol. Oncol. 2016 142 2 332 340 10.1016/j.ygyno.2016.05.028 27235858 PMC4961516
+Hernandez, L. et al. Characterization of ovarian cancer cell lines as in vivo models for preclinical studies. Gynecol. Oncol. 142 (2), 332–340 (2016).27235858 10.1016/j.ygyno.2016.05.028 PMC4961516
+13. Llovet JM Increased risk of tumor seeding after percutaneous radiofrequency ablation for single hepatocellular carcinoma Hepatology 2001 33 5 1124 1129 10.1053/jhep.2001.24233 11343240
+Llovet, J. M. et al. Increased risk of tumor seeding after percutaneous radiofrequency ablation for single hepatocellular carcinoma. Hepatology. 33 (5), 1124–1129 (2001).11343240 10.1053/jhep.2001.24233
+14. Snoeren N Viable tumor tissue adherent to needle applicators after local ablation: a risk factor for local tumor progression Ann. Surg. Oncol. 2011 18 3702 3710 10.1245/s10434-011-1762-8 21590455 PMC3222809
+Snoeren, N. et al. Viable tumor tissue adherent to needle applicators after local ablation: a risk factor for local tumor progression. Ann. Surg. Oncol. 18, 3702–3710 (2011).21590455 10.1245/s10434-011-1762-8 PMC3222809
+15. Li, X., Wu, Y. S., Chen, D. & Lin, H. Laparoscopic hepatectomy versus radiofrequency ablation for hepatocellular carcinoma: a systematic review and meta-analysis. Cancer Manag. Res. 5711–5724 (2019).10.2147/CMAR.S189777 PMC6600087 31417314
+16. Majhy B Priyadarshini P Sen AK Effect of surface energy and roughness on cell adhesion and growth–facile surface modification for enhanced cell culture RSC Adv. 2021 11 25 15467 15476 10.1039/D1RA02402G 35424027 PMC8698786
+Majhy, B., Priyadarshini, P. & Sen, A. K. Effect of surface energy and roughness on cell adhesion and growth–facile surface modification for enhanced cell culture. RSC Adv. 11 (25), 15467–15476 (2021).35424027 10.1039/d1ra02402g PMC8698786
+17. Burčík D Role Cell. Adhes. Cancer Metastasis Formation: Rev. ACS Omega 2025 10 6 5193 5213 10.1021/acsomega.4c08140 PMC11840620 39989825
+Burčík, D. et al. Role of cell adhesion in cancer metastasis formation: a review. ACS Omega. 10(6), 5193–5213 (2025).10.1021/acsomega.4c08140 PMC11840620 39989825
+18. Cai S Recent advance in surface modification for regulating cell adhesion and behaviors Nanotech. Rev. 2020 9 1 971 989 10.1515/ntrev-2020-0076
+Cai, S. et al. Recent advance in surface modification for regulating cell adhesion and behaviors. Nanotech. Rev. 9 (1), 971–989 (2020).
+19. Zaki K From farm to pharma: investigation of the therapeutic potential of the dietary plants Apium graveolens L., Coriandrum sativum, and Mentha longifolia, as AhR modulators for immunotherapy Comput. Biol. Med. 2024 181 109051 109067 10.1016/j.compbiomed.2024.109051 39186905
+Zaki, K. et al. From farm to pharma: investigation of the therapeutic potential of the dietary plants Apium graveolens L., Coriandrum sativum, and Mentha longifolia, as AhR modulators for immunotherapy. Comput. Biol. Med. 181, 109051–109067 (2024).39186905 10.1016/j.compbiomed.2024.109051
+20. Berger-Richardson D Glove and instrument changing to prevent tumour seeding in cancer surgery: a survey of surgeons’ beliefs and practices Curr. Oncol. 2018 25 3 200 208 10.3747/co.25.3924 PMC6023557 29962846
+Berger-Richardson, D. et al. Glove and instrument changing to prevent tumour seeding in cancer surgery: a survey of surgeons’ beliefs and practices. Curr. Oncol. 25 (3), 200–208 (2018).10.3747/co.25.3924 PMC6023557 29962846
+21. Minaga K Needle tract seeding: an overlooked rare complication of endoscopic ultrasound-guided fine-needle aspiration Oncology 2017 93 Suppl. 1 107 112 10.1159/000481235 29258068
+Minaga, K. et al. Needle tract seeding: an overlooked rare complication of endoscopic ultrasound-guided fine-needle aspiration. Oncology. 93 (Suppl. 1), 107–112 (2017).29258068 10.1159/000481235
+22. Oliveira VS Chitosan-based films with 2-Aminothiophene derivative: formulation, characterization and potential antifungal activity Drugs 2022 20 2 103 117 10.3390/md20020103 PMC8878255 35200633
+Oliveira, V. S. et al. Chitosan-Based films with 2-Aminothiophene derivative: formulation, characterization and potential antifungal activity. Drugs 20 (2), 103–117 (2022).10.3390/md20020103 PMC8878255 35200633
+23. Jeong JJ Development of novel biocompatible thermosensitive anti-adhesive agents using human-derived acellular dermal matrix PLoS One 2019 14 2 e0212583 e0212597 10.1371/journal.pone.0212583 30794612 PMC6386309
+Jeong, J. J. et al. Development of novel biocompatible thermosensitive anti-adhesive agents using human-derived acellular dermal matrix. PLoS One. 14 (2), e0212583–e0212597 (2019).30794612 10.1371/journal.pone.0212583 PMC6386309
+24. Kim EH Biocompatible, drug-loaded anti-adhesion barrier using visible-light curable furfuryl gelatin derivative Int. J. Biol. Macromol. 2018 120 915 920 10.1016/j.ijbiomac.2018.07.180 30071230
+Kim, E. H. et al. Biocompatible, drug-loaded anti-adhesion barrier using visible-light curable furfuryl gelatin derivative. Int. J. Biol. Macromol. 120, 915–920 (2018).30071230 10.1016/j.ijbiomac.2018.07.180
+25. Kabir E Uzzaman M A review on biological and medicinal impact of heterocyclic compounds Res. Chem. 2022 4 100606 100617
+Kabir, E. & Uzzaman, M. A review on biological and medicinal impact of heterocyclic compounds. Res. Chem. 4, 100606–100617 (2022).
+26. Maji S Anticancer potential of the S-Heterocyclic ring containing drugs and its bioactivation to reactive metabolites Chem. Biodivers. 2024 21 7 e202400473 10.1002/cbdv.202400473 38723201
+Maji, S. et al. Anticancer potential of the S-Heterocyclic ring containing drugs and its bioactivation to reactive metabolites. Chem. Biodivers. 21 (7), e202400473 (2024).38723201 10.1002/cbdv.202400473
+27. El Rhabori, S. et al. Exploring innovative strategies for identifying anti-breast cancer compounds by integrating 2D/3D-QSAR, molecular Docking analyses, ADMET predictions, molecular dynamics simulations, and MM-PBSA approaches. J. Mol. Struct. 139500–139518. (2024).
+28. Tabti K Chemistry, profiling the structural determinants of pyrrolidine derivative as gelatinases (MMP-2 and MMP-9) inhibitors using in Silico approaches Comput. Biol. Chem. 2023 104 107855 107876 10.1016/j.compbiolchem.2023.107855 37023640
+Tabti, K. et al. Chemistry, profiling the structural determinants of pyrrolidine derivative as gelatinases (MMP-2 and MMP-9) inhibitors using in silico approaches. Comput. Biol. Chem. 104, 107855–107876 (2023).37023640 10.1016/j.compbiolchem.2023.107855
+29. Zaki H Assia B Mohamed B Tahar L Bouachrine New dehydroabietic acid (DHA) derivatives with anticancer activity against HepG2 cancer cell lines as a potential drug targeting EGFR kinase domain. CoMFA study and virtual ligand-based screening J. Biomol. Struct. Dyn. 2021 39 8 2993 3003 10.1080/07391102.2020.1759452 32319344
+Zaki, H., Assia, B., Mohamed, B., Tahar, L., Bouachrine & M. and New dehydroabietic acid (DHA) derivatives with anticancer activity against HepG2 cancer cell lines as a potential drug targeting EGFR kinase domain. CoMFA study and virtual ligand-based screening. J. Biomol. Struct. Dyn. 39 (8), 2993–3003 (2021).32319344 10.1080/07391102.2020.1759452
+30. Boutalaka M Dynamics, computational investigation of Imidazo [2, 1-b] Oxazole derivatives as potential mutant BRAF kinase inhibitors: 3D-QSAR, molecular docking, molecular dynamics simulation, and admetox studies J. Biomol. Struct. Dyn. 2024 42 10 5268 5287 10.1080/07391102.2023.2233629 37424193
+Boutalaka, M. et al. Dynamics, computational investigation of Imidazo [2, 1-b] Oxazole derivatives as potential mutant BRAF kinase inhibitors: 3D-QSAR, molecular docking, molecular dynamics simulation, and admetox studies. J. Biomol. Struct. Dyn. 42 (10), 5268–5287 (2024).37424193 10.1080/07391102.2023.2233629
+31. Naanaai L Design of novel Thiazole-based schiff analogs as α-Amylase inhibitors using 3D-QSAR, ADME-Tox, molecular docking, molecular dynamics, biological efficacy, and retrosynthesis Chem. Selec 2024 9 47 e202404972
+Naanaai, L. et al. Design of novel Thiazole-based schiff analogs as α-Amylase inhibitors using 3D-QSAR, ADME-Tox, molecular docking, molecular dynamics, biological efficacy, and retrosynthesis. Chem. Selec. 9 (47), e202404972 (2024).
+32. Chawla S Sharma S Kashid S Verma PK Sapra A Therapeutic potential of thiophene compounds: A mini-review Mini Rev. Med. Chem. 2023 23 15 1514 1534 10.2174/1389557523666230206104257 36744692
+Chawla, S., Sharma, S., Kashid, S., Verma, P. K. & Sapra, A. Therapeutic potential of thiophene compounds: A mini-review. Mini Rev. Med. Chem. 23 (15), 1514–1534 (2023).36744692 10.2174/1389557523666230206104257
+33. Shah R Verma PK Therapeutic importance of synthetic thiophene BMC Chem. 2018 12 1 22 10.1186/s13065-018-0511-5 PMC6768136 30564984
+Shah, R. & Verma, P. K. Therapeutic importance of synthetic thiophene. BMC Chem. 12, 1–22 (2018).10.1186/s13065-018-0511-5 PMC6768136 30564984
+34. Yildirim O Interfaces, quinoid-thiophene-based covalent organic polymers for high iodine uptake: when rational chemical design counterbalances the low surface area and pore volume ACS Appl. Mater. Interfaces 2023 15 12 15819 15831 10.1021/acsami.2c20853 36926827 PMC10064318
+Yildirim, O. et al. Interfaces, quinoid-thiophene-based covalent organic polymers for high iodine uptake: when rational chemical design counterbalances the low surface area and pore volume. ACS Appl. Mater. Interfaces. 15 (12), 15819–15831 (2023).36926827 10.1021/acsami.2c20853 PMC10064318
+35. Alcázar JJ Thiophene stability in photodynamic therapy: A mathematical model approach Int. J. Mol. Sci. 2024 25 5 2528 2536 10.3390/ijms25052528 38473777 PMC10931787
+Alcázar, J. J. Thiophene stability in photodynamic therapy: A mathematical model approach. Int. J. Mol. Sci. 25 (5), 2528–2536 (2024).38473777 10.3390/ijms25052528 PMC10931787
+36. Zrinej, J. et al. Chemical and biological evaluation of the Plumbago Zeylanica plant against prostate cancer. A unified approach combining molecular docking, dynamic simulations, pharmacophore modeling, DFT and ADMET studies. Vietnam J. Chem. 1 (2025).
+37. Abu-Melha S Molecular modeling and antioxidant activity of newly synthesized 3–hydroxy-2-substituted-thiophene derivatives J. Mol. Struct. 2022 1250 131821 131836 10.1016/j.molstruc.2021.131821
+Abu-Melha, S. Molecular modeling and antioxidant activity of newly synthesized 3–hydroxy-2-substituted-thiophene derivatives. J. Mol. Struct. 1250, 131821–131836 (2022).
+38. Rauf A Synthesis, structure and antibacterial activity of a copper (II) coordination polymer based on thiophene-2, 5-dicarboxylate ligand Polyhedron 2019 166 130 136 10.1016/j.poly.2019.03.039
+Rauf, A. et al. Synthesis, structure and antibacterial activity of a copper (II) coordination polymer based on thiophene-2, 5-dicarboxylate ligand. Polyhedron. 166, 130–136 (2019).
+39. Al-Azmi A John E Synthesis of 4-arylazo-2-(N-pyrazolylcarboxamido) thiophene disperse dyes for dyeing of polyester and their antibacterial evaluation Text. Res. J. 2020 90 23–24 2795 2805 10.1177/0040517520931476
+Al-Azmi, A. & John, E. Synthesis of 4-arylazo-2-(N-pyrazolylcarboxamido) thiophene disperse dyes for dyeing of polyester and their antibacterial evaluation. Text. Res. J. 90 (23–24), 2795–2805 (2020).
+40. Morales-Tenorio M Discovery of thiophene derivatives as potent, orally bioavailable, and Blood–Brain Barrier-Permeable Ebola virus entry inhibitors J. Med. Chem. 2024 67 18 16381 16402 10.1021/acs.jmedchem.4c01267 39248591 PMC11440591
+Morales-Tenorio, M. et al. Discovery of thiophene derivatives as potent, orally bioavailable, and Blood–Brain Barrier-Permeable Ebola virus entry inhibitors. J. Med. Chem. 67 (18), 16381–16402 (2024).39248591 10.1021/acs.jmedchem.4c01267 PMC11440591
+41. Almatari AS Synthesis of some novel thiophene analogues as potential anticancer agents Chem. Biodivers. 2024 21 7 e202400313 10.1002/cbdv.202400313 38467571
+Almatari, A. S. et al. Synthesis of some novel thiophene analogues as potential anticancer agents. Chem. Biodivers. 21 (7), e202400313 (2024).38467571 10.1002/cbdv.202400313
+42. da Cruz RMD Thiophene-based compounds with potential anti-inflammatory activity Pharmaceuticals 2021 14 7 692 709 10.3390/ph14070692 34358118 PMC8308569
+da Cruz, R. M. D. et al. Thiophene-based compounds with potential anti-inflammatory activity. Pharmaceuticals. 14 (7), 692–709 (2021).34358118 10.3390/ph14070692 PMC8308569
+43. Metwally HM Khalaf NA Abdel-Latif E Ismail MA Synthesis, DFT investigations, antioxidant, antibacterial activity and SAR-study of novel thiophene-2-carboxamide derivatives BMC Chem. 2023 17 1 6 27 10.1186/s13065-023-00917-2 36803621 PMC9940361
+Metwally, H. M., Khalaf, N. A., Abdel-Latif, E. & Ismail, M. A. Synthesis, DFT investigations, antioxidant, antibacterial activity and SAR-study of novel thiophene-2-carboxamide derivatives. BMC Chem. 17 (1), 6–27 (2023).36803621 10.1186/s13065-023-00917-2 PMC9940361
+44. Zhao M Thiophene derivatives as new anticancer agents and their therapeutic delivery using folate receptor-targeting nanocarriers ACS Omega 2019 4 5 8874 8880 10.1021/acsomega.9b00554 31459975 PMC6648408
+Zhao, M. et al. Thiophene derivatives as new anticancer agents and their therapeutic delivery using folate receptor-targeting nanocarriers. ACS Omega. 4 (5), 8874–8880 (2019).31459975 10.1021/acsomega.9b00554 PMC6648408
+45. Abdel-Rahman SA Thiophene derivative-loaded nanoparticles mediate anticancer activity through the Inhibition of kinases and microtubule assembly Adv. Ther. (Weinh) 2021 4 7 2100058 2100064 10.1002/adtp.202100058 34423112 PMC8372755
+Abdel-Rahman, S. A. et al. Thiophene derivative-loaded nanoparticles mediate anticancer activity through the Inhibition of kinases and microtubule assembly. Adv. Ther. (Weinh). 4 (7), 2100058–2100064 (2021).34423112 10.1002/adtp.202100058 PMC8372755
+46. Gul HI New anticancer drug candidates sulfonamides as selective hCA IX or hCA XII inhibitors Bioorg. Chem. 2018 77 411 419 10.1016/j.bioorg.2018.01.021 29427856
+Gul, H. I. et al. New anticancer drug candidates sulfonamides as selective hCA IX or hCA XII inhibitors. Bioorg. Chem. 77, 411–419 (2018).29427856 10.1016/j.bioorg.2018.01.021
+47. Zhang HZ Discovery and Structure–Activity relationship of 3-Aryl-5-aryl-1,2,4-oxadiazoles as a new series of apoptosis inducers and potential anticancer agents J. Med. Chem. 2005 48 16 5215 5223 10.1021/jm050292k 16078840
+Zhang, H. Z. et al. Discovery and Structure–Activity relationship of 3-Aryl-5-aryl-1,2,4-oxadiazoles as a new series of apoptosis inducers and potential anticancer agents. J. Med. Chem. 48 (16), 5215–5223 (2005).16078840 10.1021/jm050292k
+48. Agarwal M Design and synthesis of new 2,5-disubstituted-1,3,4-oxadiazole analogues as anticancer agents Med. Chem. Res. 2016 25 10 2289 2303 10.1007/s00044-016-1672-1
+Agarwal, M. et al. Design and synthesis of new 2,5-disubstituted-1,3,4-oxadiazole analogues as anticancer agents. Med. Chem. Res. 25 (10), 2289–2303 (2016).
+49. Elmetwally SA Saied KF Eissa IH Elkaeed EB Design, synthesis and anticancer evaluation of thieno[2,3-d]pyrimidine derivatives as dual EGFR/HER2 inhibitors and apoptosis inducers Bioorg. Chem. 2019 88 102944 102960 10.1016/j.bioorg.2019.102944 31051400
+Elmetwally, S. A., Saied, K. F., Eissa, I. H. & Elkaeed, E. B. Design, synthesis and anticancer evaluation of thieno[2,3-d]pyrimidine derivatives as dual EGFR/HER2 inhibitors and apoptosis inducers. Bioorg. Chem. 88, 102944–102960 (2019).31051400 10.1016/j.bioorg.2019.102944
+50. Metwally HM Arylidine extensions of 3-methyl-5-oxo-4,5-dihydro-1H-pyrazol-benzenesulfonamide derivatives: synthesis, computational simulations and biological evaluation as tumor-associated carbonic anhydrase inhibitors Bioorg. Chem. 2023 135 106492 106506 10.1016/j.bioorg.2023.106492 37001471
+Metwally, H. M. et al. Arylidine extensions of 3-methyl-5-oxo-4,5-dihydro-1H-pyrazol-benzenesulfonamide derivatives: synthesis, computational simulations and biological evaluation as tumor-associated carbonic anhydrase inhibitors. Bioorg. Chem. 135, 106492–106506 (2023).37001471 10.1016/j.bioorg.2023.106492
+51. Milik SN Surmounting the resistance against EGFR inhibitors through the development of thieno[2,3-d]pyrimidine-based dual EGFR/HER2 inhibitors Eur. J. Med. Chem. 2018 155 316 336 10.1016/j.ejmech.2018.06.011 29902719
+Milik, S. N. et al. Surmounting the resistance against EGFR inhibitors through the development of thieno[2,3-d]pyrimidine-based dual EGFR/HER2 inhibitors. Eur. J. Med. Chem. 155, 316–336 (2018).29902719 10.1016/j.ejmech.2018.06.011
+52. Giri RS Design, synthesis and evaluation of novel 2-thiophen-5-yl-3H-quinazolin-4-one analogues as inhibitors of transcription factors NF-кB and AP-1 mediated transcriptional activation: their possible utilization as anti-inflammatory and anti-cancer agents Bioorg. Med. Chem. 2010 18 7 2796 2808 10.1016/j.bmc.2010.01.007 20335039
+Giri, R. S. et al. Design, synthesis and evaluation of novel 2-thiophen-5-yl-3H-quinazolin-4-one analogues as inhibitors of transcription factors NF-кB and AP-1 mediated transcriptional activation: their possible utilization as anti-inflammatory and anti-cancer agents. Bioorg. Med. Chem. 18 (7), 2796–2808 (2010).10.1016/j.bmc.2010.01.007 20335039
+53. Gulipalli KC Design, synthesis, in silico and in vitro evaluation of thiophene derivatives: A potent tyrosine phosphatase 1B inhibitor and anticancer activity Bioorg. Med. Chem. Lett. 2017 27 15 3558 3564 10.1016/j.bmcl.2017.05.047 28579122
+Gulipalli, K. C. et al. Design, synthesis, in silico and in vitro evaluation of thiophene derivatives: A potent tyrosine phosphatase 1B inhibitor and anticancer activity. Bioorg. Med. Chem. Lett. 27 (15), 3558–3564 (2017).28579122 10.1016/j.bmcl.2017.05.047
+54. Ashok A Thanukrishnan K Bhojya Naik HS Shaik AG 6,7-Dimethoxy-quinazolin-4-yl-amino-thiophene-2-carboxamides as potent inhibitors of VEGF receptors 1 and 2 Heterocycl. Chem. 2017 54 2 1065 1070 10.1002/jhet.2675
+Ashok, A., Thanukrishnan, K., Bhojya Naik, H. S. & Shaik, A. G. 6,7-Dimethoxy-quinazolin-4-yl-amino-thiophene-2-carboxamides as potent inhibitors of VEGF receptors 1 and 2. Heterocycl. Chem. 54 (2), 1065–1070 (2017).
+55. Ghith A Youssef KM Ismail NSM Abouzid KAM Design, synthesis and molecular modeling study of certain VEGFR-2 inhibitors based on Thienopyrimidne scaffold as cancer targeting agents Bioorg. Chem. 2019 83 111 128 10.1016/j.bioorg.2018.10.008 30343204
+Ghith, A., Youssef, K. M., Ismail, N. S. M. & Abouzid, K. A. M. Design, synthesis and molecular modeling study of certain VEGFR-2 inhibitors based on Thienopyrimidne scaffold as cancer targeting agents. Bioorg. Chem. 83, 111–128 (2019).30343204 10.1016/j.bioorg.2018.10.008
+56. Sroor FM New cyano-acrylamide derivatives incorporating the thiophene moiety: synthesis, anti-cancer, gene expression, DNA fragmentation, DNA damage, and in Silico studies J. Mol. Struct. 2025 1321 140001 140016 10.1016/j.molstruc.2024.140001
+Sroor, F. M. et al. New cyano-acrylamide derivatives incorporating the thiophene moiety: synthesis, anti-cancer, gene expression, DNA fragmentation, DNA damage, and in Silico studies. J. Mol. Struct. 1321, 140001–140016 (2025).
+57. Son Y Discovery of dioxo-benzo [b] thiophene derivatives as potent YAP-TEAD interaction inhibitors for treating breast cancer Bioorg. Chem. 2023 131 106274 106292 10.1016/j.bioorg.2022.106274 36434952
+Son, Y. et al. Discovery of dioxo-benzo [b] thiophene derivatives as potent YAP-TEAD interaction inhibitors for treating breast cancer. Bioorg. Chem. 131, 106274–106292 (2023).36434952 10.1016/j.bioorg.2022.106274
+58. American Society of Clinical Oncology Clinical Practice Guideline Update on the Use of Pharmacologic Interventions Including Tamoxifen, raloxifene, and aromatase Inhibition for breast cancer risk reduction J. Onc Prac 2009 5 4 196 199 10.1200/JOP.0948502 PMC2795413 29452019
+American Society of Clinical Oncology Clinical Practice Guideline Update on the Use of Pharmacologic Interventions Including. Tamoxifen, raloxifene, and aromatase Inhibition for breast cancer risk reduction. J. Onc Prac. 5 (4), 196–199 (2009).10.1200/JOP.0948502 PMC2795413 29452019
+59. Yap TA First-in-human phase I trial of two schedules of OSI-930, a novel multikinase inhibitor, incorporating translational proof-of-mechanism studies Clin. Cancer Res. 2013 19 4 909 919 10.1158/1078-0432.CCR-12-2258 23403628 PMC3880798
+Yap, T. A. et al. First-in-human phase I trial of two schedules of OSI-930, a novel multikinase inhibitor, incorporating translational proof-of-mechanism studies. Clin. Cancer Res. 19 (4), 909–919 (2013).23403628 10.1158/1078-0432.CCR-12-2258 PMC3880798
+60. Dahl GV Teniposide plus cytarabine improves outcome in childhood acute lymphoblastic leukemia presenting with a leukocyte count greater than or equal to 100 × 10(9)/L J. Clin. Oncol. 1987 5 7 1015 1021 10.1200/JCO.1987.5.7.1015 3474355
+Dahl, G. V. et al. Teniposide plus cytarabine improves outcome in childhood acute lymphoblastic leukemia presenting with a leukocyte count greater than or equal to 100 x 10(9)/L. J. Clin. Oncol. 5 (7), 1015–1021 (1987).3474355 10.1200/JCO.1987.5.7.1015
+61. Wu C Li F Niu G Chen X PET imaging of inflammation biomarkers Theran 2013 3 7 448 466 10.7150/thno.6592 PMC3706689 23843893
+Wu, C., Li, F., Niu, G. & Chen, X. PET imaging of inflammation biomarkers. Theran 3 (7), 448–466 (2013).10.7150/thno.6592 PMC3706689 23843893
+62. Kartasasmita RE Insanu M Iwo MI Activities P Isolated compounds, toxicity, and potential for new drug discovery from the genus Leea Indones J. Pharm. 2024 35 1 1
+Kartasasmita, R. E., Insanu, M., Iwo, M. I. & Activities, P. Isolated compounds, toxicity, and potential for new drug discovery from the genus Leea. Indones J. Pharm. 35 (1), 1 (2024).
+63. Nirmalanandhan VS Duren A Hendricks P Vielhauer G Sittampalam GS Activity of anticancer agents in a Three-Dimensional cell culture model, assay drug Dev. Technol. 2010 8 5 581 590 10.1089/adt.2010.0276 20662735
+Nirmalanandhan, V. S., Duren, A., Hendricks, P., Vielhauer, G. & Sittampalam, G. S. Activity of anticancer agents in a Three-Dimensional cell culture model, assay drug. Dev. Technol. 8 (5), 581–590 (2010).10.1089/adt.2010.0276 20662735
+64. Barbone D Yang TM Morgan JR Gaudino G Broaddus VC Mammalian target of rapamycin contributes to the acquired apoptotic resistance of human mesothelioma multicellular spheroids J. Biol. Chem. 2008 283 19 13021 13030 10.1074/jbc.M709698200 18339627 PMC2442321
+Barbone, D., Yang, T. M., Morgan, J. R., Gaudino, G. & Broaddus, V. C. Mammalian target of rapamycin contributes to the acquired apoptotic resistance of human mesothelioma multicellular spheroids. J. Biol. Chem. 283 (19), 13021–13030 (2008).18339627 10.1074/jbc.M709698200 PMC2442321
+65. Ioannou P Tzaferi K Koutsakis C Piperigkou Z Karamanos NK Targeting glypicans through EGFR and JAK/STAT signaling axes drives breast cancer progression Proteoglycan. Res. 2024 2 1 18 27 10.1002/pgr2.18
+Ioannou, P., Tzaferi, K., Koutsakis, C., Piperigkou, Z. & Karamanos, N. K. Targeting glypicans through EGFR and JAK/STAT signaling axes drives breast cancer progression. Proteoglycan. Res. 2 (1), 18–27 (2024).
+66. Abdelnaby RM In vitro anticancer activity screening of novel fused thiophene derivatives as VEGFR-2/AKT dual inhibitors and apoptosis inducers Pharmaceuticals 2022 15 6 700 718 10.3390/ph15060700 35745619 PMC9229165
+Abdelnaby, R. M. et al. In vitro anticancer activity screening of novel fused thiophene derivatives as VEGFR-2/AKT dual inhibitors and apoptosis inducers. Pharmaceuticals. 15 (6), 700–718 (2022).35745619 10.3390/ph15060700 PMC9229165
+67. Nyga A Cheema U Loizidou M 3D tumour models: novel in vitro approaches to cancer studies J. Cell. Commun. Signal. 2011 5 3 239 248 10.1007/s12079-011-0132-4 21499821 PMC3145874
+Nyga, A., Cheema, U. & Loizidou, M. 3D tumour models: novel in vitro approaches to cancer studies. J. Cell. Commun. Signal. 5 (3), 239–248 (2011).21499821 10.1007/s12079-011-0132-4 PMC3145874
+68. Chang CH Beneficial effects of thin film metallic glass coating in reducing adhesion of platelet and cancer cells: clinical testing Surf. Coat. Tech. 2018 344 312 321 10.1016/j.surfcoat.2018.03.040
+Chang, C. H. et al. Beneficial effects of thin film metallic glass coating in reducing adhesion of platelet and cancer cells: clinical testing. Surf. Coat. Tech. 344, 312–321 (2018).
+69. Qiu C A novel Ni-free Zr-based bulk metallic glass with enhanced plasticity and good biocompatibility Scr. Mat. 2006 55 7 605 608 10.1016/j.scriptamat.2006.06.018
+Qiu, C. et al. A novel Ni-free Zr-based bulk metallic glass with enhanced plasticity and good biocompatibility. Scr. Mat. 55 (7), 605–608 (2006).
+70. Li H In vitro and in vivo studies on biodegradable CaMgZnSrYb high-entropy bulk metallic glass Acta Biomater. 2013 9 10 8561 8573 10.1016/j.actbio.2013.01.029 23380208
+Li, H. et al. In vitro and in vivo studies on biodegradable CaMgZnSrYb high-entropy bulk metallic glass. Acta Biomater. 9 (10), 8561–8573 (2013).23380208 10.1016/j.actbio.2013.01.029
+71. Ouabane M Structure-odor relationship in pyrazines and derivatives: A physicochemical study using 3D-QSPR, HQSPR, Monte carlo, molecular docking, ADME-Tox and molecular dynamics Arab. J. Chem. 2023 16 11 105207 105237 10.1016/j.arabjc.2023.105207
+Ouabane, M. et al. Structure-odor relationship in pyrazines and derivatives: A physicochemical study using 3D-QSPR, HQSPR, Monte carlo, molecular docking, ADME-Tox and molecular dynamics. Arab. J. Chem. 16 (11), 105207–105237 (2023).
+72. Awadalla, A. et al. Electrospun nanostructured heparin conjugated-poly-ε-caprolactone based scaffold promote differentiation of smooth muscle cells from adipose mesenchymal stem cells. Proc. Biochem. 143, 148–162 (2024).
+73. AboGabal R Shokeir D Oraby AH Design and synthesis of biologically inspired biocompatible various polymeric magnetic nanoparticles for imaging and biomedical applications Nano-Struct. Nano-Obj. 2023 36 101048 101065 10.1016/j.nanoso.2023.101048
+AboGabal, R., Shokeir, D. & Oraby, A. H. Design and synthesis of biologically inspired biocompatible various polymeric magnetic nanoparticles for imaging and biomedical applications. Nano-Struc. Nano-Obj. 36, 101048–101065 (2023).
+74. Abo Gabal R shokeir D Awadalla A Hamam ET Oraby AH Design of magnetic nanoplatforms for simultaneous molecular imaging and cisplatin delivery for breast cancer cells theranostics J. Drug Deliv. Sci. Technol. 2024 95 105533 105547 10.1016/j.jddst.2024.105533
+Abo Gabal, R., shokeir, D., Awadalla, A., Hamam, E. T. & Oraby, A. H. Design of magnetic nanoplatforms for simultaneous molecular imaging and cisplatin delivery for breast cancer cells theranostics. J. Drug Deliv. Sci. Technol. 95, 105533–105547 (2024).
+75. D.S.J.D.B. & BIOVIA BIOVIA Materials Studio 2021. (2021).
+76. Delley B Hardness conserving semilocal pseudopotentials Phys. Rev. B 2002 66 15 155125 10.1103/PhysRevB.66.155125
+Delley, B. Hardness conserving semilocal pseudopotentials. Phys. Rev. B. 66 (15), 155125 (2002).
+77. Kessi A Delley B Density functional crystal vs. cluster models as applied to zeolites Prop. Dy. Elec. St. Cond. Syst. Clus 1998 68 2 135 144
+Kessi, A. & Delley, B. Density functional crystal vs. cluster models as applied to zeolites. Prop. Dy. Elec. St. Cond. Syst. Clus. 68 (2), 135–144 (1998).
+78. Hehre WJ Ab initio molecular orbital theory Acc. Chem. Res. 1976 9 11 399 406 10.1021/ar50107a003
+Hehre, W. J. Ab initio molecular orbital theory. Acc. Chem. Res. 9 (11), 399–406 (1976).
+79. Hammer B Hansen LB Nørskov JK Improved adsorption energetics within density-functional theory using revised Perdew-Burke-Ernzerhof functionals Phys. Rev. B 1999 59 11 7413 10.1103/PhysRevB.59.7413
+Hammer, B., Hansen, L. B. & Nørskov, J. K. Improved adsorption energetics within density-functional theory using revised Perdew-Burke-Ernzerhof functionals. Phys. Rev. B. 59 (11), 7413 (1999).
+80. Alafeefy AM Quinazoline–sulfonamides with potent inhibitory activity against the α-carbonic anhydrase from Vibrio cholerae Bioorg. Med. Chem. 2014 22 19 5133 5140 10.1016/j.bmc.2014.08.015 25194929
+Alafeefy, A. M. et al. Quinazoline–sulfonamides with potent inhibitory activity against the α-carbonic anhydrase from Vibrio cholerae. Bioorg. Med. Chem. 22 (19), 5133–5140 (2014).25194929 10.1016/j.bmc.2014.08.015
+81. Harhash AH Amer FAK Eldin MAFN Awad ML Synthesis of ethyl α-phenylthiocarbamylglyoxalate arylhydrazones and their reactions with hydrazines Z. Naturforsch B 1976 31 6 846 849 10.1515/znb-1976-0624
+Harhash, A. H., Amer, F. A. K., Eldin, M. A. F. N. & Awad, M. L. Synthesis of ethyl α-phenylthiocarbamylglyoxalate arylhydrazones and their reactions with hydrazines. Z. Naturforsch B. 31 (6), 846–849 (1976).
+82. Amer FA Harhash AH Awad ML Synthesis of 2-Methyl-l-phenylthiocarbamoylglyoxal arylhydrazones and diethyl (arylazo)(phenylthiocarbamoyl) Malonate and their reactions with hydrazines, Z Naturforsch 1978 33 6 660 662 10.1515/znb-1978-0620
+Amer, F. A., Harhash, A. H. & Awad, M. L. Synthesis of 2-Methyl-l-phenylthiocarbamoylglyoxal arylhydrazones and diethyl (arylazo)(phenylthiocarbamoyl) Malonate and their reactions with hydrazines, Z. Naturforsch 33 (6), 660–662 (1978).
+83. Metwally HM Younis NM Abdel-Latif E El-Rayyes A New thiazole, thiophene and 2-pyridone compounds incorporating dimethylaniline moiety: synthesis, cytotoxicity, ADME and molecular Docking studies BMC Chem. 2024 18 1 1 20 10.1186/s13065-024-01136-z 38486282 PMC10941513
+Metwally, H. M., Younis, N. M., Abdel-Latif, E. & El-Rayyes, A. New thiazole, thiophene and 2-pyridone compounds incorporating dimethylaniline moiety: synthesis, cytotoxicity, ADME and molecular Docking studies. BMC Chem. 18 (1), 1–20 (2024).38486282 10.1186/s13065-024-01136-z PMC10941513
+84. Kalosakas G Martini D Drug release from slabs and the effects of surface roughness Int. J. Pharm. 2015 496 2 291 298 10.1016/j.ijpharm.2015.10.018 26453782
+Kalosakas, G. & Martini, D. Drug release from slabs and the effects of surface roughness. Int. J. Pharm. 496 (2), 291–298 (2015).26453782 10.1016/j.ijpharm.2015.10.018
+85. Gough CR Hu X Air-spun silk-based micro-/nanofibers and thin films for drug delivery Int. J. Mol. Sci. 2021 22 17 9588 9610 10.3390/ijms22179588 34502496 PMC8430899
+Gough, C. R. & Hu, X. Air-spun silk-based micro-/nanofibers and thin films for drug delivery. Int. J. Mol. Sci. 22 (17), 9588–9610 (2021).34502496 10.3390/ijms22179588 PMC8430899
+86. Franco FN Synthetic thiophenes induce chromosomal damage and trigger apoptosis in human cancer cell lines Eur. J. Med. Chem. Rep. 2022 4 100033 100040
+Franco, F. N. et al. Synthetic thiophenes induce chromosomal damage and trigger apoptosis in human cancer cell lines. Eur. J. Med. Chem. Rep. 4, 100033–100040 (2022).
+87. Li X A novel single-cell based method for breast cancer prognosis PLoS Comput. Biol. 2020 16 8 1008133 1008153 10.1371/journal.pcbi.1008133 PMC7470419 32833968
+Li, X. et al. A novel single-cell based method for breast cancer prognosis. PLoS Comput. Biol. 16 (8), 1008133–1008153 (2020).10.1371/journal.pcbi.1008133 PMC7470419 32833968
+88. Xavier S Periandy S Ramalingam S conformational NBO HOMO–LUMO, NMR and electronic spectral study on 1-phenyl-1-propanol by quantum computational methods Spectrochim Acta Mol. Biomol. Spectrosc. 2015 137 306 320 10.1016/j.saa.2014.08.039 25228039
+Xavier, S., Periandy, S., Ramalingam, S. & conformational, N. B. O. HOMO–LUMO, NMR and electronic spectral study on 1-phenyl-1-propanol by quantum computational methods. Spectrochim Acta Mol. Biomol. Spectrosc. 137, 306–320 (2015).10.1016/j.saa.2014.08.039 25228039
+89. Arjunan V Experimental and theoretical quantum chemical investigations of 8-hydroxy-5-nitroquinoline, spectrochim. Acta A mol Biomol. Spectrosc. 2012 96 506 516 10.1016/j.saa.2012.05.080 22728969
+Arjunan, V. et al. Experimental and theoretical quantum chemical investigations of 8-hydroxy-5-nitroquinoline, spectrochim. Acta A mol. Biomol. Spectrosc. 96, 506–516 (2012).10.1016/j.saa.2012.05.080 22728969
+90. Bouchoucha, A., Zaater, S., Bouacida, S., Merazig, H. & Djabbar, S. J. J. M. S. Synthesis and characterization of new complexes of nickel (II), palladium (II) and platinum (II) with derived sulfonamide ligand: structure, DFT study, antibacterial and cytotoxicity activities. 1161 345–355 (2018).
+91. Amiri SS Makarem S Ahmar H Ashenagar S Theoretical studies and spectroscopic characterization of novel 4-methyl-5-((5-phenyl-1, 3, 4-oxadiazol-2-yl) thio) benzene-1, 2-diol J. Mol. Struct. 2016 1119 18 24 10.1016/j.molstruc.2016.04.053
+Amiri, S. S., Makarem, S., Ahmar, H. & Ashenagar, S. Theoretical studies and spectroscopic characterization of novel 4-methyl-5-((5-phenyl-1, 3, 4-oxadiazol-2-yl) thio) benzene-1, 2-diol. J. Mol. Struct. 1119, 18–24 (2016).
+92. Lisha K Solvents and their influence on electronic properties in IEFPCM solvation model, anticancer activity, and Docking studies on (E)-2-((4-chlorobenzylidene) amino) phenol J. Mol. Liq. 2024 415 126404 126420 10.1016/j.molliq.2024.126404
+Lisha, K. et al. Solvents and their influence on electronic properties in IEFPCM solvation model, anticancer activity, and Docking studies on (E)-2-((4-chlorobenzylidene) amino) phenol. J. Mol. Liq. 415, 126404–126420 (2024).
+93. Elangovan N Synthesis, spectroscopy, solvation effect, topology and molecular Docking studies on 2, 2′-((1, 2 phenylenebis (azaneylylidene)) Bis (methaneylylidene)) Bis (4-bromophenol) J. Mol. Struct. 2025 1322 140468 114079 10.1016/j.molstruc.2024.140468
+Elangovan, N. et al. Synthesis, spectroscopy, solvation effect, topology and molecular Docking studies on 2, 2′-((1, 2 phenylenebis (azaneylylidene)) Bis (methaneylylidene)) Bis (4-bromophenol). J. Mol. Struct. 1322, 140468–114079 (2025).
+94. Ganesan, T. S. et al. Synthesis, spectroscopic, computational, topology, and molecular docking studies on N, N’-(4-methyl-1, 3-phenylene) bis (1-(2, 4-dichlorophenyl) methanimine). Mol. Phys. e2421420 (2024).
+95. Elangovan N Synthesis, solvent role (water and DMSO), antimicrobial activity, reactivity analysis, inter and intramolecular charge transfer, topology, and molecular Docking studies on adenine derivative J. Mol. Liq. 2023 391 123250 123270 10.1016/j.molliq.2023.123250
+Elangovan, N. et al. Synthesis, solvent role (water and DMSO), antimicrobial activity, reactivity analysis, inter and intramolecular charge transfer, topology, and molecular Docking studies on adenine derivative. J. Mol. Liq. 391, 123250–123270 (2023).

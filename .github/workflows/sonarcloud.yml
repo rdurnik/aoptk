@@ -1,5 +1,3 @@
-name: sonarcloud
-
 on:
   push:
     branches:
@@ -16,30 +14,33 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      CERIT_API_KEY: ${{ secrets.CERIT_API_KEY }}
       CI: True
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.12
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.0.0
       - name: Python info
         shell: bash -e {0}
         run: |
           which python
           python --version
-      - name: Install dependencies
+      - name: Install dependencies with uv
         run: |
-          python -m pip install -e .[dev]
-          pip install 'en-ner-bc5cdr-md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz'
+          uv lock
+          uv sync --frozen --extra dev
       - name: Run unit tests with coverage
-        run: python -m pytest --cov --cov-report term --cov-report xml --junitxml=xunit-result.xml tests/
+        run: uv run python -m pytest --cov --cov-report term --cov-report xml --junitxml=xunit-result.xml tests/
       - name: Correct coverage paths
         run: sed -i "s+$PWD/++g" coverage.xml
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

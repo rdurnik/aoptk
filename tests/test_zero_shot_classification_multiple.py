@@ -2,7 +2,7 @@ from __future__ import annotations
 import pytest
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
-from aoptk.relationships.find_relationship import FindRelationships
+from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
 from aoptk.relationships.zero_shot_classification_multiple import ZeroShotClassificationMultiple
 
@@ -15,12 +15,12 @@ def test_can_create():
 
 def test_implements_interface():
     """Test that ZeroShotClassification implements FindRelationships interface."""
-    assert issubclass(ZeroShotClassificationMultiple, FindRelationships)
+    assert issubclass(ZeroShotClassificationMultiple, FindRelationship)
 
 
 def test_normalize_chemical_not_empty():
     """Test that normalize_chemical method returns a non-empty result."""
-    actual = ZeroShotClassificationMultiple().find_relationships(text="", chemicals=[], effects=[])
+    actual = ZeroShotClassificationMultiple().find_relationships_in_text(text="", chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -297,7 +297,7 @@ def test_find_relationships(
         model="facebook/bart-large-mnli",
         threshold=0.6,
         margin=0.15,
-    ).find_relationships(text=text, chemicals=chemicals, effects=effects)
+    ).find_relationships_in_text(text=text, chemicals=chemicals, effects=effects)
 
     def sort_key(r: Relationship) -> tuple[str, str, str]:
         return (r.relationship_type, r.chemical.name, r.effect.name)

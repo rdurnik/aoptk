@@ -2,6 +2,7 @@ from __future__ import annotations
 from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
+import pandas as pd
 
 if TYPE_CHECKING:
     from aoptk.chemical import Chemical
@@ -9,18 +10,31 @@ if TYPE_CHECKING:
     from aoptk.relationships.relationship import Relationship
 
 
-class FindRelationships(ABC):
+class FindRelationship(ABC):
     """Interface for finding relationships in text."""
 
     @abstractmethod
-    def find_relationships(self, text: str, chemicals: list[Chemical], effects: list[Effect]) -> list[Relationship]:
-        """Find relationships between chemicals and effects in the given text."""
-
-    @abstractmethod
-    def find_relationships_in_image(
+    def find_relationships_in_text(
         self,
-        image_path: str,
+        text: str,
         chemicals: list[Chemical],
         effects: list[Effect],
     ) -> list[Relationship]:
-        """Find relationships between chemicals and effects in the text extracted from the given image."""
+        """Find relationships between chemicals and effects in the given text."""
+
+    @abstractmethod
+    def find_relationships_in_table(
+        self,
+        table_df: pd.DataFrame,
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the given table data."""
+
+    @abstractmethod
+    def find_relationships_in_text_and_images(
+        self,
+        text: str,
+        image_paths: list[str],
+        effects: list[Effect],
+    ) -> list[Relationship]:
+        """Find relationships between chemicals and effects in the given text and images combined."""

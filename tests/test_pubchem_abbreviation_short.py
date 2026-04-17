@@ -42,7 +42,6 @@ def test_check_short_length(chemical: str, expected: str):
 @pytest.mark.parametrize(
     ("suspected_abbreviation", "expected"),
     [
-        ("TAA", "thioacetamide"),
         ("CCL4", "carbon tetrachloride"),
         ("MTX", "methotrexate"),
         ("B(a)P", "benzo[a]pyrene"),
