@@ -18,7 +18,7 @@ class PubChemAPI(NormalizeChemical):
         self._session = requests.Session()
         retry_strategy = Retry(
             total=5,
-            backoff_factor=1,
+            backoff_factor=3,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["GET", "POST"],
         )
@@ -34,6 +34,9 @@ class PubChemAPI(NormalizeChemical):
         """
         if title_name := self._find_title_in_pubchem(chemical.name):
             chemical.heading = title_name
+        if synonyms := self._find_synonyms_in_pubchem(chemical.name):
+            chemical.synonyms.clear()
+            chemical.synonyms.update(synonyms)
         return chemical
 
     def _find_title_in_pubchem(self, chemical_name: str) -> str | None:
@@ -43,3 +46,11 @@ class PubChemAPI(NormalizeChemical):
         if not response.ok:
             return chemical_name
         return response.text.strip().lower()
+
+    def _find_synonyms_in_pubchem(self, chemical_name: str) -> set[str]:
+        """Find synonyms for a chemical name from PubChem."""
+        search_url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/{chemical_name}/synonyms/TXT"
+        response = self._session.get(search_url, timeout=self.timeout)
+        if not response.ok:
+            return {""}
+        return set(response.text.strip().lower().splitlines())
