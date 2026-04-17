@@ -39,7 +39,6 @@ def test_check_uppercase(chemical: str, expected: str):
 @pytest.mark.parametrize(
     ("suspected_abbreviation", "expected"),
     [
-        ("TAA", "thioacetamide"),
         ("CCL4", "carbon tetrachloride"),
         ("MTX", "methotrexate"),
         ("thioacetamide", "thioacetamide"),

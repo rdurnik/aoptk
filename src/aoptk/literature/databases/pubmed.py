@@ -1,11 +1,12 @@
 from __future__ import annotations
 import os
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 
@@ -21,7 +22,7 @@ class QueryTooLargeError(Exception):
         super().__init__(f"Query returned {count} results. Maximum allowed is {maximum - 1}.")
 
 
-class PubMed(GetAbstract, GetID):
+class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     """Class to get data from PubMed based on a query."""
 
     maximum_results = 10000
@@ -29,7 +30,7 @@ class PubMed(GetAbstract, GetID):
 
     def __init__(self, query: str):
         self._query = query
-        self.id_list = self.get_id()
+        self.id_list = self.get_ids()
         self.publication_count = self.get_publication_count()
         if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
@@ -54,7 +55,7 @@ class PubMed(GetAbstract, GetID):
         return [
             publication_metadata
             for publication_metadata in (
-                self.get_publication_metadata(publication_id) for publication_id in self.id_list
+                self._get_publication_metadata(publication_id) for publication_id in self.id_list
             )
             if publication_metadata is not None
         ]
@@ -66,14 +67,14 @@ class PubMed(GetAbstract, GetID):
         handle.close()
         return int(record.get("Count", 0))
 
-    def get_id(self) -> list[ID]:
+    def get_ids(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
         handle = Entrez.esearch(db="pubmed", term=self._query, retmax=self.maximum_results)
         record = Entrez.read(handle)
         handle.close()
         return record.get("IdList", [])
 
-    def get_abstract(self, pmid: str) -> Abstract:
+    def _get_abstract(self, pmid: str) -> Abstract:
         """Get the abstract for a given PubMed ID."""
         handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml")
         record = Entrez.read(handle)
@@ -84,7 +85,7 @@ class PubMed(GetAbstract, GetID):
             return Abstract(text=abstract_text, publication_id=ID(pmid))
         return Abstract(text="", publication_id=ID(pmid))
 
-    def get_publication_metadata(self, pmid: str) -> PublicationMetadata:
+    def _get_publication_metadata(self, pmid: str) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
         handle = Entrez.esummary(db="pubmed", id=pmid)
         summary_records = Entrez.read(handle)
@@ -95,7 +96,7 @@ class PubMed(GetAbstract, GetID):
             year_publication = pub_date.split()[0] if pub_date else "Unknown"
             title = summary.get("Title", None)
             authors = ", ".join(summary.get("AuthorList", []))
-            search_date = datetime.now(timezone.utc)
+            search_date = datetime.now(UTC)
         return PublicationMetadata(
             publication_id=publication_id,
             publication_date=year_publication,

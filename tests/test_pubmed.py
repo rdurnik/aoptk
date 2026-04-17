@@ -1,10 +1,12 @@
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from urllib.error import HTTPError
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_id import GetID
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -17,6 +19,8 @@ def test_can_create():
 def test_implements_interface():
     """PubMed implements GetAbstract interface."""
     assert issubclass(PubMed, GetAbstract)
+    assert issubclass(PubMed, GetID)
+    assert issubclass(PubMed, GetPublicationMetadata)
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -46,7 +50,7 @@ def test_raises_query_too_large_error():
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_id():
     """Test that get_id returns correct IDs."""
-    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_id()
+    actual = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))').get_ids()
     expected = ["36835489", "37913737", "37891562", "36838959"]
     assert sorted(actual) == sorted(expected)
 
@@ -124,5 +128,5 @@ def test_get_publication_metadata(test_data: dict):
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
     assert publication_metadata.database == test_data["database"]
-    assert publication_metadata.search_date.year == datetime.now(timezone.utc).year
-    assert publication_metadata.search_date.month == datetime.now(timezone.utc).month
+    assert publication_metadata.search_date.year == datetime.now(UTC).year
+    assert publication_metadata.search_date.month == datetime.now(UTC).month

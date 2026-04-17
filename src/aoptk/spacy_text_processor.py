@@ -41,7 +41,7 @@ class SpacyText(FindChemical, SentenceGenerator, NormalizeChemical):
         self.nlp_mesh = models.get_model(mesh_model)
         models.ensure_pipe(self.nlp_mesh, "scispacy_linker", config=SpacyText._mesh_terms_config)
 
-    def find_chemical(self, sentence: str) -> list[Chemical]:
+    def find_chemicals(self, sentence: str) -> list[Chemical]:
         """Find chemicals in the given sentence."""
         doc = self.nlp(sentence)
         chemicals = []

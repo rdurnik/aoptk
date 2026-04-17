@@ -53,7 +53,7 @@ def cli(query: str, literature_database: str, chemical_database: str, email: str
     list_of_relevant_chemicals = generate_relevant_chemicals(chemical_database)
     result_df = pd.DataFrame(columns=["publication_id", "chemicals"])
     for abstract in abstracts:
-        chemicals = SpacyText().find_chemical(abstract.text)
+        chemicals = SpacyText().find_chemicals(abstract.text)
         normalized_chemicals = [SpacyText().normalize_chemical(chem) for chem in chemicals]
         relevant_chemicals = match_chemicals_with_loose_equality(list_of_relevant_chemicals, normalized_chemicals)
 
@@ -76,12 +76,12 @@ def generate_database_with_ids(query: str, literature_database: str, email: str)
     if literature_database == "pubmed":
         Entrez.email = email
         pubmed = PubMed(query)
-        ids = pubmed.get_id()
+        ids = pubmed.get_ids()
         pubmed.id_list = ids
         return pubmed
     if literature_database == "europepmc":
         europepmc = EuropePMC(query)
-        ids = europepmc.get_id()
+        ids = europepmc.get_ids()
         europepmc.id_list = ids
         return europepmc
     return None

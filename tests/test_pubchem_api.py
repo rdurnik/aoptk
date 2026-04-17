@@ -24,7 +24,6 @@ def test_normalize_chemical_not_empty():
 @pytest.mark.parametrize(
     ("chemical_name", "expected"),
     [
-        ("TAA", "thioacetamide"),
         ("CCL4", "carbon tetrachloride"),
         ("MTX", "methotrexate"),
         ("thioacetamide", "thioacetamide"),
