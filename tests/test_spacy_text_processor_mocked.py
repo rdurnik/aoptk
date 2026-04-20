@@ -98,7 +98,7 @@ def test_generate_sentences(spacy_test_env, text: str, expected: list[str]):
     mock_doc.sents = mock_sents
     spacy_test_env.return_value.return_value = mock_doc
 
-    actual = [sentence.__str__() for sentence in SpacyText().tokenize(text)]
+    actual = [sentence.text for sentence in SpacyText().tokenize(text)]
     assert actual == expected
 
 
@@ -219,8 +219,8 @@ def test_tokenize_strips_whitespace(spacy_test_env):
     result = SpacyText().tokenize("test text")
 
     assert len(result) == 2
-    assert str(result[0]) == "First sentence."
-    assert str(result[1]) == "Second sentence."
+    assert str(result[0].text) == "First sentence."
+    assert str(result[1].text) == "Second sentence."
 
 
 def test_find_chemical_empty_string(spacy_test_env):
