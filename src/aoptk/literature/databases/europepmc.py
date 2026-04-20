@@ -56,8 +56,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         self._session = requests.Session()
         self._session.headers.update(self.headers)
         retry_strategy = Retry(
-            total=5,
-            backoff_factor=2,
+            total=10,
+            backoff_factor=3,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["GET", "POST"],
         )
