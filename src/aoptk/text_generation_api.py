@@ -471,9 +471,9 @@ class TextGenerationAPI(
 
         if response := self._prompt(content).lower():
             if response == "none":
-                return None
+                return chemical.name
             return response
-        return None
+        return chemical.name
 
     def convert_pdf_scan(
         self,
