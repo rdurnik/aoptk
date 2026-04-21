@@ -70,6 +70,4 @@ venv.bak/
 *.orig
 
 # application directories
-src/aoptk/application/fibrosis/
-src/aoptk/application/gjic/
-src/aoptk/application/aop_organs/
+docs/application/
