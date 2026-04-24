@@ -47,7 +47,7 @@ license = {file = "LICENSE"}
 name = "aoptk"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
-version = "0.3.0"
+version = "0.3.1"
 
 [project.scripts]
 chemical-identifier = "aoptk.application.chemical_identifier:cli"
@@ -145,7 +145,7 @@ force-single-line = true
 no-lines-before = ["future","standard-library","third-party","first-party","local-folder"]
 
 [tool.bumpversion]
-current_version = "0.3.0"
+current_version = "0.3.1"
 
 [[tool.bumpversion.files]]
 filename = "src/aoptk/__init__.py"
