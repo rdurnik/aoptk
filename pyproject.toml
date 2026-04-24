@@ -23,24 +23,13 @@ classifiers = [
 ]
 dependencies = [
     "pandas",
-    "pymupdf<=1.27",
+    "pymupdf",
     "requests",
-    "scipy>=1.16.3",
-    "scispacy",
-    "numpy>=1.26,<2.0",
-    "spacy>=3.0.0,<3.8.0",
-    "beautifulsoup4",
     "biopython",
-    "transformers",
-    "torch",
-    "openpyxl",
-    "click>=8.1",
     "openai",
     "python-dotenv",
     "setuptools",
-    "spacy-layout",
     "tenacity",
-    "en-ner-bc5cdr-md @ https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
