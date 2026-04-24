@@ -1,12 +1,16 @@
 from __future__ import annotations
 import sys
 import pytest
+import spacy
 from aoptk.chemical import Chemical
 from aoptk.find_chemical import FindChemical
 from aoptk.sentence_generator import SentenceGenerator
 from aoptk.spacy_text_processor import SpacyText
 
-pytestmark = pytest.mark.skipif(sys.platform in ["darwin", "os2", "os2emx"], reason="tests for non macOS only")
+pytestmark = pytest.mark.skipif(
+    sys.platform in ["darwin", "os2", "os2emx"] or not spacy.util.is_package("en_ner_bc5cdr_md"),
+    reason="tests for non macOS only and require the en_ner_bc5cdr_md spaCy model",
+)
 
 
 def test_can_create():
