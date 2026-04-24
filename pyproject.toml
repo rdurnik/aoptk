@@ -40,6 +40,7 @@ dependencies = [
     "setuptools",
     "spacy-layout",
     "tenacity",
+    "en-ner-bc5cdr-md"
 ]
 description = "Tools to support data mining for the development of (q)AOPs"
 keywords = ["AOP"," toxicology"," data mining"," ai"," machine learning"," data analysis"]
