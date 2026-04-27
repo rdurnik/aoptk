@@ -602,7 +602,7 @@ class TextGenerationAPI(
             return response
         return ""
 
-    def find_relevant_publications(self, question: str, text: str) -> str:
+    def find_relevant_publications(self, question: str, text: str) -> bool | None:
         """Answer the question based on a given text.
 
         Args:
@@ -612,5 +612,8 @@ class TextGenerationAPI(
         if response := self._prompt(
             self.find_relevant_publications_prompt.format(question=question, text=text),
         ).lower():
-            return response
+            if response == "yes":
+                return True
+            elif response == "no":
+                return False
         return None
