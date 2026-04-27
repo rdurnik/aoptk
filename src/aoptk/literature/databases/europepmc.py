@@ -8,7 +8,6 @@ from typing import ClassVar
 import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
-from requests.exceptions import ReadTimeout
 from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
@@ -28,7 +27,6 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
 
     page_size = 1000
     timeout = 10
-    supplement_timeout = 1
     headers: ClassVar = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -363,20 +361,16 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             publication_id (str): The ID of the publication to retrieve supplementary files for.
         """
         if is_europepmc_id(publication_id):
-            try:
-                zip_path = Path(self.storage) / f"{publication_id}_supplementary.zip"
-                response = requests.get(
-                    f"https://www.ebi.ac.uk/europepmc/webservices/rest/{publication_id}/supplementaryFiles",
-                    stream=True,
-                    timeout=self.supplement_timeout,
-                )
-                if response.ok:
-                    with zip_path.open("wb") as f:
-                        f.write(response.content)
-                        return zip_path
-            except ReadTimeout:
-                pass
-            return None
+            zip_path = Path(self.storage) / f"{publication_id}_supplementary.zip"
+            response = self._session.get(
+                f"https://www.ebi.ac.uk/europepmc/webservices/rest/{publication_id}/supplementaryFiles",
+                stream=True,
+                timeout=self.timeout,
+            )
+            if response.ok:
+                with zip_path.open("wb") as f:
+                    f.write(response.content)
+                    return zip_path
         return None
 
 
