@@ -1,0 +1,8 @@
+Based on the provided text, answer the following question with YES or NO:
+$question
+
+Answer YES if the text contains information relevant to the question, even if only briefly.
+Answer NO if the text does not contain relevant information.
+
+Text:
+$text

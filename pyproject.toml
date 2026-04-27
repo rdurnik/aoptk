@@ -28,6 +28,7 @@ dependencies = [
     "biopython",
     "openai",
     "python-dotenv",
+    "Cheetah3",
     "setuptools",
     "tenacity",
 ]
@@ -136,6 +137,9 @@ no-lines-before = ["future","standard-library","third-party","first-party","loca
 
 [tool.bumpversion]
 current_version = "0.3.2"
+
+[tool.setuptools.package-data]
+aoptk = ["prompts/*.txt"]
 
 [[tool.bumpversion.files]]
 filename = "src/aoptk/__init__.py"
