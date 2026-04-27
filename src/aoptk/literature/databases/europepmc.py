@@ -8,6 +8,7 @@ from typing import ClassVar
 import pandas as pd
 import requests
 from requests.adapters import HTTPAdapter
+from requests.exceptions import ReadTimeout
 from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
@@ -27,6 +28,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
 
     page_size = 1000
     timeout = 10
+    supplement_timeout = 1
     headers: ClassVar = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -341,17 +343,18 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         Args:
             publication_id (str): The ID of the publication to retrieve figures for.
         """
-        zip_path = self._get_supplementary_zip_path(publication_id)
-        base_dir = Path(self.figure_storage) / f"{publication_id}"
-        base_dir.mkdir(parents=True, exist_ok=True)
-        image_paths = []
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            for file_info in zip_ref.infolist():
-                if file_info.filename.lower().endswith(self.image_extensions):
-                    zip_ref.extract(file_info, base_dir)
-                    image_paths.append(str(base_dir / file_info.filename))
-        Path.unlink(zip_path)
-        return image_paths
+        if zip_path := self._get_supplementary_zip_path(publication_id):
+            base_dir = Path(self.figure_storage) / f"{publication_id}"
+            base_dir.mkdir(parents=True, exist_ok=True)
+            image_paths = []
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                for file_info in zip_ref.infolist():
+                    if file_info.filename.lower().endswith(self.image_extensions):
+                        zip_ref.extract(file_info, base_dir)
+                        image_paths.append(str(base_dir / file_info.filename))
+            Path.unlink(zip_path)
+            return image_paths
+        return []
 
     def _get_supplementary_zip_path(self, publication_id: str) -> str | None:
         """Download the supplementary files ZIP for a given publication ID and return the path to the ZIP file.
@@ -360,16 +363,19 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             publication_id (str): The ID of the publication to retrieve supplementary files for.
         """
         if is_europepmc_id(publication_id):
-            zip_path = Path(self.storage) / f"{publication_id}_supplementary.zip"
-            response = self._session.get(
-                f"https://www.ebi.ac.uk/europepmc/webservices/rest/{publication_id}/supplementaryFiles",
-                stream=True,
-                timeout=self.timeout,
-            )
-            if response.ok:
-                with zip_path.open("wb") as f:
-                    f.write(response.content)
-                    return zip_path
+            try:
+                zip_path = Path(self.storage) / f"{publication_id}_supplementary.zip"
+                response = requests.get(
+                    f"https://www.ebi.ac.uk/europepmc/webservices/rest/{publication_id}/supplementaryFiles",
+                    stream=True,
+                    timeout=self.supplement_timeout,
+                )
+                if response.ok:
+                    with zip_path.open("wb") as f:
+                        f.write(response.content)
+                        return zip_path
+            except ReadTimeout:
+                pass
             return None
         return None
 

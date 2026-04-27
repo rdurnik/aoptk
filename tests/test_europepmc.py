@@ -280,7 +280,7 @@ def test_extract_figure_descriptions(
     assert ratio >= 50
 
 
-@pytest.mark.xfail(raises=HTTPError)
+@pytest.mark.skip(reason="Supplements are currently unavailable, thus there is no way to download figures.")
 def test_extract_figures(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting figures from XMLs."""
     if provide_publications["id"] == "PMC12416454":
