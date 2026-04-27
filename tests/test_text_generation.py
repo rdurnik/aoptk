@@ -404,17 +404,17 @@ def test_convert_image_to_text():
             "Does this publication contain data about drug carriers in HepG2 cells?",
             "Bile acid-based drug carriers were studied here. "
             "Both HepG2 and HepaRG spheroids were used as an experimental model.",
-            "yes",
+            True,
         ),
         (
             "Does this publication contain data about drug carriers in HeLa cells?",
             "Bile acid-based drug carriers were studied here. "
             "Both HepG2 and HepaRG spheroids were used as an experimental model.",
-            "no",
+            False,
         ),
     ],
 )
-def test_find_relevant_publications(question: str, text: str, expected: str):
+def test_find_relevant_publications(question: str, text: str, expected: bool):
     """Test that find_relevant_publications method finds relevant publications."""
     actual = TextGenerationAPI().find_relevant_publications(question=question, text=text)
     assert actual == expected

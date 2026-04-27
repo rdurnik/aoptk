@@ -27,6 +27,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     maximum_results = 10000
     batch_size = 200
+    max_retries = 5
 
     def __init__(self, query: str):
         self._query = query
@@ -40,7 +41,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         abstracts = []
         for i in range(0, len(self.id_list), self.batch_size):
             batch_ids = self.id_list[i : i + self.batch_size]
-            handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml")
+            handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml", max_retry=self.max_retries)
             records = Entrez.read(handle)
             handle.close()
             for article in records.get("PubmedArticle", []):
@@ -76,7 +77,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def _get_abstract(self, pmid: str) -> Abstract:
         """Get the abstract for a given PubMed ID."""
-        handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml")
+        handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml", max_retry=self.max_retries)
         record = Entrez.read(handle)
         handle.close()
         abstract_text = ""
@@ -87,7 +88,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def _get_publication_metadata(self, pmid: str) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
-        handle = Entrez.esummary(db="pubmed", id=pmid)
+        handle = Entrez.esummary(db="pubmed", id=pmid, max_retry=self.max_retries)
         summary_records = Entrez.read(handle)
         handle.close()
         for summary in summary_records:

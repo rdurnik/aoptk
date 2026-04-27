@@ -1,0 +1,5 @@
+Extract the complete text from the provided scientific publication image,
+preserving all original line breaks, spacing,
+and paragraph structure exactly as shown.
+Output only the extracted text with no additional commentary or formatting, and ensure that no
+extra spaces are inserted between letters or words.

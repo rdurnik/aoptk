@@ -5,6 +5,7 @@ from itertools import product
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
+from jinja2 import Template
 from openai import OpenAI
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
@@ -44,185 +45,17 @@ class TextGenerationAPI(
     top_p: float = 1
     load_dotenv()
     client: None = None
+    prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
+    chemical_prompt_template: str = "chemical_prompt.txt"
+    relationship_text_prompt_template: str = "relationship_text_prompt.txt"
+    relationship_text_images_prompt_template: str = "relationship_text_images_prompt.txt"
+    relationships_table_prompt_template: str = "relationships_table_prompt.txt"
+    normalization_prompt_template: str = "normalization_prompt.txt"
+    convert_pdf_scan_prompt_template: str = "convert_pdf_scan_prompt.txt"
+    convert_image_prompt_template: str = "convert_image_prompt.txt"
+    find_relevant_publications_prompt_template: str = "find_relevant_publications_prompt.txt"
 
-    chemical_prompt: str = """
-    Task:
-    Extract chemical entities (e.g., chemicals, metabolites) from the provided Context.
-    Replace all chemical abbreviations with their full chemical names.
-    Do not modify, interpret, or expand chemical formulas (e.g., NaCl); keep them exactly as written.
-    Refrain from describing groups of chemicals as discrete chemical entities (e.g., pesticides, plastics, proteins).
-
-
-    Output requirements:
-    1. Return only chemical names.
-    2. Do not include explanations, labels, or any additional text.
-    3. Separate chemical names exactly with " ; " (space-semicolon-space).
-    4. Do not add leading or trailing separators.
-    5. Do not include running characters` such as " - " (space-dash-space) or ": - " (colon-space-dash-space)
-    in chemical names.
-    6. If no chemical entities are present, return exactly "none"
-
-    Context:
-    {text}
-    """
-
-    relationship_text_prompt: str = """
-    Task:
-    Given the Context, determine whether the chemical {chem} {rel_type.positive_verb} the biological effect {effect}.
-    {specification_relationship_text_prompt}
-
-    Effect synonyms:
-    - Treat common synonyms or equivalent terms as the same effect.
-    - Always map any synonym in the Context to the target effect before evaluating.
-
-    Decision rules:
-    - Return {rel_type.positive} if the Context explicitly states that {chem} {rel_type.positive_verb} {effect}.
-    - Return {rel_type.negative} if the Context explicitly states that {chem} {rel_type.negative_verb} {effect}.
-    - Return "none" if:
-        - The chemical or the effect is not mentioned, or
-        - No direct relationship is stated, or
-        - The statement is speculative, conditional, or indirect (e.g., uses "may", "might", "could").
-    - VERY IMPORTANT: In all other cases: {other_topics} relationships - return "none".
-
-    Output:
-    Return exactly one of the following, with no extra text:
-    {rel_type.positive}
-    {rel_type.negative}
-    none
-
-    Context:
-    {text}
-    """
-
-    specification_relationship_text_prompt: str = """
-    """
-
-    relationship_text_images_prompt: str = """
-    Task:
-    Analyze the provided Context and Images.
-
-    Step 1 — Chemical Extraction:
-    - Identify all chemical entities (chemicals or metabolites).
-    - Replace abbreviations with full chemical names.
-    - Always write chemical names in lowercase.
-    - Do NOT modify or expand chemical formulas (e.g., NaCl must remain exactly as written).
-    - Do NOT treat broad classes (e.g., pesticides, proteins, plastics) as individual chemicals.
-
-    Step 2 — Relationship Evaluation:
-    Determine whether each chemical {rel_type.positive_verb} the biological effect "{effect}".
-    Treat synonyms of the effect as equivalent.
-
-    Output Rules:
-    - Only output chemicals with a clear positive or negative relationship.
-    - Exclude chemicals with no clear relationship.
-    - If none qualify, output exactly:
-    none
-
-    Format:
-    full_chemical_name_in_lowercase : relationship
-
-    Where relationship must be exactly:
-    {rel_type.positive}
-    {rel_type.negative}
-
-    Strict:
-    - Chemical names must be full names and lowercase.
-    - No blank relationships.
-    - No extra text.
-    - One chemical per line.
-
-    Context:
-    {text}
-    """
-
-    relationships_table_prompt: str = """
-    You are an assistant analyzing data from tables related to the biological effect {effect}.
-    Your task is to process the provided information and output the results in this strict format, one per line:
-
-    Format:
-    full_chemical_name_in_lowercase : relationship
-
-    Guidelines:
-    1. Replace "full_chemical_name_in_lowercase" with the translated full name of the chemical (all lowercase).
-    2. Replace "relationship" with:
-    - {rel_type.positive} if the chemical {rel_type.positive_verb} {effect}.
-    - {rel_type.negative} if the chemical {rel_type.negative_verb} {effect}.
-    3. No headers, explanations, or extra text may be included in the output.
-    4. Respond only with lines matching the format above—each line must correspond to a single chemical and its
-    relationship.
-    5. Handle incomplete or unrelated data as follows:
-    - If only partial data is given (e.g., some chemicals mentioned but not all effects), include only the chemicals
-    with identifiable effects.
-    - If no relevant data (chemicals or {effect} effects) is provided, output "none".
-
-    Table:
-    {table}
-    """
-
-    normalization_prompt: str = """
-    You are a chemical name normalization assistant.
-
-    Task:
-    You will be given:
-    - A TARGET chemical name: {chem}
-    - A LIST OF CHEMICAL NAMES (one chemical name per line)
-
-    Your job is to:
-    1. Determine whether {chem} matches any chemical in the list.
-    2. Matching should include:
-    - Synonyms (e.g., paracetamol = acetaminophen)
-    - Abbreviations (e.g., PCB = polychlorinated biphenyl)
-    - Alternate spellings, hyphenation, or formatting differences
-    - Plural vs singular forms
-    3. If multiple matches exist, return the most likely standardized match based on common chemical naming conventions.
-    4. If there is no match, return: "none".
-
-    Output rules:
-    - Return only the matched chemical name from the list.
-    - Do not explain.
-    - Do not return anything except the answer.
-    - If no match is found, return exactly "none".
-
-    TARGET: {chem}
-
-    LIST OF CHEMICAL NAMES:
-    {list_of_chemical_names}
-    """
-
-    convert_pdf_scan_prompt: str = """
-    Extract the complete text from the provided scientific publication image,
-    preserving all original line breaks, spacing,
-    and paragraph structure exactly as shown.
-    Output only the extracted text with no additional commentary or formatting, and ensure that no
-    extra spaces are inserted between letters or words.
-    """
-
-    convert_image_prompt = """
-    You are analyzing an image extracted from a scientific publication.
-
-    Task:
-    Describe in detail what is shown in the image.
-
-    Important instructions:
-    - If the image appears to be a scanned page of a scientific publication, return an empty string.
-    - The provided context contains the full text of the publication. Use this context to interpret the image
-    accurately.
-    - Do not speculate beyond what is visible in the image and supported by the publication context.
-
-    Publication context:
-    {text}
-    """
-
-    find_relevant_publications_prompt = """
-    Based on the provided text, answer the following question with YES or NO:
-    {question}
-
-    Answer YES if the text contains information relevant to the question, even if only briefly.
-    Answer NO if the text does not contain relevant information.
-
-    Text:
-    {text}
-    """
+    specification_relationship_text_prompt: str = ""
 
     def __init__(
         self,
@@ -280,7 +113,8 @@ class TextGenerationAPI(
             relationship_type (RelationshipType): The relationship type to classify.
         """
         other_topics = topics.difference({relationship_type})
-        content = self.relationship_text_prompt.format(
+        content = self._render_prompt(
+            self.relationship_text_prompt_template,
             text=text,
             chem=chemical.name,
             effect=effect.name,
@@ -290,6 +124,12 @@ class TextGenerationAPI(
         )
 
         return self._prompt(content)
+
+    def _render_prompt(self, template_name: str, **context: object) -> str:
+        template_path = self.prompts_dir / template_name
+        with template_path.open(encoding="utf-8") as template_file:
+            template_content = template_file.read()
+        return str(Template(template_content).render(**context))
 
     def _prompt(self, content: str) -> str:
         completion = self.client.chat.completions.create(
@@ -327,7 +167,7 @@ class TextGenerationAPI(
         Args:
             text (str): The input text to search for chemicals.
         """
-        if response := self._prompt(self.chemical_prompt.format(text=text)).lower():
+        if response := self._prompt(self._render_prompt(self.chemical_prompt_template, text=text)).lower():
             if response == "none":
                 return []
             return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
@@ -430,7 +270,8 @@ class TextGenerationAPI(
         """
         table_text = table_df.to_csv(index=False)
 
-        content = self.relationships_table_prompt.format(
+        content = self._render_prompt(
+            self.relationships_table_prompt_template,
             effect=effect.name,
             rel_type=relationship_type,
             table=table_text,
@@ -464,16 +305,17 @@ class TextGenerationAPI(
         Returns:
             Chemical: The matching chemical name, or None if no match is found.
         """
-        content = self.normalization_prompt.format(
+        content = self._render_prompt(
+            self.normalization_prompt_template,
             chem=chemical.name,
             list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
         )
 
         if response := self._prompt(content).lower():
             if response == "none":
-                return None
+                return chemical.name
             return response
-        return None
+        return chemical.name
 
     def convert_pdf_scan(
         self,
@@ -492,7 +334,7 @@ class TextGenerationAPI(
         content = [
             {
                 "type": "text",
-                "text": self.convert_pdf_scan_prompt,
+                "text": self._render_prompt(self.convert_pdf_scan_prompt_template),
             },
             {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{img_base64.strip()}"}},
         ]
@@ -547,7 +389,8 @@ class TextGenerationAPI(
         content = [
             {
                 "type": "text",
-                "text": self.relationship_text_images_prompt.format(
+                "text": self._render_prompt(
+                    self.relationship_text_images_prompt_template,
                     text=text,
                     effect=effect.name,
                     rel_type=relationship_type,
@@ -593,7 +436,7 @@ class TextGenerationAPI(
         content = [
             {
                 "type": "text",
-                "text": self.convert_image_prompt.format(text=text),
+                "text": self._render_prompt(self.convert_image_prompt_template, text=text),
             },
             {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{base64_image}"}},
         ]
@@ -602,7 +445,7 @@ class TextGenerationAPI(
             return response
         return ""
 
-    def find_relevant_publications(self, question: str, text: str) -> str:
+    def find_relevant_publications(self, question: str, text: str) -> bool | None:
         """Answer the question based on a given text.
 
         Args:
@@ -610,7 +453,10 @@ class TextGenerationAPI(
             text (str): The extracted text of the publication.
         """
         if response := self._prompt(
-            self.find_relevant_publications_prompt.format(question=question, text=text),
+            self._render_prompt(self.find_relevant_publications_prompt_template, question=question, text=text),
         ).lower():
-            return response
+            if response == "yes":
+                return True
+            if response == "no":
+                return False
         return None
