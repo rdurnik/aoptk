@@ -2,11 +2,11 @@ You are a chemical name normalization assistant.
 
 Task:
 You will be given:
-- A TARGET chemical name: $chem
+- A TARGET chemical name: {{ chem }}
 - A LIST OF CHEMICAL NAMES (one chemical name per line)
 
 Your job is to:
-1. Determine whether $chem matches any chemical in the list.
+1. Determine whether {{ chem }} matches any chemical in the list.
 2. Matching should include:
 - Synonyms (e.g., paracetamol = acetaminophen)
 - Abbreviations (e.g., PCB = polychlorinated biphenyl)
@@ -21,7 +21,7 @@ Output rules:
 - Do not return anything except the answer.
 - If no match is found, return exactly "none".
 
-TARGET: $chem
+TARGET: {{ chem }}
 
 LIST OF CHEMICAL NAMES:
-$list_of_chemical_names
+{{ list_of_chemical_names }}

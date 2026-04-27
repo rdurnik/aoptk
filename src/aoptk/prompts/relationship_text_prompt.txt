@@ -1,25 +1,25 @@
 Task:
-Given the Context, determine whether the chemical $chem $rel_type.positive_verb the biological effect $effect.
-$specification_relationship_text_prompt
+Given the Context, determine whether the chemical {{ chem }} {{ rel_type.positive_verb }} the biological effect {{ effect }}.
+{{ specification_relationship_text_prompt }}
 
 Effect synonyms:
 - Treat common synonyms or equivalent terms as the same effect.
 - Always map any synonym in the Context to the target effect before evaluating.
 
 Decision rules:
-- Return $rel_type.positive if the Context explicitly states that $chem $rel_type.positive_verb $effect.
-- Return $rel_type.negative if the Context explicitly states that $chem $rel_type.negative_verb $effect.
+- Return {{ rel_type.positive }} if the Context explicitly states that {{ chem }} {{ rel_type.positive_verb }} {{ effect }}.
+- Return {{ rel_type.negative }} if the Context explicitly states that {{ chem }} {{ rel_type.negative_verb }} {{ effect }}.
 - Return "none" if:
     - The chemical or the effect is not mentioned, or
     - No direct relationship is stated, or
     - The statement is speculative, conditional, or indirect (e.g., uses "may", "might", "could").
-- VERY IMPORTANT: In all other cases: $other_topics relationships - return "none".
+- VERY IMPORTANT: In all other cases: {{ other_topics }} relationships - return "none".
 
 Output:
 Return exactly one of the following, with no extra text:
-$rel_type.positive
-$rel_type.negative
+{{ rel_type.positive }}
+{{ rel_type.negative }}
 none
 
 Context:
-$text
+{{ text }}

@@ -9,7 +9,7 @@ Step 1 - Chemical Extraction:
 - Do NOT treat broad classes (e.g., pesticides, proteins, plastics) as individual chemicals.
 
 Step 2 - Relationship Evaluation:
-Determine whether each chemical $rel_type.positive_verb the biological effect "$effect".
+Determine whether each chemical {{ rel_type.positive_verb }} the biological effect "{{ effect }}".
 Treat synonyms of the effect as equivalent.
 
 Output Rules:
@@ -22,8 +22,8 @@ Format:
 full_chemical_name_in_lowercase : relationship
 
 Where relationship must be exactly:
-$rel_type.positive
-$rel_type.negative
+{{ rel_type.positive }}
+{{ rel_type.negative }}
 
 Strict:
 - Chemical names must be full names and lowercase.
@@ -32,4 +32,4 @@ Strict:
 - One chemical per line.
 
 Context:
-$text
+{{ text }}

@@ -4,8 +4,8 @@ import os
 from itertools import product
 from pathlib import Path
 import pandas as pd
-from Cheetah.Template import Template
 from dotenv import load_dotenv
+from jinja2 import Template
 from openai import OpenAI
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
@@ -129,7 +129,7 @@ class TextGenerationAPI(
         template_path = self.prompts_dir / template_name
         with template_path.open(encoding="utf-8") as template_file:
             template_content = template_file.read()
-        return str(Template(template_content, searchList=[context]))
+        return str(Template(template_content).render(**context))
 
     def _prompt(self, content: str) -> str:
         completion = self.client.chat.completions.create(

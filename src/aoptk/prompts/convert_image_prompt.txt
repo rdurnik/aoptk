@@ -10,4 +10,4 @@ accurately.
 - Do not speculate beyond what is visible in the image and supported by the publication context.
 
 Publication context:
-$text
+{{ text }}

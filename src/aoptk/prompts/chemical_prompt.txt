@@ -14,4 +14,4 @@ in chemical names.
 6. If no chemical entities are present, return exactly "none"
 
 Context:
-$text
+{{ text }}
