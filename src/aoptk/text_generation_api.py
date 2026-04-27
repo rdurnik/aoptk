@@ -614,6 +614,6 @@ class TextGenerationAPI(
         ).lower():
             if response == "yes":
                 return True
-            elif response == "no":
+            if response == "no":
                 return False
         return None
