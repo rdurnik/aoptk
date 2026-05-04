@@ -341,17 +341,18 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         Args:
             publication_id (str): The ID of the publication to retrieve figures for.
         """
-        zip_path = self._get_supplementary_zip_path(publication_id)
-        base_dir = Path(self.figure_storage) / f"{publication_id}"
-        base_dir.mkdir(parents=True, exist_ok=True)
-        image_paths = []
-        with zipfile.ZipFile(zip_path, "r") as zip_ref:
-            for file_info in zip_ref.infolist():
-                if file_info.filename.lower().endswith(self.image_extensions):
-                    zip_ref.extract(file_info, base_dir)
-                    image_paths.append(str(base_dir / file_info.filename))
-        Path.unlink(zip_path)
-        return image_paths
+        if zip_path := self._get_supplementary_zip_path(publication_id):
+            base_dir = Path(self.figure_storage) / f"{publication_id}"
+            base_dir.mkdir(parents=True, exist_ok=True)
+            image_paths = []
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                for file_info in zip_ref.infolist():
+                    if file_info.filename.lower().endswith(self.image_extensions):
+                        zip_ref.extract(file_info, base_dir)
+                        image_paths.append(str(base_dir / file_info.filename))
+            Path.unlink(zip_path)
+            return image_paths
+        return []
 
     def _get_supplementary_zip_path(self, publication_id: str) -> str | None:
         """Download the supplementary files ZIP for a given publication ID and return the path to the ZIP file.
@@ -370,7 +371,6 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 with zip_path.open("wb") as f:
                     f.write(response.content)
                     return zip_path
-            return None
         return None
 
 

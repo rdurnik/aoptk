@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
-from aoptk.inject_text_generation import TextGenerationInjector
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
@@ -21,7 +20,6 @@ def test_can_create(tmp_path_factory: pytest.TempPathFactory):
 def test_implements_interface():
     """Test that PymupdfParser implements GetPublication interface."""
     assert issubclass(PymupdfParser, GetPublication)
-    assert issubclass(PymupdfParser, TextGenerationInjector)
 
 
 def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory):
@@ -146,8 +144,8 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
         PymupdfParser(
             pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+            text_generation=TextGenerationAPI(model="redhatai-scout"),
         )
-        .inject_text_generation(TextGenerationAPI(model="redhatai-scout"))
         .get_publications()[0]
         .full_text
     )
@@ -156,3 +154,17 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
         "we evaluated the effect of the parent chemical and the ozonated products"
     )
     assert expected in actual
+
+
+def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.TempPathFactory):
+    """Test extracting full text from a corrupted PDF."""
+    actual = (
+        PymupdfParser(
+            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
+            figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+        )
+        .get_publications()[0]
+        .full_text
+    )
+    expected = ""
+    assert expected == actual

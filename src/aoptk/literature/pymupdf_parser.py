@@ -4,9 +4,7 @@ import re
 from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Self
 import pymupdf
-from aoptk.inject_text_generation import TextGenerationInjector
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
@@ -18,24 +16,20 @@ if TYPE_CHECKING:
     from aoptk.text_generation_api import TextGenerationAPI
 
 
-class PymupdfParser(PDFParser, TextGenerationInjector):
+class PymupdfParser(PDFParser):
     """Parse PDFs using PyMuPDF."""
 
-    def __init__(self, pdfs: list[PDF], figure_storage: str = "tests/figure_storage"):
+    def __init__(
+        self,
+        pdfs: list[PDF],
+        figure_storage: str = "tests/figure_storage",
+        text_generation: TextGenerationAPI | None = None,
+    ):
         self.figure_storage = figure_storage
         self.pdfs = pdfs
         self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
-        self.text_generation = None
-
-    def inject_text_generation(self, text_generation: TextGenerationAPI) -> Self:
-        """Inject text generation dependency (voluntary).
-
-        Args:
-            text_generation (TextGenerationAPI): The text generation API to use for converting PDF scans to text.
-        """
         self.text_generation = text_generation
-        return self
 
     def get_publications(self) -> list[Publication]:
         """Get a list of publications."""
