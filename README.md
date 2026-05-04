@@ -12,7 +12,7 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 | (1/5) code repository              | [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/rdurnik/aoptk) |
 | (2/5) license                      | [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk) |
 | (3/5) community registry           | [![RSD](https://img.shields.io/badge/rsd-aoptk-00a3e3.svg)](https://www.research-software.nl/software/aoptk) [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) |
-| (4/5) citation                     | [![DOI](https://zenodo.org/badge/DOI/<replace-with-created-DOI>.svg)](https://doi.org/<replace-with-created-DOI>)|
+| (4/5) citation                     | [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-B31B1B)](https://doi.org/10.64898/2026.04.15.718674)|
 | (5/5) checklist                    | [![workflow cii badge](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>/badge)](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>) |
 | howfairis                          | [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) |
 | **Other best practices**           | &nbsp; |
@@ -24,12 +24,27 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 
 ## Installation
 
-To install aoptk from GitHub repository, do:
+You can install aoptk in multiple ways depending on your workflow.
+
+### Install from PyPI (with uv)
+
+```console
+python -m pip install aoptk
+```
+
+### Install from BioConda
+
+```console
+conda install -c bioconda aoptk
+```
+
+### Install from source (with uv)
 
 ```console
 git clone git@github.com:rdurnik/aoptk.git
 cd aoptk
-python -m pip install .
+uv sync --frozen
+uv pip install .
 ```
 
 ## Documentation

@@ -2,6 +2,7 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 import pytest
+from flaky import flaky
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
@@ -310,6 +311,7 @@ def phthalate_table_data():
 
 
 @pytest.mark.openai
+@flaky
 def test_relationship_table(phthalate_table_data: dict):
     """Test find_relationships_in_table method with a table."""
     actual = TextGenerationAPI().find_relationships_in_table(
