@@ -310,6 +310,7 @@ def phthalate_table_data():
 
 
 @pytest.mark.openai
+@flaky
 def test_relationship_table(phthalate_table_data: dict):
     """Test find_relationships_in_table method with a table."""
     actual = TextGenerationAPI().find_relationships_in_table(
