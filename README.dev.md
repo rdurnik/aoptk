@@ -124,62 +124,13 @@ This section describes how to make a release in 3 parts:
 ### (1/3) Preparation
 
 
-1. Verify that the information in [`CITATION.cff`](CITATION.cff) is correct.
+1. Verify that the information in [`CITATION.cff`](CITATION.cff) is correct using `cffconvert --validate`
 1. Make sure the [version has been updated](#versioning).
 1. Run the unit tests with `pytest -v`
 
 ### (2/3) PyPI
 
-In a new terminal:
-
-```shell
-# OPTIONAL: prepare a new directory with fresh git clone to ensure the release
-# has the state of origin/main branch
-cd $(mktemp -d aoptk.XXXXXX)
-git clone git@github.com:rdurnik/aoptk .
-
-# make sure to have a recent version of pip and the publishing dependencies
-python -m pip install --upgrade pip
-python -m pip install .[publishing]
-
-# create the source distribution and the wheel
-python -m build
-
-# upload to test pypi instance (requires credentials)
-python -m twine upload --repository testpypi dist/*
-```
-
-Visit
-[https://test.pypi.org/project/aoptk](https://test.pypi.org/project/aoptk)
-and verify that your package was uploaded successfully. Keep the terminal open, we'll need it later.
-
-In a new terminal, without an activated virtual environment or an env directory:
-
-```shell
-cd $(mktemp -d aoptk-test.XXXXXX)
-
-# prepare a clean virtual environment and activate it
-python -m venv env
-source env/bin/activate
-
-# make sure to have a recent version of pip and setuptools
-python -m pip install --upgrade pip
-
-# install from test pypi instance:
-python -m pip -v install --no-cache-dir \
---index-url https://test.pypi.org/simple/ \
---extra-index-url https://pypi.org/simple aoptk
-```
-
-Check that the package works as it should when installed from pypitest.
-
-Then upload to pypi.org with:
-
-```shell
-# Back to the first terminal,
-# FINAL STEP: upload to PyPI (requires credentials)
-python -m twine upload dist/*
-```
+Follow the documentation outlined [here](https://packaging.python.org/en/latest/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/) to setup the trusted publishing workflow with PyPI.
 
 ### (3/3) GitHub
 
