@@ -26,7 +26,7 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 
 You can install aoptk in multiple ways depending on your workflow.
 
-### Install from PyPI
+### Install from PyPI (with uv)
 
 ```console
 python -m pip install aoptk

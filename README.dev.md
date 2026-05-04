@@ -5,40 +5,30 @@ If you're looking for user documentation, go [here](README.md).
 ## Development install
 
 ```shell
-# Create a virtual environment, e.g. with
-python -m venv env
-
-# activate virtual environment
-source env/bin/activate
-
-# make sure to have a recent version of pip and setuptools
-python -m pip install --upgrade pip setuptools
-
 # (from the project root directory)
-# install aoptk as an editable package
-python -m pip install --no-cache-dir --editable .
-# install development dependencies
-python -m pip install --no-cache-dir --editable .[dev]
+# install runtime + development dependencies from the lockfile
+uv sync --frozen --extra dev
+
 # install documentation dependencies only
-python -m pip install --no-cache-dir --editable .[docs]
+uv sync --frozen --extra docs
 ```
 
-Afterwards check that the install directory is present in the `PATH` environment variable.
+Use `uv run` to execute tools in the managed environment.
 
 ## Running the tests
 
 There are two ways to run tests.
 
-The first way requires an activated virtual environment with the development tools installed:
+The first way uses the uv-managed environment:
 
 ```shell
-pytest -v
+uv run pytest -v
 ```
 
-The second is to use `tox`, which can be installed separately (e.g. with `pip install tox`), i.e. not necessarily inside the virtual environment you use for installing `aoptk`, but then builds the necessary virtual environments itself by simply running:
+The second is to use `tox`, which can be run via `uvx`, i.e. not necessarily inside the uv-managed environment, but then builds the necessary virtual environments itself by simply running:
 
 ```shell
-tox
+uvx tox
 ```
 
 Testing with `tox` allows for keeping the testing environment separate from your development environment.
@@ -47,37 +37,39 @@ The development environment will typically accumulate (old) packages during deve
 ### Test coverage
 
 In addition to just running the tests to see if they pass, they can be used for coverage statistics, i.e. to determine how much of the package's code is actually executed during tests.
-In an activated virtual environment with the development tools installed, inside the package directory, run:
+Inside the package directory, run:
 
 ```shell
-coverage run
+uv run coverage run
 ```
 
 This runs tests and stores the result in a `.coverage` file.
 To see the results on the command line, run
 
 ```shell
-coverage report
+uv run coverage report
 ```
 
-`coverage` can also generate output in HTML and other formats; see `coverage help` for more information.## Running linters locally
+`coverage` can also generate output in HTML and other formats; see `uv run coverage help` for more information.
 
-For linting and sorting imports we will use [ruff](https://beta.ruff.rs/docs/). Running the linters requires an
-activated virtual environment with the development tools installed.
+## Running linters locally
+
+For linting and sorting imports we will use [ruff](https://beta.ruff.rs/docs/).
 
 ```shell
 # linter
-ruff check .
+uv run ruff check .
 
 # linter with automatic fixing
-ruff check . --fix
+uv run ruff check . --fix
 ```
 
-To fix readability of your code style you can use [yapf](https://github.com/google/yapf).## Generating the API docs
+To fix readability of your code style you can use [yapf](https://github.com/google/yapf).
+
+## Generating the API docs
 
 ```shell
-cd docs
-make html
+uv run make -C docs html
 ```
 
 The documentation will be in `docs/_build/html`
@@ -85,22 +77,20 @@ The documentation will be in `docs/_build/html`
 If you do not have `make` use
 
 ```shell
-sphinx-build -b html docs docs/_build/html
+uv run sphinx-build -b html docs docs/_build/html
 ```
 
 To find undocumented Python objects run
 
 ```shell
-cd docs
-make coverage
-cat _build/coverage/python.txt
+uv run make -C docs coverage
+cat docs/_build/coverage/python.txt
 ```
 
 To [test snippets](https://www.sphinx-doc.org/en/master/usage/extensions/doctest.html) in documentation run
 
 ```shell
-cd docs
-make doctest
+uv run make -C docs doctest
 ```
 
 ## Versioning
@@ -124,9 +114,9 @@ This section describes how to make a release in 3 parts:
 ### (1/3) Preparation
 
 
-1. Verify that the information in [`CITATION.cff`](CITATION.cff) is correct using `cffconvert --validate`
+1. Verify that the information in [`CITATION.cff`](CITATION.cff) is correct using `uv run cffconvert --validate`
 1. Make sure the [version has been updated](#versioning).
-1. Run the unit tests with `pytest -v`
+1. Run the unit tests with `uv run pytest -v`
 
 ### (2/3) PyPI
 
