@@ -171,8 +171,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            return Abstract(results[0].get("abstractText", ""), publication_id=ID(publication_id))
-        return Abstract("", publication_id=ID(publication_id))
+            return Abstract(text=results[0].get("abstractText", ""), id=ID(publication_id))
+        return Abstract(text="", id=ID(publication_id))
 
     def _call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
         """Call the EuropePMC web api to query the search.
@@ -216,7 +216,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             database = "Europe PMC"
             search_date = datetime.now(UTC)
             return PublicationMetadata(
-                publication_id=publication_id,
+                id=ID(publication_id),
                 publication_date=publication_date,
                 title=title,
                 authors=authors,

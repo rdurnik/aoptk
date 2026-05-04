@@ -48,7 +48,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
                 pmid = str(article["MedlineCitation"]["PMID"])
                 abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
                 abstract_text = "".join(abstract_obj) if abstract_obj else ""
-                abstracts.append(Abstract(text=abstract_text, publication_id=ID(pmid)))
+                abstracts.append(Abstract(text=abstract_text, id=ID(pmid)))
         return abstracts
 
     def get_publications_metadata(self) -> list[PublicationMetadata]:
@@ -83,8 +83,8 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         abstract_text = ""
         if abstract_obj := record["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]:
             abstract_text = "".join(abstract_obj)
-            return Abstract(text=abstract_text, publication_id=ID(pmid))
-        return Abstract(text="", publication_id=ID(pmid))
+            return Abstract(text=abstract_text, id=ID(pmid))
+        return Abstract(text="", id=ID(pmid))
 
     def _get_publication_metadata(self, pmid: str) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
@@ -99,7 +99,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             authors = ", ".join(summary.get("AuthorList", []))
             search_date = datetime.now(UTC)
         return PublicationMetadata(
-            publication_id=publication_id,
+            id=ID(publication_id),
             publication_date=year_publication,
             title=title,
             authors=authors,

@@ -181,7 +181,7 @@ def test_generate_abstracts_for_given_query(
     pubmed_instance = PubMed(query)
     abstracts = pubmed_instance.get_abstracts()
     assert abstracts[position].text == expected_abstract
-    assert abstracts[position].publication_id == expected_id
+    assert abstracts[position].id == expected_id
 
 
 @pytest.mark.parametrize(
@@ -221,7 +221,7 @@ def test_get_publication_metadata(mock_entrez, test_data: dict):
     ]
 
     publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
-    assert publication_metadata.publication_id == test_data["publication_id"]
+    assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]

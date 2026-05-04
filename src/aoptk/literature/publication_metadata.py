@@ -8,7 +8,7 @@ from aoptk.literature.id import ID
 class PublicationMetadata:
     """Data structure representing a publication."""
 
-    publication_id: ID
+    id: ID
     publication_date: int
     title: str
     authors: list[str]

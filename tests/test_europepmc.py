@@ -189,7 +189,7 @@ def test_generate_abstracts_for_given_query(
     publication_id = (
         EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_abstracts()[position]
-        .publication_id
+        .id
     )
     assert abstract == expected_abstract
     assert publication_id == expected_id
@@ -224,7 +224,7 @@ def test_get_publication_metadata(test_data: dict, provide_temp_storage: dict, p
         storage=provide_temp_storage,
         figure_storage=provide_temp_storage_figures,
     ).get_publications_metadata()[0]
-    assert publication_metadata.publication_id == test_data["publication_id"]
+    assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]

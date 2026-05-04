@@ -81,7 +81,7 @@ class PymupdfParser(PDFParser):
                 abstract_text = "\n".join(block[6] for block in text_blocks if block == longest_block)
             else:
                 abstract_text = ""
-        return Abstract(abstract_text, publication_id)
+        return Abstract(text=abstract_text, id=publication_id)
 
     def _extract_full_text(self, pdf: PDF) -> str:
         """Extract text to parse from the PDF.
