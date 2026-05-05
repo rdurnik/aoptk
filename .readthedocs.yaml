@@ -11,4 +11,8 @@ sphinx:
 python:
   install:
     - method: uv
+      command: pip
+      extra_requirements:
+        - docs
+    - method: uv
       command: sync
