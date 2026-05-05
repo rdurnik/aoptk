@@ -49,7 +49,7 @@ uv pip install .
 
 ## Documentation
 
-TBA
+See our [Read the Docs](https://aoptk.readthedocs.io/en/latest/).
 
 ## Contributing
 
