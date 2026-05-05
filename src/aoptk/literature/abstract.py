@@ -1,12 +1,14 @@
+from __future__ import annotations
+from dataclasses import dataclass
 from aoptk.literature.id import ID
 
 
+@dataclass
 class Abstract:
-    """Abstract data structure containing the text of the abstract."""
+    """Data structure representing an abstract."""
 
-    def __init__(self, text: str, publication_id: ID):
-        self.text = text
-        self.publication_id = publication_id
+    id: ID
+    text: str
 
     def __str__(self) -> str:
         return self.text
