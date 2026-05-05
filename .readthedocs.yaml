@@ -10,7 +10,7 @@ sphinx:
 
 python:
   install:
-    - method: uv
-      command: sync
+    - method: pip
+      path: .
       extra_requirements:
         - docs
