@@ -12,7 +12,6 @@ python:
   install:
     - method: uv
       command: pip
+      path: .
       extra_requirements:
         - docs
-    - method: uv
-      command: sync
