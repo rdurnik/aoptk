@@ -12,7 +12,7 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 | (1/5) code repository              | [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/rdurnik/aoptk) |
 | (2/5) license                      | [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk) |
 | (3/5) community registry           | [![RSD](https://img.shields.io/badge/rsd-aoptk-00a3e3.svg)](https://www.research-software.nl/software/aoptk) [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) |
-| (4/5) citation                     | [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-B31B1B)](https://doi.org/10.64898/2026.04.15.718674) [![DOI](https://zenodo.org/badge/DOI/<10.5281/zenodo.20036704>.svg)](https://doi.org/<10.5281/zenodo.20036704>)|
+| (4/5) citation                     | [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-B31B1B)](https://doi.org/10.64898/2026.04.15.718674) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20036704.svg)](https://doi.org/10.5281/zenodo.20036704)|
 | (5/5) checklist                    | [![workflow cii badge](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>/badge)](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>) |
 | howfairis                          | [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) |
 | **Other best practices**           | &nbsp; |
