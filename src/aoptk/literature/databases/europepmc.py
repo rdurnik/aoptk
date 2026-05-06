@@ -64,7 +64,19 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
 
-        self.id_list = self.get_ids()
+        self._id_list = None
+
+    @property
+    def id_list(self) -> list[ID]:
+        """Get the list of publication IDs. Obtained via get_ids() if not set."""
+        if self._id_list is None:
+            self._id_list = self.get_ids()
+        return self._id_list
+
+    @id_list.setter
+    def id_list(self, id_list: list[ID]) -> None:
+        """Manually set the list of publication IDs."""
+        self._id_list = id_list
 
     def get_pdfs(self) -> list[PDF]:
         """Retrieve PDFs based on the query."""

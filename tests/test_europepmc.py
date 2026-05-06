@@ -304,3 +304,21 @@ def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, 
     )
     expected = provide_publications["tables"]
     assert len(actual) == expected
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_get_publications_id_list_preset(provide_temp_storage: dict, provide_temp_storage_figures: dict):
+    """Test that get_publications_id_list() returns expected publication IDs."""
+    sut = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+    sut.id_list = ["PMC12416454"]
+    actual = sut.get_publications()[0].id
+    assert actual == "PMC12416454"
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_get_publications_non_existent_id(provide_temp_storage: dict, provide_temp_storage_figures: dict):
+    """Test that get_publications_id_list() returns expected publication IDs."""
+    sut = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+    sut.id_list = ["random_made_up_id", "PMC12416454"]
+    actual = sut.get_publications()[0].id
+    assert actual == "PMC12416454"
