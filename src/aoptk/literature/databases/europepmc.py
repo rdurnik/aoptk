@@ -63,35 +63,41 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
+    
+    @property
+    def query(self):
+        return self._query
 
-        self.id_list = self.get_ids()
+    @query.setter
+    def query(self, value):
+        self._query = value
 
-    def get_pdfs(self) -> list[PDF]:
+    def get_pdfs(self, ids: list[ID]) -> list[PDF]:
         """Retrieve PDFs based on the query."""
-        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
+        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
-    def get_abstracts(self) -> list[Abstract]:
+    def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
         return [
             abstract
-            for abstract in (self._get_abstract(publication_id) for publication_id in self.id_list)
+            for abstract in (self._get_abstract(publication_id) for publication_id in ids)
             if abstract is not None
         ]
 
-    def get_publications(self) -> list[Publication]:
+    def get_publications(self, ids: list[ID]) -> list[Publication]:
         """Retrieve Publications based on the query."""
         return [
             publication
-            for publication in (self._get_publication(publication_id) for publication_id in self.id_list)
+            for publication in (self._get_publication(publication_id) for publication_id in ids)
             if publication is not None
         ]
 
-    def get_publications_metadata(self) -> list[PublicationMetadata]:
+    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
         """Retrieve Publication metadata based on the query."""
         return [
             publication_metadata
             for publication_metadata in (
-                self._get_publication_metadata(publication_id) for publication_id in self.id_list
+                self._get_publication_metadata(publication_id) for publication_id in ids
             )
             if publication_metadata is not None
         ]
@@ -102,7 +108,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         id_list = []
 
         while True:
-            data_europepmc = self._call_api(cursor_mark, "idlist", self._query)
+            data_europepmc = self._call_api(cursor_mark, "idlist", self.query)
             results = data_europepmc.get("resultList", {}).get("result", [])
 
             id_list.extend([_get_publication_id(result) for result in results])
@@ -116,12 +122,12 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
 
     def remove_reviews(self) -> EuropePMC:
         """Modify the query to exclude review articles."""
-        self._query += ' NOT PUB_TYPE:"Review"'
+        self.query += ' NOT PUB_TYPE:"Review"'
         return self
 
     def abstracts_only(self) -> EuropePMC:
         """Modify the query to search in the text of abstracts only."""
-        self._query = "ABSTRACT:(" + self._query + ")"
+        self.query = "ABSTRACT:(" + self.query + ")"
         return self
 
     def _get_pdf(self, publication_id: str) -> PDF | None:
