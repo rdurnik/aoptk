@@ -139,15 +139,13 @@ class PMC(GetPublication, GetPDF, GetID):
             file_format (str): The format of the file to retrieve (pdf, xml, json, or txt).
             Formats txt, xml, pdf contain full-text, while json contains metadata.
         """
-        for page in self.paginator.paginate(
-            Bucket=self.bucket,
-            Prefix=f"{publication_id}.1/{publication_id}.1.{file_format}",
-        ):
-            for obj in page.get("Contents", []):
-                key = obj["Key"]
-                filepath = Path(self.storage) / f"{publication_id}.{file_format}"
-                self.s3.download_file(self.bucket, key, str(filepath))
-                return filepath
+        prefix = f"{publication_id}.1/{publication_id}.1.{file_format}"
+        response = self.s3.list_objects_v2(Bucket=self.bucket, Prefix=prefix, MaxKeys=1)
+        if contents := response.get("Contents", []):
+            key = contents[0]["Key"]
+            filepath = Path(self.storage) / f"{publication_id}.{file_format}"
+            self.s3.download_file(self.bucket, key, str(filepath))
+            return filepath
         return None
 
     def _get_figures(self, publication_id: ID) -> list[str]:
