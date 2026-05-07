@@ -5,6 +5,7 @@ from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.id import ID
 
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):
@@ -81,3 +82,15 @@ def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
     )
     expected = 10101
     assert actual == pytest.approx(expected, abs=100)
+
+def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
+    sut = PMC(
+        "adhgudsghfuysgfueyaiheasfuygua",
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")
+    )
+
+    actual = sut.get_publications([ID("invalid_id")])
+    assert actual == []
+
+    

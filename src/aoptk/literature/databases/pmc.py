@@ -69,14 +69,14 @@ class PMC(GetPublication, GetPDF, GetID):
         """
         return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
 
-    def get_publications(self) -> list[Publication]:
+    def get_publications(self, ids: list[ID]) -> list[Publication]:
         """Get a list of publications.
 
         Returns:
             list[Publication]: A list of Publication objects.
         """
         return [
-            pub for pub in (self._get_publication(publication_id) for publication_id in self.id_list) if pub is not None
+            pub for pub in (self._get_publication(publication_id) for publication_id in ids) if pub is not None
         ]
 
     async def get_ids(self) -> list[ID]:
@@ -94,15 +94,18 @@ class PMC(GetPublication, GetPDF, GetID):
         ids = [f"PMC{pmcid}" for year_ids in yearly_results for pmcid in year_ids]
         return list(set(ids))
 
-    def _get_publication(self, publication_id: str) -> Publication:
+    def _get_publication(self, publication_id: ID) -> Publication | None:
         """Parse a single PDF and return a Publication object.
 
         Args:
             publication_id (str): The publication ID to retrieve and parse.
         """
-        publication_id = ID(publication_id)
         abstract = ""
+
         full_text = self._get_full_text(publication_id)
+        if full_text is None:
+            return None
+        
         figures = self._get_figures(publication_id)
         figure_descriptions = []
         tables = []
@@ -115,7 +118,7 @@ class PMC(GetPublication, GetPDF, GetID):
             tables=tables,
         )
 
-    def _get_full_text(self, publication_id: str) -> str | None:
+    def _get_full_text(self, publication_id: ID) -> str | None:
         """Retrieve the full text for a given publication ID.
 
         Args:
@@ -128,7 +131,7 @@ class PMC(GetPublication, GetPDF, GetID):
             return txt
         return None
 
-    def _get_file(self, publication_id: str, file_format: str) -> PDF | str | None:
+    def _get_file(self, publication_id: ID, file_format: str) -> Path | None:
         """Retrieve the file for a given publication ID and format.
 
         Args:
@@ -147,11 +150,11 @@ class PMC(GetPublication, GetPDF, GetID):
                 return filepath
         return None
 
-    def _get_figures(self, publication_id: str) -> list[str]:
+    def _get_figures(self, publication_id: ID) -> list[str]:
         """Retrieve the figure files for a given publication ID.
 
         Args:
-            publication_id (str): The publication ID to retrieve the figure files for.
+            publication_id (ID): The publication ID to retrieve the figure files for.
         """
         if metadata := self._get_json(publication_id):
             supplementary_files = metadata.get("media_urls", [])
@@ -159,11 +162,11 @@ class PMC(GetPublication, GetPDF, GetID):
 
         return []
 
-    def _extract_figures_from_supplements(self, publication_id: str, supplementary_files: list[str]) -> list[str]:
+    def _extract_figures_from_supplements(self, publication_id: ID, supplementary_files: list[str]) -> list[str]:
         """Extract figure files from the supplementary files.
 
         Args:
-            publication_id (str): The publication ID to retrieve the figure files for.
+            publication_id (ID): The publication ID to retrieve the figure files for.
             supplementary_files (list[str]): A list of supplementary file URLs to extract figures from.
         """
         figures_paths = []
@@ -183,7 +186,7 @@ class PMC(GetPublication, GetPDF, GetID):
                 figures_paths.append(str(image_path))
         return figures_paths
 
-    def _get_json(self, publication_id: str) -> str | None:
+    def _get_json(self, publication_id: ID) -> str | None:
         """Retrieve the json for a given publication ID.
 
         Args:
@@ -195,7 +198,7 @@ class PMC(GetPublication, GetPDF, GetID):
             return metadata
         return None
 
-    def _get_pdf(self, publication_id: str) -> PDF | None:
+    def _get_pdf(self, publication_id: ID) -> PDF | None:
         """Retrieve the PDF for a given publication ID.
 
         Args:
