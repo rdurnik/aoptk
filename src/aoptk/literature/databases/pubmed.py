@@ -56,7 +56,10 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
             handle = Entrez.efetch(
-                db="pubmed", id=",".join(map(str, batch_ids)), rettype="xml", max_retry=self.max_retries
+                db="pubmed",
+                id=",".join(map(str, batch_ids)),
+                rettype="xml",
+                max_retry=self.max_retries,
             )
             records = Entrez.read(handle)
             handle.close()
