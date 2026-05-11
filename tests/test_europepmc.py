@@ -221,7 +221,7 @@ def test_generate_abstracts_for_given_query(
 def test_get_publication_metadata(test_data: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
-        query=test_data["publication_id"],
+        query="",
         storage=provide_temp_storage,
         figure_storage=provide_temp_storage_figures,
     ).get_publications_metadata(ids=[test_data["publication_id"]])[0]
@@ -242,7 +242,7 @@ def test_extract_abstract_xml(
 ):
     """Test extracting abstract from XMLs."""
     actual = (
-        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .abstract
     )
@@ -255,7 +255,7 @@ def test_extract_abstract_xml(
 def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting full text from XMLs."""
     actual = (
-        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .full_text
     )
@@ -272,7 +272,7 @@ def test_extract_figure_descriptions(
 ):
     """Test extracting figure descriptions from XMLs."""
     actual = "".join(
-        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .figure_descriptions,
     )
@@ -287,7 +287,7 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
     if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
     actual = (
-        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .figures
     )
@@ -299,7 +299,7 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
 def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting tables from XMLs."""
     actual = (
-        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .tables
     )
