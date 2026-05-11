@@ -60,6 +60,7 @@ dev = [
     "cffconvert>=2.0.0",
     "bump-my-version>=1.3.0",
     "flaky>=3.8.1",
+    "mypy",
 ]
 docs = [
     "sphinx",
@@ -151,3 +152,7 @@ filename = "CITATION.cff"
 
 [[tool.bumpversion.files]]
 filename = "docs/conf.py"
+
+[tool.mypy]
+ignore_missing_imports = true
+disable_error_code = ["override"]
