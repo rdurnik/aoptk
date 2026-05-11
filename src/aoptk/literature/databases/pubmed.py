@@ -35,12 +35,26 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         self.publication_count = self.get_publication_count()
         if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
+    
+    @property
+    def query(self) -> str:
+        """Get the current query string."""
+        return self._query
 
-    def get_abstracts(self) -> list[Abstract]:
+    @query.setter
+    def query(self, value: str) -> None:
+        """Set a new query string.
+
+        Args:
+            value (str): The new query string to set.
+        """
+        self._query = value
+
+    def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
         abstracts = []
-        for i in range(0, len(self.id_list), self.batch_size):
-            batch_ids = self.id_list[i : i + self.batch_size]
+        for i in range(0, len(ids), self.batch_size):
+            batch_ids = ids[i : i + self.batch_size]
             handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml", max_retry=self.max_retries)
             records = Entrez.read(handle)
             handle.close()
@@ -51,12 +65,12 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
                 abstracts.append(Abstract(text=abstract_text, id=ID(pmid)))
         return abstracts
 
-    def get_publications_metadata(self) -> list[PublicationMetadata]:
+    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
         """Retrieve Publication metadata based on the query."""
         return [
             publication_metadata
             for publication_metadata in (
-                self._get_publication_metadata(publication_id) for publication_id in self.id_list
+                self._get_publication_metadata(publication_id) for publication_id in ids
             )
             if publication_metadata is not None
         ]
