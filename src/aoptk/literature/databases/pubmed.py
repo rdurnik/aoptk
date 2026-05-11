@@ -35,7 +35,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         self.publication_count = self.get_publication_count()
         if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
-    
+
     @property
     def query(self) -> str:
         """Get the current query string."""
@@ -69,9 +69,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         """Retrieve Publication metadata based on the query."""
         return [
             publication_metadata
-            for publication_metadata in (
-                self._get_publication_metadata(publication_id) for publication_id in ids
-            )
+            for publication_metadata in (self._get_publication_metadata(publication_id) for publication_id in ids)
             if publication_metadata is not None
         ]
 

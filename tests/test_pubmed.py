@@ -7,7 +7,6 @@ from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
-from aoptk.literature.id import ID
 
 
 @pytest.mark.xfail(raises=HTTPError)
