@@ -52,7 +52,7 @@ def test_get_abstract_not_empty(mock_entrez):
         },
     ]
 
-    actual = PubMed("hepg2 thioacetamide").get_abstracts()
+    actual = PubMed("hepg2 thioacetamide").get_abstracts(ids=["12345", "67890"])
     assert actual is not None
     assert len(actual) > 0
 
@@ -180,7 +180,7 @@ def test_generate_abstracts_for_given_query(
     ]
 
     pubmed_instance = PubMed(query)
-    abstracts = pubmed_instance.get_abstracts()
+    abstracts = pubmed_instance.get_abstracts(ids=id_list)
     assert abstracts[position].text == expected_abstract
     assert abstracts[position].id == expected_id
 
@@ -221,7 +221,7 @@ def test_get_publication_metadata(mock_entrez, test_data: dict):
         ],
     ]
 
-    publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
+    publication_metadata = PubMed(query="queryblank").get_publications_metadata(ids=[test_data["publication_id"]])[0]
     assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]

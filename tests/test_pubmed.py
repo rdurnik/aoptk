@@ -7,6 +7,7 @@ from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.id import ID
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -26,7 +27,7 @@ def test_implements_interface():
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_abstract_not_empty():
     """Get abstracts returns non-empty list."""
-    actual = PubMed("hepg2 thioacetamide").get_abstracts()
+    actual = PubMed("hepg2 thioacetamide").get_abstracts(ids=[])
     assert actual is not None
 
 
@@ -92,8 +93,9 @@ def test_get_id():
 @pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str, position: int):
     """Generate list of abstracts for given query."""
-    abstract = PubMed(query).get_abstracts()[position].text
-    publication_id = PubMed(query).get_abstracts()[position].id
+    ids = PubMed(query).get_ids()
+    abstract = PubMed("queryblank").get_abstracts(ids=ids)[position].text
+    publication_id = PubMed("queryblank").get_abstracts(ids=ids)[position].id
     assert abstract == expected_abstract
     assert publication_id == expected_id
 
@@ -122,7 +124,7 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_metadata(test_data: dict):
     """Generate publication metadata for given id."""
-    publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
+    publication_metadata = PubMed(query="queryblank").get_publications_metadata(ids=[test_data["publication_id"]])[0]
     assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
