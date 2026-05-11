@@ -133,7 +133,7 @@ def test_ids_not_to_return(
 
 def test_get_abstract_not_empty(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Get abstracts returns non-empty list."""
-    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts()
+    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts(ids=[])
     assert actual is not None
 
 
@@ -181,14 +181,15 @@ def test_generate_abstracts_for_given_query(
     provide_temp_storage_figures: dict,
 ):
     """Generate list of abstracts for given query."""
+    ids = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
     abstract = (
         EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_abstracts()[position]
+        .get_abstracts(ids=ids)[position]
         .text
     )
     publication_id = (
         EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_abstracts()[position]
+        .get_abstracts(ids=ids)[position]
         .id
     )
     assert abstract == expected_abstract
@@ -220,10 +221,10 @@ def test_generate_abstracts_for_given_query(
 def test_get_publication_metadata(test_data: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
-        test_data["publication_id"],
+        query=test_data["publication_id"],
         storage=provide_temp_storage,
         figure_storage=provide_temp_storage_figures,
-    ).get_publications_metadata()[0]
+    ).get_publications_metadata(ids=[test_data["publication_id"]])[0]
     assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
@@ -241,8 +242,8 @@ def test_extract_abstract_xml(
 ):
     """Test extracting abstract from XMLs."""
     actual = (
-        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications()[0]
+        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]])[0]
         .abstract
     )
     expected = provide_publications["expected_abstract"]
@@ -254,8 +255,8 @@ def test_extract_abstract_xml(
 def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting full text from XMLs."""
     actual = (
-        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications()[0]
+        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]])[0]
         .full_text
     )
     expected = provide_publications["full_text"]
@@ -271,8 +272,8 @@ def test_extract_figure_descriptions(
 ):
     """Test extracting figure descriptions from XMLs."""
     actual = "".join(
-        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications()[0]
+        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]])[0]
         .figure_descriptions,
     )
     expected = "".join(provide_publications["figure_descriptions"])
@@ -286,8 +287,8 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
     if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
     actual = (
-        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications()[0]
+        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]])[0]
         .figures
     )
     expected_paths = provide_publications["figures"]
@@ -298,8 +299,8 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
 def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting tables from XMLs."""
     actual = (
-        EuropePMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications()[0]
+        EuropePMC(query=provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]])[0]
         .tables
     )
     expected = provide_publications["tables"]
