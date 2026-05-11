@@ -46,6 +46,7 @@ jobs:
         run: uv run python -m pytest -m "openai" -v
       - name: Verify that we can build the package
         run: uv run python -m build
+
   lint:
     name: Linting build
     runs-on: ubuntu-latest
@@ -72,3 +73,28 @@ jobs:
         run: |
           uv run ruff check
           uv run ruff format --check
+
+  type_checker:
+    name: Type checking build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v8.0.0
+      - name: Python info
+        shell: bash -e {0}
+        run: |
+          which python
+          python --version
+      - name: Install dependencies with uv
+        run: |
+          uv lock
+          uv sync --frozen --extra dev
+      - name: Check types using mypy
+        run: uv run mypy src/aoptk tests --show-error-codes --pretty
