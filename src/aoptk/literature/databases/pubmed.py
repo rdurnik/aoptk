@@ -55,7 +55,9 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         abstracts = []
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml", max_retry=self.max_retries)
+            handle = Entrez.efetch(db="pubmed", id=",".join(map(str, batch_ids)), 
+                                   rettype="xml", 
+                                   max_retry=self.max_retries)
             records = Entrez.read(handle)
             handle.close()
             for article in records.get("PubmedArticle", []):
@@ -87,7 +89,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         handle.close()
         return record.get("IdList", [])
 
-    def _get_abstract(self, pmid: str) -> Abstract:
+    def _get_abstract(self, pmid: ID) -> Abstract:
         """Get the abstract for a given PubMed ID."""
         handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml", max_retry=self.max_retries)
         record = Entrez.read(handle)
@@ -95,10 +97,10 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         abstract_text = ""
         if abstract_obj := record["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]:
             abstract_text = "".join(abstract_obj)
-            return Abstract(text=abstract_text, id=ID(pmid))
-        return Abstract(text="", id=ID(pmid))
+            return Abstract(text=abstract_text, id=pmid)
+        return Abstract(text="", id=pmid)
 
-    def _get_publication_metadata(self, pmid: str) -> PublicationMetadata:
+    def _get_publication_metadata(self, pmid: ID) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
         handle = Entrez.esummary(db="pubmed", id=pmid, max_retry=self.max_retries)
         summary_records = Entrez.read(handle)
@@ -111,7 +113,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             authors = ", ".join(summary.get("AuthorList", []))
             search_date = datetime.now(UTC)
         return PublicationMetadata(
-            id=ID(publication_id),
+            id=publication_id,
             publication_date=year_publication,
             title=title,
             authors=authors,

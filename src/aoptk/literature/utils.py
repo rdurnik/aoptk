@@ -1,5 +1,6 @@
 import asyncio
 import time
+from aoptk.literature.id import ID
 
 
 class AsyncRequestLimiter:
@@ -20,6 +21,6 @@ class AsyncRequestLimiter:
             self._next_allowed = now + self.min_interval
 
 
-def is_europepmc_id(publication_id: str) -> bool:
+def is_europepmc_id(publication_id: ID) -> bool:
     """Check if the given publication ID is a EuropePMC ID."""
     return bool(str(publication_id).startswith("PMC"))

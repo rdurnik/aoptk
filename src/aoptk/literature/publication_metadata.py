@@ -9,9 +9,9 @@ class PublicationMetadata:
     """Data structure representing a publication."""
 
     id: ID
-    publication_date: int
+    publication_date: str
     title: str
-    authors: list[str]
+    authors: str
     database: str
     search_date: datetime
 

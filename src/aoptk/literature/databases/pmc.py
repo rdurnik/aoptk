@@ -4,9 +4,11 @@ import datetime
 import json
 import os
 from pathlib import Path
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 import boto3
+import pandas as pd
 from Bio import Entrez
 from botocore import UNSIGNED
 from botocore.client import Config
@@ -14,6 +16,7 @@ from tenacity import AsyncRetrying
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_random_exponential
+from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
@@ -39,7 +42,7 @@ class PMC(GetPublication, GetPDF, GetID):
 
     max_pmc_results = 9998
     max_concurrency = 2
-    max_requests_per_second = 2.0
+    max_requests_per_second = 2
     minimal_year_publication = 1800
     semaphore = asyncio.Semaphore(max_concurrency)
     limiter = AsyncRequestLimiter(max_requests_per_second)
@@ -93,9 +96,9 @@ class PMC(GetPublication, GetPDF, GetID):
 
     async def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the query."""
-        count, ids = await self._async_get_publication_count_and_ids()
+        count, pmc_ids = await self._async_get_publication_count_and_ids()
         if count <= self.max_pmc_results:
-            return [f"PMC{pmcid}" for pmcid in ids]
+            return [ID(f"PMC{pmcid}") for pmcid in pmc_ids]
 
         tasks = [
             self._collect_ids_for_year(year)
@@ -103,8 +106,8 @@ class PMC(GetPublication, GetPDF, GetID):
         ]
         yearly_results = await asyncio.gather(*tasks)
 
-        ids = [f"PMC{pmcid}" for year_ids in yearly_results for pmcid in year_ids]
-        return list(set(ids))
+        collected_ids = [ID(f"PMC{pmcid}") for year_ids in yearly_results for pmcid in year_ids]
+        return list(set(collected_ids))
 
     def _get_publication(self, publication_id: ID) -> Publication | None:
         """Parse a single PDF and return a Publication object.
@@ -112,15 +115,15 @@ class PMC(GetPublication, GetPDF, GetID):
         Args:
             publication_id (str): The publication ID to retrieve and parse.
         """
-        abstract = ""
+        abstract = Abstract(id=publication_id, text="")
 
         full_text = self._get_full_text(publication_id)
         if full_text is None:
             return None
 
         figures = self._get_figures(publication_id)
-        figure_descriptions = []
-        tables = []
+        figure_descriptions: list[str] = []
+        tables: list[pd.DataFrame] = []
         return Publication(
             id=publication_id,
             abstract=abstract,
@@ -196,7 +199,7 @@ class PMC(GetPublication, GetPDF, GetID):
                 figures_paths.append(str(image_path))
         return figures_paths
 
-    def _get_json(self, publication_id: ID) -> str | None:
+    def _get_json(self, publication_id: ID) -> dict[str, Any] | None:
         """Retrieve the json for a given publication ID.
 
         Args:
@@ -241,7 +244,7 @@ class PMC(GetPublication, GetPDF, GetID):
         self,
         mindate: str | None = None,
         maxdate: str | None = None,
-    ) -> tuple[int, list[str]] | None:
+    ) -> tuple[int, list[str]]:
         async for attempt in AsyncRetrying(
             retry=retry_if_exception_type(HTTPError),
             wait=wait_random_exponential(multiplier=0.5, max=30),
@@ -256,7 +259,8 @@ class PMC(GetPublication, GetPDF, GetID):
                         mindate,
                         maxdate,
                     )
-        return None
+        msg = "Unexpected control flow: retry exceeded without returning"
+        raise RuntimeError(msg)
 
     async def _collect_ids_for_year(self, year: int) -> list[str]:
         year_count, year_ids = await self._async_get_publication_count_and_ids(

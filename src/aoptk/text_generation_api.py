@@ -3,10 +3,13 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
+from typing import Literal
 import pandas as pd
 from dotenv import load_dotenv
 from jinja2 import Template
 from openai import OpenAI
+from openai.types.chat import ChatCompletionContentPartParam
+from openai.types.chat import ChatCompletionUserMessageParam
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
@@ -40,11 +43,11 @@ class TextGenerationAPI(
 ):
     """Text generation API using OpenAI."""
 
-    role: str = "user"
+    role: Literal["user"] = "user"
     temperature: float = 0
     top_p: float = 1
     load_dotenv()
-    client: None = None
+    client: OpenAI
     prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
     chemical_prompt_template: str = "chemical_prompt.txt"
     relationship_text_prompt_template: str = "relationship_text_prompt.txt"
@@ -61,16 +64,15 @@ class TextGenerationAPI(
         self,
         model: str = "gpt-oss-120b",
         url: str = "https://llm.ai.e-infra.cz/v1",
-        api_key: str = os.environ.get("CERIT_API_KEY"),
+        api_key: str | None = os.environ.get("CERIT_API_KEY"),
     ):
         self.model = model
         self.url = url
         self.api_key = api_key
-        if self.client is None:
-            self.client = OpenAI(
-                base_url=self.url,
-                api_key=self.api_key,
-            )
+        self.client = OpenAI(
+            base_url=self.url,
+            api_key=self.api_key,
+        )
 
     def find_relationships_in_text(
         self,
@@ -131,17 +133,18 @@ class TextGenerationAPI(
             template_content = template_file.read()
         return str(Template(template_content).render(**context))
 
-    def _prompt(self, content: str) -> str:
+    def _prompt(self, content: str | list[ChatCompletionContentPartParam]) -> str:
+        messages: list[ChatCompletionUserMessageParam] = [
+            {
+                "role": self.role,
+                "content": content,
+            },
+        ]
         completion = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
             top_p=self.top_p,
-            messages=[
-                {
-                    "role": self.role,
-                    "content": content,
-                },
-            ],
+            messages=messages,
         )
 
         if response := completion.choices[0].message.content:
@@ -216,6 +219,8 @@ class TextGenerationAPI(
             classification = classification.strip().lower()
 
             relationship = self._select_relationship_type(classification, relationship_type)
+            if relationship is None:
+                continue
 
             relationships.append(
                 Relationship(
@@ -292,7 +297,7 @@ class TextGenerationAPI(
             Chemical: The normalized chemical.
         """
         if matching_name := self._find_matching_name(chemical, chemical_list):
-            chemical.heading = matching_name
+            chemical.heading = matching_name.name
         return chemical
 
     def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical | None:
@@ -313,9 +318,9 @@ class TextGenerationAPI(
 
         if response := self._prompt(content).lower():
             if response == "none":
-                return chemical.name
-            return response
-        return chemical.name
+                return chemical
+            return Chemical(name=response)
+        return chemical
 
     def convert_pdf_scan(
         self,
@@ -331,7 +336,7 @@ class TextGenerationAPI(
         Returns:
             str: Extracted text from the image.
         """
-        content = [
+        content: list[ChatCompletionContentPartParam] = [
             {
                 "type": "text",
                 "text": self._render_prompt(self.convert_pdf_scan_prompt_template),
@@ -386,7 +391,7 @@ class TextGenerationAPI(
 
         relationships = []
 
-        content = [
+        content: list[ChatCompletionContentPartParam] = [
             {
                 "type": "text",
                 "text": self._render_prompt(
@@ -433,7 +438,7 @@ class TextGenerationAPI(
         """
         base64_image, mime_type = self._encode_image(image_path)
 
-        content = [
+        content: list[ChatCompletionContentPartParam] = [
             {
                 "type": "text",
                 "text": self._render_prompt(self.convert_image_prompt_template, text=text),

@@ -1,14 +1,13 @@
 from dataclasses import dataclass
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
-from aoptk.relationship_type import RelationshipType
 
 
 @dataclass
 class Relationship:
     """Data structure representing relationship between a chemical and an effect."""
 
-    relationship_type: RelationshipType
+    relationship_type: str
     chemical: Chemical
     effect: Effect
     context: str
