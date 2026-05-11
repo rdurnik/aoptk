@@ -63,13 +63,19 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
-    
+
     @property
-    def query(self):
+    def query(self) -> str:
+        """Get the current query string."""
         return self._query
 
     @query.setter
-    def query(self, value):
+    def query(self, value: str) -> None:
+        """Set a new query string.
+
+        Args:
+            value (str): The new query string to set.
+        """
         self._query = value
 
     def get_pdfs(self, ids: list[ID]) -> list[PDF]:
@@ -96,9 +102,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         """Retrieve Publication metadata based on the query."""
         return [
             publication_metadata
-            for publication_metadata in (
-                self._get_publication_metadata(publication_id) for publication_id in ids
-            )
+            for publication_metadata in (self._get_publication_metadata(publication_id) for publication_id in ids)
             if publication_metadata is not None
         ]
 
