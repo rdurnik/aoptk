@@ -52,18 +52,18 @@ def test_generate_abstract_for_given_id_http_error(provide_temp_storage: dict, p
     """Test that HTTPError is raised when EuropePMC returns non-OK response."""
     with pytest.raises(HTTPError):
         EuropePMC(
-            "12345678",
+            query="",
             storage=provide_temp_storage,
             figure_storage=provide_temp_storage_figures,
-        ).get_abstracts()[0]
+        ).get_abstracts(ids=["12345678"])[0]
 
 
 @pytest.mark.usefixtures("mock_success_response")
 def test_generate_abstract_for_given_id_success(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test successful abstract retrieval with mocked response."""
     result = EuropePMC(
-        "12345678",
+        query="",
         storage=provide_temp_storage,
         figure_storage=provide_temp_storage_figures,
-    ).get_abstracts()[0]
+    ).get_abstracts(ids=["12345678"])[0]
     assert result.text == "Test abstract text"
