@@ -25,7 +25,7 @@ from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.utils import AsyncRequestLimiter
 
-Entrez.api_key = os.environ.get("NCBI_API_KEY")
+Entrez.api_key = os.environ.get("NCBI_API_KEY") # type: ignore[assignment]
 
 
 class PMC(GetPublication, GetPDF, GetID):
