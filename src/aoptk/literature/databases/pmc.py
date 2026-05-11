@@ -61,13 +61,27 @@ class PMC(GetPublication, GetPDF, GetID):
         self.figure_storage = figure_storage
         Path(self.figure_storage).mkdir(parents=True, exist_ok=True)
 
-    def get_pdfs(self) -> list[PDF]:
+    @property
+    def query(self) -> str:
+        """Get the current query string."""
+        return self._query
+
+    @query.setter
+    def query(self, value: str) -> None:
+        """Set a new query string.
+
+        Args:
+            value (str): The new query string to set.
+        """
+        self._query = value
+
+    def get_pdfs(self, ids: list[ID]) -> list[PDF]:
         """Retrieve PDFs based on the query.
 
         Returns:
             list[PDF]: A list of PDF objects corresponding to the publications matching the query.
         """
-        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
+        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
     def get_publications(self, ids: list[ID]) -> list[Publication]:
         """Get a list of publications.
@@ -75,9 +89,7 @@ class PMC(GetPublication, GetPDF, GetID):
         Returns:
             list[Publication]: A list of Publication objects.
         """
-        return [
-            pub for pub in (self._get_publication(publication_id) for publication_id in ids) if pub is not None
-        ]
+        return [pub for pub in (self._get_publication(publication_id) for publication_id in ids) if pub is not None]
 
     async def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the query."""
@@ -105,7 +117,7 @@ class PMC(GetPublication, GetPDF, GetID):
         full_text = self._get_full_text(publication_id)
         if full_text is None:
             return None
-        
+
         figures = self._get_figures(publication_id)
         figure_descriptions = []
         tables = []
