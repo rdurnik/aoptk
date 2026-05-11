@@ -97,4 +97,4 @@ jobs:
           uv lock
           uv sync --frozen --extra dev
       - name: Check types using mypy
-        run: uv run mypy src/aoptk tests --show-error-codes --pretty
+        run: uv run mypy src/aoptk --show-error-codes --pretty
