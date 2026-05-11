@@ -10,7 +10,7 @@ from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 
-Entrez.api_key = os.environ.get("NCBI_API_KEY")
+Entrez.api_key = os.environ.get("NCBI_API_KEY") # type: ignore[assignment]
 
 
 class QueryTooLargeError(Exception):
