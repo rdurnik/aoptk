@@ -133,7 +133,9 @@ def test_ids_not_to_return(
 
 def test_get_abstract_not_empty(provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Get abstracts returns non-empty list."""
-    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts(ids=[])
+    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts(
+        ids=[],
+    )
     assert actual is not None
 
 
