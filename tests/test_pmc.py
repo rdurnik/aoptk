@@ -30,7 +30,7 @@ def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory
         "PMC8614944",
         storage=tmp_path_factory.mktemp("pmc_storage"),
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-    ).get_pdfs()
+    ).get_pdfs(ids=[])
     assert actual is not None
 
 
@@ -39,7 +39,7 @@ def test_open_access_pmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactor
     """Test that an open access PMC PDF can be retrieved and saved."""
     storage_dir = tmp_path_factory.mktemp("pmc_storage")
     figure_storage_dir = tmp_path_factory.mktemp("pmc_storage_figures")
-    PMC("PMC8614944", storage=storage_dir, figure_storage=figure_storage_dir).get_pdfs()
+    PMC("PMC8614944", storage=storage_dir, figure_storage=figure_storage_dir).get_pdfs(ids=["PMC8614944"])
     filepath = storage_dir / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()
@@ -50,8 +50,8 @@ def test_open_access_pmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactor
 def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting full text."""
     actual = (
-        PMC(provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications()[0]
+        PMC(query="queryblank", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]])[0]
         .full_text
     )
     expected = provide_publications["full_text"]
@@ -62,7 +62,7 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: dic
 def test_get_id_small_query(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_id() method returns a list of publication IDs."""
     actual = PMC(
-        "PMC12416454",
+        query="PMC12416454",
         storage=tmp_path_factory.mktemp("pmc_storage"),
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     ).id_list
@@ -75,7 +75,7 @@ def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_id() method returns a list of publication IDs."""
     actual = len(
         PMC(
-            "methotrexate OR thioacetamide AND cancer AND fibrosis 1940/01/01:2023/01/30[epdat]",
+            query="methotrexate OR thioacetamide AND cancer AND fibrosis 1940/01/01:2023/01/30[epdat]",
             storage=tmp_path_factory.mktemp("pmc_storage"),
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         ).id_list,
@@ -83,14 +83,14 @@ def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
     expected = 10101
     assert actual == pytest.approx(expected, abs=100)
 
+
 def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
+    """Test that get_publications() method returns an empty list when given wrong IDs."""
     sut = PMC(
-        "adhgudsghfuysgfueyaiheasfuygua",
+        query="queryblank",
         storage=tmp_path_factory.mktemp("pmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     )
 
     actual = sut.get_publications([ID("invalid_id")])
     assert actual == []
-
-    

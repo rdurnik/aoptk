@@ -188,13 +188,13 @@ from aoptk.literature.id import ID
 def provide_publications(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory):
     """Provide parameters for publication fixture, including PDFs."""
     pmc = PMC(
-        request.param["id"],
+        query="queryblank",
         storage=tmp_path_factory.mktemp(f"{request.param['id']}"),
         figure_storage=tmp_path_factory.mktemp(f"{request.param['id']}_figures"),
     )
     request.param.update(
         {
-            "pdfs": pmc.get_pdfs(),
+            "pdfs": pmc.get_pdfs(ids=[request.param["id"]]),
         },
     )
     return request.param
