@@ -157,10 +157,11 @@ class PMC(GetPublication, GetPDF, GetID):
         prefix = f"{publication_id}.1/{publication_id}.1.{file_format}"
         response = self.s3.list_objects_v2(Bucket=self.bucket, Prefix=prefix, MaxKeys=1)
         if contents := response.get("Contents", []):
-            key = contents[0]["Key"]
-            filepath = Path(self.storage) / f"{publication_id}.{file_format}"
-            self.s3.download_file(self.bucket, key, str(filepath))
-            return filepath
+            if key := contents[0]["Key"]:
+                filepath = Path(self.storage) / f"{publication_id}.{file_format}"
+                self.s3.download_file(self.bucket, key, str(filepath))
+                return filepath
+            return None
         return None
 
     def _get_figures(self, publication_id: ID) -> list[str]:
