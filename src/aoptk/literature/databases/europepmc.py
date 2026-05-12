@@ -90,11 +90,19 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             if abstract is not None
         ]
 
-    def get_publications(self, ids: list[ID]) -> list[Publication]:
-        """Retrieve Publications based on the query."""
+    def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
+        """Retrieve Publications based on the query.
+
+        Args:
+            ids (list[ID]): A list of publication IDs to retrieve.
+            download_figures_enabled (bool): Whether to download figures and
+            include their paths in the Publication objects.
+        """
         return [
             publication
-            for publication in (self._get_publication(publication_id) for publication_id in ids)
+            for publication in (
+                self._get_publication(publication_id, download_figures_enabled) for publication_id in ids
+            )
             if publication is not None
         ]
 
@@ -234,19 +242,21 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             )
         return None
 
-    def _get_publication(self, publication_id: ID) -> Publication | None:
+    def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Return a Publication object for a given publication ID.
 
         Args:
             publication_id (ID): The ID of the publication to retrieve.
+            download_figures_enabled (bool): Whether to download figures
+            and include their paths in the Publication object.
         """
         if root := self._get_xml(publication_id):
             return Publication(
                 id=publication_id,
                 abstract=Abstract(text=self._parse_xml_abstract(root), id=publication_id),
                 full_text=self._parse_xml_full_text(root),
-                figures=self._get_figures(publication_id),
-                figure_descriptions=self._parse_xml_figure_descriptions(root),
+                figures=self._get_figures(publication_id) if download_figures_enabled else [],
+                figure_descriptions=self._parse_xml_figure_descriptions(root) if download_figures_enabled else [],
                 tables=self._parse_xml_tables(root),
             )
         return None

@@ -86,13 +86,22 @@ class PMC(GetPublication, GetPDF, GetID):
         """
         return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
-    def get_publications(self, ids: list[ID]) -> list[Publication]:
+    def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
         """Get a list of publications.
+
+        Args:
+            ids (list[ID]): A list of publication IDs to retrieve.
+            download_figures_enabled (bool): Whether to download figures
+            and include their paths in the Publication objects.
 
         Returns:
             list[Publication]: A list of Publication objects.
         """
-        return [pub for pub in (self._get_publication(publication_id) for publication_id in ids) if pub is not None]
+        return [
+            pub
+            for pub in (self._get_publication(publication_id, download_figures_enabled) for publication_id in ids)
+            if pub is not None
+        ]
 
     async def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the query."""
@@ -109,11 +118,13 @@ class PMC(GetPublication, GetPDF, GetID):
         collected_ids = [ID(f"PMC{pmcid}") for year_ids in yearly_results for pmcid in year_ids]
         return list(set(collected_ids))
 
-    def _get_publication(self, publication_id: ID) -> Publication | None:
+    def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Parse a single PDF and return a Publication object.
 
         Args:
             publication_id (str): The publication ID to retrieve and parse.
+            download_figures_enabled (bool): Whether to download figures
+            and include their paths in the Publication object.
         """
         abstract = Abstract(id=publication_id, text="")
 
@@ -121,7 +132,7 @@ class PMC(GetPublication, GetPDF, GetID):
         if full_text is None:
             return None
 
-        figures = self._get_figures(publication_id)
+        figures = self._get_figures(publication_id) if download_figures_enabled else []
         figure_descriptions: list[str] = []
         tables: list[pd.DataFrame] = []
         return Publication(

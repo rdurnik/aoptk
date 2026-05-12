@@ -168,3 +168,36 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
     )
     expected = ""
     assert expected == actual
+
+
+@pytest.fixture(scope="module")
+def provide_temp_storage_figures_no_images(
+    provide_publications: dict, tmp_path_factory: pytest.TempPathFactory,
+) -> Path:
+    """Provide a separate figure storage directory for the no-images case."""
+    pub_id = provide_publications["id"]
+    return tmp_path_factory.mktemp(f"{pub_id}_figures_no_images")
+
+
+@pytest.fixture(scope="module")
+def publication_no_images(provide_publications: dict, provide_temp_storage_figures_no_images: Path):
+    """Second stage fixture which includes PDF parsing."""
+    parser = PymupdfParser(provide_publications["pdfs"], figure_storage=provide_temp_storage_figures_no_images)
+    publications_no_images = parser.get_publications(download_figures_enabled=False)
+    provide_publications.update(
+        {
+            "publication": publications_no_images[0],
+            "parser": parser,
+        },
+    )
+    return provide_publications
+
+
+def test_figure_extraction_disabled(publication_no_images: dict):
+    """Test extracting figures from PMC PDFs."""
+    total_size = sum(
+        Path(dirpath, filename).stat().st_size
+        for dirpath, dirnames, filenames in os.walk(publication_no_images["parser"].figure_storage)
+        for filename in filenames
+    )
+    assert total_size == 0

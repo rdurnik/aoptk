@@ -95,3 +95,19 @@ def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFacto
 
     actual = sut.get_publications([ID("invalid_id")])
     assert actual == []
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_figures_not_being_downloaded(
+    provide_publications: dict,
+    provide_temp_storage: Path,
+    provide_temp_storage_figures: Path,
+):
+    """Test that figures are not downloaded when download_figures_enabled is False."""
+    actual = (
+        PMC(query="queryblank", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]], download_figures_enabled=False)[0]
+        .figures
+    )
+    expected: list = []
+    assert actual == expected

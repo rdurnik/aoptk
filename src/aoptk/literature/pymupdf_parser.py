@@ -32,11 +32,19 @@ class PymupdfParser(PDFParser):
         self.pattern_any_character = r"(.*)"
         self.text_generation = text_generation
 
-    def get_publications(self) -> list[Publication]:
-        """Get a list of publications."""
+    def get_publications(self, download_figures_enabled: bool = True) -> list[Publication]:
+        """Get a list of publications.
+
+        Args:
+            download_figures_enabled (bool): Whether to download figures and
+            include their paths in the Publication objects.
+
+        Returns:
+            list[Publication]: A list of Publication objects.
+        """
         pubs = []
         for pdf in self.pdfs:
-            pub = self._parse_pdf(pdf)
+            pub = self._parse_pdf(pdf, download_figures_enabled)
             pubs.append(pub)
         return pubs
 
@@ -53,14 +61,14 @@ class PymupdfParser(PDFParser):
             abstracts.append(abstract)
         return abstracts
 
-    def _parse_pdf(self, pdf: PDF) -> Publication:
+    def _parse_pdf(self, pdf: PDF, download_figures_enabled: bool = True) -> Publication:
         """Parse a single PDF and return a Publication object."""
         text_to_parse = self._extract_text_to_parse(pdf)
         publication_id = ID(Path(pdf.path).stem)
         abstract = self._extract_abstract(pdf, publication_id)
         full_text = self._extract_full_text(pdf)
-        figures = self._extract_figures(pdf)
-        figure_descriptions = self._extract_figure_descriptions(text_to_parse)
+        figures = self._extract_figures(pdf) if download_figures_enabled else []
+        figure_descriptions = self._extract_figure_descriptions(text_to_parse) if download_figures_enabled else []
         tables: list[pd.DataFrame] = []
         return Publication(
             id=publication_id,
