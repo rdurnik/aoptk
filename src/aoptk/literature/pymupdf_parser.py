@@ -23,7 +23,7 @@ class PymupdfParser(PDFParser):
     def __init__(
         self,
         pdfs: list[PDF],
-        figure_storage: str = "tests/figure_storage",
+        figure_storage: Path = Path("tests/figure_storage"),
         text_generation: TextGenerationAPI | None = None,
     ):
         self.figure_storage = figure_storage

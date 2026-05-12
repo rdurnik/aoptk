@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 from http.client import RemoteDisconnected
 import pytest
 from requests import HTTPError
@@ -39,7 +40,7 @@ def test_open_access_pmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactor
     """Test that an open access PMC PDF can be retrieved and saved."""
     storage_dir = tmp_path_factory.mktemp("pmc_storage")
     figure_storage_dir = tmp_path_factory.mktemp("pmc_storage_figures")
-    PMC("PMC8614944", storage=storage_dir, figure_storage=figure_storage_dir).get_pdfs(ids=["PMC8614944"])
+    PMC("PMC8614944", storage=storage_dir, figure_storage=figure_storage_dir).get_pdfs(ids=[ID("PMC8614944")])
     filepath = storage_dir / "PMC8614944.pdf"
     assert filepath.exists()
     assert filepath.is_file()
@@ -47,7 +48,7 @@ def test_open_access_pmc_pdf_file_exists(tmp_path_factory: pytest.TempPathFactor
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_extract_full_text(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test extracting full text."""
     actual = (
         PMC(query="queryblank", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)

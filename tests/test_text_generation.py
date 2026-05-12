@@ -339,7 +339,7 @@ def test_relationship_table(phthalate_table_data: dict):
         ),
     ],
 )
-def test_normalize_chemical(chemical: str, list_of_chemicals: list[str], expected_heading: str):
+def test_normalize_chemical(chemical: Chemical, list_of_chemicals: list[Chemical], expected_heading: str):
     """Test that find_chemical method finds chemicals in text."""
     actual = TextGenerationAPI().normalize_chemical(chemical, list_of_chemicals)
     assert actual.heading == expected_heading

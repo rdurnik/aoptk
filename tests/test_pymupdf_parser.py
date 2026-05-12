@@ -13,7 +13,7 @@ from aoptk.text_generation_api import TextGenerationAPI
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):
     """Test that PymupdfParser can be instantiated."""
-    actual = PymupdfParser(str, figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"))
+    actual = PymupdfParser([], figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"))
     assert actual is not None
 
 
@@ -24,12 +24,12 @@ def test_implements_interface():
 
 def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications method returns non-empty list."""
-    actual = PymupdfParser("", figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")).get_publications()
+    actual = PymupdfParser([], figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")).get_publications()
     assert actual is not None
 
 
 @pytest.fixture(scope="module")
-def publication(provide_publications: dict, provide_temp_storage_figures: dict):
+def publication(provide_publications: dict, provide_temp_storage_figures: Path):
     """Second stage fixture which includes PDF parsing."""
     parser = PymupdfParser(provide_publications["pdfs"], figure_storage=provide_temp_storage_figures)
     publications = parser.get_publications()
@@ -65,7 +65,7 @@ def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
     actual = (
         PymupdfParser(
-            [PDF("tests/test_pdfs/test_pdf.pdf")],
+            [PDF(Path("tests/test_pdfs/test_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
@@ -142,7 +142,7 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
+            pdfs=[PDF(Path("tests/test_pdfs/7835547_corrupted_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
             text_generation=TextGenerationAPI(model="redhatai-scout"),
         )
@@ -160,7 +160,7 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
+            pdfs=[PDF(Path("tests/test_pdfs/7835547_corrupted_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
