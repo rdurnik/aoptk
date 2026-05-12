@@ -11,6 +11,7 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
+from aoptk.literature.utils import convert_image_format
 
 if TYPE_CHECKING:
     from aoptk.literature.pdf import PDF
@@ -231,7 +232,7 @@ class PymupdfParser(PDFParser):
             figure_descriptions.append(description)
         return figure_descriptions
 
-    def _extract_figures(self, pdf: PDF) -> list[str]:
+    def _extract_figures(self, pdf: PDF) -> list[Path]:
         """Extract figures from the PDF and save them to the output directory."""
         output_dir = Path(self.figure_storage) / Path(pdf.path).stem
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -248,7 +249,7 @@ class PymupdfParser(PDFParser):
                         figure_count += 1
                     else:
                         continue
-            return [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
+        return convert_image_format([Path(p) for p in sorted(output_dir.iterdir()) if p.is_file()])
 
     def _save_figure(self, output_dir: Path, figure_count: int, base_figure: dict, figure_bytes: bytes) -> None:
         """Save the extracted figure to the output directory."""

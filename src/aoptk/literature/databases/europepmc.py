@@ -19,6 +19,7 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.utils import convert_image_format
 from aoptk.literature.utils import is_europepmc_id
 
 
@@ -354,7 +355,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             return root
         return None
 
-    def _get_figures(self, publication_id: ID) -> list[str]:
+    def _get_figures(self, publication_id: ID) -> list[Path]:
         """Retrieve the figure file paths for a given publication ID.
 
         Args:
@@ -370,7 +371,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                         zip_ref.extract(file_info, base_dir)
                         image_paths.append(str(base_dir / file_info.filename))
             zip_path.unlink()
-            return image_paths
+            return convert_image_format([Path(path) for path in image_paths])
         return []
 
     def _get_supplementary_zip_path(self, publication_id: ID) -> Path | None:
