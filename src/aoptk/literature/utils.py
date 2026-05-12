@@ -47,7 +47,7 @@ def convert_image_format(images_to_convert_path: list[Path], target_format: str 
             converted_images.append(converted_image_path)
             image_path.unlink()
 
-    return converted_images
+    return sorted(converted_images)
 
 
 def _image_in_this_format_already_exists(target_format: str, image_path: Path) -> bool:
