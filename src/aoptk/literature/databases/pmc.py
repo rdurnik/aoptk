@@ -49,6 +49,7 @@ class PMC(GetPublication, GetPDF, GetID):
     limiter = AsyncRequestLimiter(max_requests_per_second)
     retries = 5
     image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
+    unified_image_format = "png"
 
     def __init__(
         self,
@@ -210,7 +211,7 @@ class PMC(GetPublication, GetPDF, GetID):
                 image_path.parent.mkdir(parents=True, exist_ok=True)
                 self.s3.download_file(self.bucket, key, str(image_path))
                 figures_paths.append(str(image_path))
-        return convert_image_format([Path(path) for path in figures_paths])
+        return convert_image_format([Path(path) for path in figures_paths], self.unified_image_format)
 
     def _get_json(self, publication_id: ID) -> dict[str, Any] | None:
         """Retrieve the json for a given publication ID.
