@@ -149,9 +149,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 stream=True,
                 timeout=self.timeout,
             )
-            if response.ok:
-                return self._write_pdf(publication_id, response)
-            return None
+            response.raise_for_status()
+            return self._write_pdf(publication_id, response)
         return None
 
     def _write_pdf(self, publication_id: ID, response: requests.Response) -> PDF:
@@ -334,16 +333,15 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 stream=True,
                 timeout=self.timeout,
             )
-            if response.ok:
-                xml_path = Path(self.storage) / f"{publication_id}.xml"
-                with xml_path.open("w", encoding="utf-8") as f:
-                    f.write(response.text)
-                root = ET.parse(xml_path).getroot()
-                xml_path.unlink()
-                if root is None:
-                    return None
-                return root
-            return None
+            response.raise_for_status()
+            xml_path = Path(self.storage) / f"{publication_id}.xml"
+            with xml_path.open("w", encoding="utf-8") as f:
+                f.write(response.text)
+            root = ET.parse(xml_path).getroot()
+            xml_path.unlink()
+            if root is None:
+                return None
+            return root
         return None
 
     def _get_figures(self, publication_id: ID) -> list[str]:
@@ -378,10 +376,10 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 stream=True,
                 timeout=self.timeout,
             )
-            if response.ok:
-                with zip_path.open("wb") as f:
-                    f.write(response.content)
-                    return zip_path
+            response.raise_for_status()
+            with zip_path.open("wb") as f:
+                f.write(response.content)
+                return zip_path
         return None
 
 
