@@ -41,6 +41,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         "Cache-Control": "max-age=0",
     }
     image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff")
+    unified_image_format = "png"
 
     def __init__(
         self,
@@ -371,7 +372,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                         zip_ref.extract(file_info, base_dir)
                         image_paths.append(str(base_dir / file_info.filename))
             zip_path.unlink()
-            return convert_image_format([Path(path) for path in image_paths])
+            return convert_image_format([Path(path) for path in image_paths], self.unified_image_format)
         return []
 
     def _get_supplementary_zip_path(self, publication_id: ID) -> Path | None:
