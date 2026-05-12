@@ -1,6 +1,6 @@
 from __future__ import annotations
-from pathlib import Path
 from http.client import RemoteDisconnected
+from pathlib import Path
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC

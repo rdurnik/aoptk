@@ -1,7 +1,7 @@
 from __future__ import annotations
-from pathlib import Path
 from datetime import UTC
 from datetime import datetime
+from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
 from requests import HTTPError
