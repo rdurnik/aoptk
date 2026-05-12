@@ -17,9 +17,9 @@ from aoptk.literature.convert_image import ConvertImage
 from aoptk.literature.convert_pdf_scan import ConvertPDFScan
 from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
-from aoptk.relationship_type import Causative
-from aoptk.relationship_type import Inhibitive
-from aoptk.relationship_type import RelationshipType
+from aoptk.relationships.relationship_type import Causative
+from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.relationships.relationship_type import RelationshipType
 from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
 
