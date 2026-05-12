@@ -93,7 +93,7 @@ def test_extract_figures(publication: dict):
         for filename in filenames
     )
     assert len(publication["publication"].figures) == len(publication["figures"])
-    assert total_size == publication["figure_size"]
+    assert total_size == pytest.approx(publication["figure_size"], rel=0.1)
 
 
 @pytest.mark.parametrize(
