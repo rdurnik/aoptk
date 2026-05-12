@@ -11,6 +11,7 @@ from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.id import ID
 
 # ruff: noqa: PLR2004
 # ruff: noqa: PLR0913
@@ -308,6 +309,18 @@ def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, 
     )
     expected = provide_publications["tables"]
     assert len(actual) == expected
+
+
+def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
+    """Test that get_publications() method returns an empty list when given wrong IDs."""
+    sut = EuropePMC(
+        query="",
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    )
+
+    actual = sut.get_publications([ID("invalid_id")])
+    assert actual == []
 
 
 @pytest.mark.xfail(raises=HTTPError)
