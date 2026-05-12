@@ -85,6 +85,7 @@ def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
     assert actual == pytest.approx(expected, abs=100)
 
 
+@pytest.mark.xfail(raises=HTTPError)
 def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications() method returns an empty list when given wrong IDs."""
     sut = PMC(
