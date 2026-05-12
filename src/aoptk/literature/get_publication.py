@@ -13,6 +13,6 @@ class GetPublication(ABC):
     """Abstract base class for retrieving publication data."""
 
     @abstractmethod
-    def get_publications(self, ids: list[ID] | list[PDF]) -> list[Publication]:
+    def get_publications(self, ids: list[ID] | list[PDF], download_figures_enabled: bool = True) -> list[Publication]:
         """Return publication data."""
         ...

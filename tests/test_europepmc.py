@@ -247,7 +247,7 @@ def test_extract_abstract_xml(
     actual = (
         EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
-        .abstract
+        .abstract.text
     )
     expected = provide_publications["expected_abstract"]
     ratio = fuzz.ratio(actual, expected)
@@ -308,3 +308,19 @@ def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, 
     )
     expected = provide_publications["tables"]
     assert len(actual) == expected
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_figures_not_being_downloaded(
+    provide_publications: dict,
+    provide_temp_storage: Path,
+    provide_temp_storage_figures: Path,
+):
+    """Test extracting figures from XMLs."""
+    actual = (
+        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        .get_publications(ids=[provide_publications["id"]], download_figures_enabled=False)[0]
+        .figures
+    )
+    expected: list = []
+    assert actual == expected
