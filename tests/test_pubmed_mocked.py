@@ -5,6 +5,7 @@ from datetime import datetime
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
+from aoptk.literature.id import ID
 
 
 @pytest.fixture
@@ -52,7 +53,7 @@ def test_get_abstract_not_empty(mock_entrez):
         },
     ]
 
-    actual = PubMed("hepg2 thioacetamide").get_abstracts(ids=["12345", "67890"])
+    actual = PubMed("hepg2 thioacetamide").get_abstracts(ids=[ID("12345"), ID("67890")])
     assert actual is not None
     assert len(actual) > 0
 
@@ -170,7 +171,7 @@ def test_generate_abstracts_for_given_query(
                 },
             )
 
-    id_list = [article["MedlineCitation"]["PMID"] for article in articles]
+    id_list: list[str] = [str(article["MedlineCitation"]["PMID"]) for article in articles]
 
     mock_entrez.read.side_effect = [
         {"Count": str(len(id_list)), "IdList": id_list},
@@ -180,7 +181,7 @@ def test_generate_abstracts_for_given_query(
     ]
 
     pubmed_instance = PubMed(query)
-    abstracts = pubmed_instance.get_abstracts(ids=id_list)
+    abstracts = pubmed_instance.get_abstracts(ids=[ID(id_str) for id_str in id_list])
     assert abstracts[position].text == expected_abstract
     assert abstracts[position].id == expected_id
 

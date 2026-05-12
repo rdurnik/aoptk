@@ -201,14 +201,14 @@ def provide_publications(request: pytest.FixtureRequest, tmp_path_factory: pytes
 
 
 @pytest.fixture(scope="module")
-def provide_temp_storage(provide_publications: dict, tmp_path_factory: pytest.TempPathFactory):
+def provide_temp_storage(provide_publications: dict, tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Provide temporary directories for storage of full text and figures."""
     pub_id = provide_publications["id"]
     return tmp_path_factory.mktemp(f"{pub_id}")
 
 
 @pytest.fixture(scope="module")
-def provide_temp_storage_figures(provide_publications: dict, tmp_path_factory: pytest.TempPathFactory):
+def provide_temp_storage_figures(provide_publications: dict, tmp_path_factory: pytest.TempPathFactory) -> Path:
     """Provide temporary directories for storage of full text and figures."""
     pub_id = provide_publications["id"]
     return tmp_path_factory.mktemp(f"{pub_id}_figures")

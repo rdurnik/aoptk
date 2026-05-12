@@ -1,4 +1,5 @@
 import pytest
+from aoptk.literature.id import ID
 from aoptk.literature.utils import is_europepmc_id
 
 
@@ -9,7 +10,7 @@ from aoptk.literature.utils import is_europepmc_id
         ("PMC123456", True),
     ],
 )
-def test_is_europepmc_id(publication_id: str, expected: bool):
+def test_is_europepmc_id(publication_id: ID, expected: bool):
     """Test the is_europepmc_id function."""
     actual = is_europepmc_id(publication_id)
     assert actual == expected
