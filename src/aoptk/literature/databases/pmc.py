@@ -24,6 +24,7 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.utils import AsyncRequestLimiter
+from aoptk.literature.utils import convert_image_format
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
@@ -175,7 +176,7 @@ class PMC(GetPublication, GetPDF, GetID):
             return None
         return None
 
-    def _get_figures(self, publication_id: ID) -> list[str]:
+    def _get_figures(self, publication_id: ID) -> list[Path]:
         """Retrieve the figure files for a given publication ID.
 
         Args:
@@ -187,7 +188,7 @@ class PMC(GetPublication, GetPDF, GetID):
 
         return []
 
-    def _extract_figures_from_supplements(self, publication_id: ID, supplementary_files: list[str]) -> list[str]:
+    def _extract_figures_from_supplements(self, publication_id: ID, supplementary_files: list[str]) -> list[Path]:
         """Extract figure files from the supplementary files.
 
         Args:
@@ -209,7 +210,7 @@ class PMC(GetPublication, GetPDF, GetID):
                 image_path.parent.mkdir(parents=True, exist_ok=True)
                 self.s3.download_file(self.bucket, key, str(image_path))
                 figures_paths.append(str(image_path))
-        return figures_paths
+        return convert_image_format([Path(path) for path in figures_paths])
 
     def _get_json(self, publication_id: ID) -> dict[str, Any] | None:
         """Retrieve the json for a given publication ID.
