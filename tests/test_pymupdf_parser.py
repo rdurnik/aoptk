@@ -172,7 +172,8 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
 
 @pytest.fixture(scope="module")
 def provide_temp_storage_figures_no_images(
-    provide_publications: dict, tmp_path_factory: pytest.TempPathFactory,
+    provide_publications: dict,
+    tmp_path_factory: pytest.TempPathFactory,
 ) -> Path:
     """Provide a separate figure storage directory for the no-images case."""
     pub_id = provide_publications["id"]
