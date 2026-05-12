@@ -10,6 +10,5 @@ def test_convert_image_format(tmp_path: Path):
     expected = [tmp_path / "gjic.png", tmp_path / "liver_fibrosis.png"]
     total_size = sum(f.stat().st_size for f in tmp_path.iterdir())
     expected_size = 1375641
-    assert actual == expected
-    assert len(actual) == len(expected)
+    assert actual == sorted(expected)
     assert total_size == expected_size
