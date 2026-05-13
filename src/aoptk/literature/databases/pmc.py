@@ -23,6 +23,7 @@ from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
+from aoptk.literature.query import Query
 from aoptk.literature.utils import AsyncRequestLimiter
 from aoptk.literature.utils import convert_image_format
 
@@ -53,11 +54,13 @@ class PMC(GetPublication, GetPDF, GetID):
 
     def __init__(
         self,
-        query: str,
         storage: Path,
         figure_storage: Path,
+        query: Query | None = None,
     ):
-        self._query = query
+        if not query:
+            query = Query(search_term="queryblank")
+        self.search_term = self.build_search_term(query)
 
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
@@ -65,25 +68,47 @@ class PMC(GetPublication, GetPDF, GetID):
         self.figure_storage = figure_storage
         Path(self.figure_storage).mkdir(parents=True, exist_ok=True)
 
-    @property
-    def query(self) -> str:
-        """Get the current query string."""
-        return self._query
+    def build_search_term(self, query: Query) -> str:
+        """Convert Query to Europe PMC search syntax."""
+        search_term = query.search_term
+        if query.has_full_text:
+            search_term += ' "open access"[filter]"'
+        if query.only_preprint:
+            search_term += ' ahead of print"[filter]'
+        if query.date:
+            search_term += f" {query.date[0]}/{query.date[1]}/{query.date[2]}[dp]"
+        if query.licensing:
+            search_term += self._get_license_filter(query.licensing)
+        if query.only_search_abstract_title:
+            search_term += " [tiab]"
+        return search_term
 
-    @query.setter
-    def query(self, value: str) -> None:
-        """Set a new query string.
+    def _get_license_filter(self, licensing: str) -> str:
+        """Get the license filter string for a given licensing type.
 
         Args:
-            value (str): The new query string to set.
-        """
-        self._query = value
-
-    def get_pdfs(self, ids: list[ID]) -> list[PDF]:
-        """Retrieve PDFs based on the query.
+            licensing (str): The licensing type.
 
         Returns:
-            list[PDF]: A list of PDF objects corresponding to the publications matching the query.
+            str: The license filter string for PubMed search.
+        """
+        license_map = {
+            "open-access": ' "open access"[filter]',
+            "CC0": ' "cc0 license"[filter]',
+            "CC-BY": ' "cc by license"[filter]',
+            "CC-BY-SA": ' "cc by-nc-sa license"[filter]',
+            "CC-BY-ND": ' "cc by-nd license"[filter]',
+            "CC-BY-NC": ' "cc by-nc license"[filter]',
+            "CC-BY-NC-ND": ' "cc by-nc-nd license"[filter]',
+            "CC-BY-NC-SA": ' "cc by-nc-sa license"[filter]',
+        }
+        return license_map.get(licensing, "")
+
+    def get_pdfs(self, ids: list[ID]) -> list[PDF]:
+        """Retrieve PDFs.
+
+        Returns:
+            list[PDF]: A list of PDF objects.
         """
         return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
@@ -105,11 +130,11 @@ class PMC(GetPublication, GetPDF, GetID):
         ]
 
     def get_ids(self) -> list[ID]:
-        """Retrieve a list of publication IDs based on the query."""
+        """Retrieve a list of publication IDs based on the search term."""
         return asyncio.run(self._async_get_ids())
 
     async def _async_get_ids(self) -> list[ID]:
-        """Asynchronously retrieve a list of publication IDs based on the query."""
+        """Asynchronously retrieve a list of publication IDs based on the search term."""
         count, pmc_ids = await self._async_get_publication_count_and_ids()
         if count <= self.max_pmc_results:
             return [ID(f"PMC{pmcid}") for pmcid in pmc_ids]
@@ -245,7 +270,7 @@ class PMC(GetPublication, GetPDF, GetID):
     ) -> tuple[int, list[str]]:
         handle = Entrez.esearch(
             db="pmc",
-            term=self._query,
+            term=self.search_term,
             retmax=self.max_pmc_results,
             mindate=mindate,
             maxdate=maxdate,
