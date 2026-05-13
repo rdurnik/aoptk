@@ -58,7 +58,6 @@ class PMC(GetPublication, GetPDF, GetID):
         figure_storage: Path,
     ):
         self._query = query
-        self.id_list = asyncio.run(self.get_ids())
 
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
@@ -105,8 +104,12 @@ class PMC(GetPublication, GetPDF, GetID):
             if pub is not None
         ]
 
-    async def get_ids(self) -> list[ID]:
+    def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the query."""
+        return asyncio.run(self._async_get_ids())
+
+    async def _async_get_ids(self) -> list[ID]:
+        """Asynchronously retrieve a list of publication IDs based on the query."""
         count, pmc_ids = await self._async_get_publication_count_and_ids()
         if count <= self.max_pmc_results:
             return [ID(f"PMC{pmcid}") for pmcid in pmc_ids]

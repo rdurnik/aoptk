@@ -66,7 +66,7 @@ def test_get_id_small_query(tmp_path_factory: pytest.TempPathFactory):
         query="PMC12416454",
         storage=tmp_path_factory.mktemp("pmc_storage"),
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-    ).id_list
+    ).get_ids()
     expected = ["PMC12416454"]
     assert actual == expected
 
@@ -79,7 +79,7 @@ def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
             query="methotrexate OR thioacetamide AND cancer AND fibrosis 1940/01/01:2023/01/30[epdat]",
             storage=tmp_path_factory.mktemp("pmc_storage"),
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-        ).id_list,
+        ).get_ids(),
     )
     expected = 10101
     assert actual == pytest.approx(expected, abs=100)
