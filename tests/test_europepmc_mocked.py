@@ -54,7 +54,6 @@ def test_generate_abstract_for_given_id_http_error(provide_temp_storage: Path, p
     """Test that HTTPError is raised when EuropePMC returns non-OK response."""
     with pytest.raises(HTTPError):
         EuropePMC(
-            query="",
             storage=provide_temp_storage,
             figure_storage=provide_temp_storage_figures,
         ).get_abstracts(ids=[ID("12345678")])[0]
@@ -64,7 +63,6 @@ def test_generate_abstract_for_given_id_http_error(provide_temp_storage: Path, p
 def test_generate_abstract_for_given_id_success(provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test successful abstract retrieval with mocked response."""
     result = EuropePMC(
-        query="",
         storage=provide_temp_storage,
         figure_storage=provide_temp_storage_figures,
     ).get_abstracts(ids=[ID("12345678")])[0]

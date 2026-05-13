@@ -12,6 +12,7 @@ from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
+from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
 # ruff: noqa: PLR0913
@@ -19,7 +20,7 @@ from aoptk.literature.id import ID
 
 def test_can_create(provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test that EuropePMCPDF can be instantiated."""
-    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+    actual = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     assert actual is not None
 
 
@@ -36,106 +37,29 @@ def test_implements_interface():
     ("query", "expected"),
     [
         (
-            "liver fibrosis AND thioacetamide AND mg/kg AND weeks AND Ayurveda AND (FIRST_PDATE:[2023 TO 2024])",
+            Query(
+                search_term=(
+                    "liver fibrosis AND thioacetamide AND mg/kg AND weeks AND Ayurveda AND (FIRST_PDATE:[2023 TO 2024])"
+                ),
+            ),
             ["39705085", "PMC11420034", "PMC9962064", "PMC11059288", "PMC10829571"],
         ),
     ],
 )
 def test_return_id_list(
-    query: str,
+    query: Query,
     expected: list[str],
     provide_temp_storage: Path,
     provide_temp_storage_figures: Path,
 ):
     """Test that get_id() returns expected publication IDs."""
-    actual = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
-    assert actual == expected
-
-
-@pytest.mark.parametrize(
-    ("query", "expected", "query_for_abstracts_only", "remove_reviews"),
-    [
-        (
-            "spheroid methotrexate thioacetamide AND (FIRST_PDATE:[2021 TO 2023])",
-            [
-                "PMC10647544",
-                "PMC9857994",
-                "PMC8950395",
-                "PMC8201787",
-                "PMC9256002",
-                "PMC7911320",
-                "PMC10928813",
-                "PMC10576948",
-                "PMC8934723",
-                "PMC9243943",
-            ],
-            False,
-            False,
-        ),
-        (
-            "spheroid methotrexate AND (FIRST_PDATE:[2020 TO 2021])",
-            ["PMC8230402", "PMC7348038", "PMC8638776", "PPR380866", "PMC8649206", "PMC8476350", "PPR190639"],
-            True,
-            False,
-        ),
-        (
-            "spheroid methotrexate hepg2 AND (FIRST_PDATE:[2024 TO 2024])",
-            [
-                "PMC11201042",
-                "PMC11354664",
-                "PMC11156946",
-                "PMC12149029",
-                "PMC11208286",
-                "PMC11245638",
-                "PMC11177578",
-                "PMC11470995",
-            ],
-            False,
-            True,
-        ),
-        (
-            "spheroid methotrexate AND (FIRST_PDATE:[2020 TO 2024])",
-            [
-                "PMC11354664",
-                "PPR875796",
-                "39060210",
-                "37454032",
-                "PMC9358508",
-                "PMC9434104",
-                "PMC8230402",
-                "PMC7348038",
-                "PMC8638776",
-                "PPR380866",
-                "PMC8649206",
-                "PMC8476350",
-                "PPR190639",
-            ],
-            True,
-            True,
-        ),
-    ],
-)
-def test_ids_not_to_return(
-    query: str,
-    expected: list[str],
-    query_for_abstracts_only: bool,
-    remove_reviews: bool,
-    provide_temp_storage: Path,
-    provide_temp_storage_figures: Path,
-):
-    """Test that get_ids() returns expected publication IDs with query modifications."""
-    sut = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-    if query_for_abstracts_only:
-        sut = sut.abstracts_only()
-    if remove_reviews:
-        sut = sut.remove_reviews()
-    actual = sut.get_ids()
+    actual = EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
     assert actual == expected
 
 
 def test_get_abstract_not_empty(provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Get abstracts returns non-empty list."""
-    actual = EuropePMC("", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts(
+    actual = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts(
         ids=[],
     )
     assert actual is not None
@@ -145,7 +69,7 @@ def test_get_abstract_not_empty(provide_temp_storage: Path, provide_temp_storage
     ("query", "expected_abstract", "expected_id", "position"),
     [
         (
-            "TITLE_ABS:(liver cancer AND hepg2 AND thioacetamide) AND (FIRST_PDATE:[2018 TO 2019])",
+            Query(search_term="TITLE_ABS:(liver cancer AND hepg2 AND thioacetamide) AND (FIRST_PDATE:[2018 TO 2019])"),
             "Insulin growth factor (IGF) family and their receptors play a great role in tumors' development. "
             "In addition, IGF-1 enhances cancer progression through regulating cell proliferation, angiogenesis, "
             "immune modulation and metastasis. Moreover, nicotinamide is association with protection against "
@@ -168,7 +92,7 @@ def test_get_abstract_not_empty(provide_temp_storage: Path, provide_temp_storage
             0,
         ),
         (
-            "PMC5596756",
+            Query(search_term="PMC5596756"),
             "",
             "PMC5596756",
             1,
@@ -177,7 +101,7 @@ def test_get_abstract_not_empty(provide_temp_storage: Path, provide_temp_storage
 )
 @pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_given_query(
-    query: str,
+    query: Query,
     expected_abstract: str,
     expected_id: str,
     position: int,
@@ -185,14 +109,14 @@ def test_generate_abstracts_for_given_query(
     provide_temp_storage_figures: Path,
 ):
     """Generate list of abstracts for given query."""
-    ids = EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
+    ids = EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
     abstract = (
-        EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_abstracts(ids=ids)[position]
         .text
     )
     publication_id = (
-        EuropePMC(query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_abstracts(ids=ids)[position]
         .id
     )
@@ -225,7 +149,6 @@ def test_generate_abstracts_for_given_query(
 def test_get_publication_metadata(test_data: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
-        query="",
         storage=provide_temp_storage,
         figure_storage=provide_temp_storage_figures,
     ).get_publications_metadata(ids=[test_data["publication_id"]])[0]
@@ -246,7 +169,7 @@ def test_extract_abstract_xml(
 ):
     """Test extracting abstract from XMLs."""
     actual = (
-        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .abstract.text
     )
@@ -259,7 +182,7 @@ def test_extract_abstract_xml(
 def test_extract_full_text(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test extracting full text from XMLs."""
     actual = (
-        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .full_text
     )
@@ -276,7 +199,7 @@ def test_extract_figure_descriptions(
 ):
     """Test extracting figure descriptions from XMLs."""
     actual = "".join(
-        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .figure_descriptions,
     )
@@ -291,7 +214,7 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: Path,
     if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
     actual = (
-        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .figures
     )
@@ -303,7 +226,7 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: Path,
 def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test extracting tables from XMLs."""
     actual = (
-        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]])[0]
         .tables
     )
@@ -314,7 +237,6 @@ def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, 
 def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications() method returns an empty list when given wrong IDs."""
     sut = EuropePMC(
-        query="",
         storage=tmp_path_factory.mktemp("pmc_storage"),
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     )
@@ -331,7 +253,7 @@ def test_figures_not_being_downloaded(
 ):
     """Test extracting figures from XMLs."""
     actual = (
-        EuropePMC(query="", storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
         .get_publications(ids=[provide_publications["id"]], download_figures_enabled=False)[0]
         .figures
     )

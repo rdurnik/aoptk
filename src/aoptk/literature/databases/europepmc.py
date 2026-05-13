@@ -19,6 +19,7 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.query import Query
 from aoptk.literature.utils import convert_image_format
 from aoptk.literature.utils import is_europepmc_id
 
@@ -45,11 +46,13 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
 
     def __init__(
         self,
-        query: str,
         storage: Path,
         figure_storage: Path,
+        query: Query | None = None,
     ):
-        self._query = query
+        if not query:
+            query = Query(search_term="")
+        self.search_term = self.build_search_term(query)
         self.storage = storage
         self.figure_storage = figure_storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
@@ -66,26 +69,48 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
 
-    @property
-    def query(self) -> str:
-        """Get the current query string."""
-        return self._query
+    def build_search_term(self, query: Query) -> str:
+        """Convert Query to Europe PMC search syntax."""
+        search_term = query.search_term
+        if query.has_full_text:
+            search_term += " HAS_FT:Y"
+        if query.only_preprint:
+            search_term += " SRC:PPR"
+        if query.date:
+            search_term += f" E_PDATE:{query.date[0]}/{query.date[1]}/{query.date[2]}"
+        if query.licensing:
+            search_term += self._get_license_filter(query.licensing)
+        if query.only_search_abstract_title:
+            search_term = f"TITLE_ABS:({search_term})"
+        return search_term
 
-    @query.setter
-    def query(self, value: str) -> None:
-        """Set a new query string.
+    def _get_license_filter(self, licensing: str) -> str:
+        """Get the license filter string for a given licensing type.
 
         Args:
-            value (str): The new query string to set.
+            licensing (str): The licensing type.
+
+        Returns:
+            str: The license filter string for Europe PMC search.
         """
-        self._query = value
+        license_map = {
+            "open-access": "LICENSE:CC",
+            "CC0": "LICENSE:CC0",
+            "CC-BY": 'LICENSE:"CC-BY"',
+            "CC-BY-SA": 'LICENSE:"CC-BY-SA"',
+            "CC-BY-ND": 'LICENSE:"CC-BY-ND"',
+            "CC-BY-NC": 'LICENSE:"CC-BY-NC"',
+            "CC-BY-NC-ND": 'LICENSE:"CC-BY-NC-ND"',
+            "CC-BY-NC-SA": 'LICENSE:"CC-BY-NC-SA"',
+        }
+        return license_map.get(licensing, "")
 
     def get_pdfs(self, ids: list[ID]) -> list[PDF]:
-        """Retrieve PDFs based on the query."""
+        """Retrieve PDFs."""
         return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
-        """Retrieve Abstracts based on the query."""
+        """Retrieve Abstracts."""
         return [
             abstract
             for abstract in (self._get_abstract(publication_id) for publication_id in ids)
@@ -93,7 +118,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         ]
 
     def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
-        """Retrieve Publications based on the query.
+        """Retrieve Publications.
 
         Args:
             ids (list[ID]): A list of publication IDs to retrieve.
@@ -109,7 +134,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         ]
 
     def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
-        """Retrieve Publication metadata based on the query."""
+        """Retrieve Publication metadata."""
         return [
             publication_metadata
             for publication_metadata in (self._get_publication_metadata(publication_id) for publication_id in ids)
@@ -117,12 +142,12 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         ]
 
     def get_ids(self) -> list[ID]:
-        """Get a list of publication IDs from EuropePMC based on the query."""
+        """Get a list of publication IDs from EuropePMC based on the search term."""
         cursor_mark = "*"
         id_list = []
 
         while True:
-            data_europepmc = self._call_api(cursor_mark, "idlist", self.query)
+            data_europepmc = self._call_api(cursor_mark, "idlist", self.search_term)
             results = data_europepmc.get("resultList", {}).get("result", [])
 
             id_list.extend([_get_publication_id(result) for result in results])
@@ -133,16 +158,6 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             cursor_mark = next_cursor
 
         return id_list
-
-    def remove_reviews(self) -> EuropePMC:
-        """Modify the query to exclude review articles."""
-        self.query += ' NOT PUB_TYPE:"Review"'
-        return self
-
-    def abstracts_only(self) -> EuropePMC:
-        """Modify the query to search in the text of abstracts only."""
-        self.query = "ABSTRACT:(" + self.query + ")"
-        return self
 
     def _get_pdf(self, publication_id: ID) -> PDF | None:
         """Retrieve the PDF for a given publication ID.
