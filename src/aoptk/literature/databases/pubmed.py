@@ -31,7 +31,6 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def __init__(self, query: str):
         self._query = query
-        self.id_list = self.get_ids()
         self.publication_count = self.get_publication_count()
         if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
