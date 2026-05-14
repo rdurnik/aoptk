@@ -4,12 +4,14 @@ import re
 from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING
+import pandas as pd
 import pymupdf
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pdf_parser import PDFParser
 from aoptk.literature.publication import Publication
+from aoptk.literature.utils import convert_image_format
 
 if TYPE_CHECKING:
     from aoptk.literature.pdf import PDF
@@ -19,10 +21,12 @@ if TYPE_CHECKING:
 class PymupdfParser(PDFParser):
     """Parse PDFs using PyMuPDF."""
 
+    unified_image_format = "png"
+
     def __init__(
         self,
         pdfs: list[PDF],
-        figure_storage: str = "tests/figure_storage",
+        figure_storage: Path = Path("tests/figure_storage"),
         text_generation: TextGenerationAPI | None = None,
     ):
         self.figure_storage = figure_storage
@@ -31,11 +35,19 @@ class PymupdfParser(PDFParser):
         self.pattern_any_character = r"(.*)"
         self.text_generation = text_generation
 
-    def get_publications(self) -> list[Publication]:
-        """Get a list of publications."""
+    def get_publications(self, download_figures_enabled: bool = True) -> list[Publication]:
+        """Get a list of publications.
+
+        Args:
+            download_figures_enabled (bool): Whether to download figures and
+            include their paths in the Publication objects.
+
+        Returns:
+            list[Publication]: A list of Publication objects.
+        """
         pubs = []
         for pdf in self.pdfs:
-            pub = self._parse_pdf(pdf)
+            pub = self._parse_pdf(pdf, download_figures_enabled)
             pubs.append(pub)
         return pubs
 
@@ -52,15 +64,15 @@ class PymupdfParser(PDFParser):
             abstracts.append(abstract)
         return abstracts
 
-    def _parse_pdf(self, pdf: PDF) -> Publication:
+    def _parse_pdf(self, pdf: PDF, download_figures_enabled: bool = True) -> Publication:
         """Parse a single PDF and return a Publication object."""
         text_to_parse = self._extract_text_to_parse(pdf)
         publication_id = ID(Path(pdf.path).stem)
         abstract = self._extract_abstract(pdf, publication_id)
         full_text = self._extract_full_text(pdf)
-        figures = self._extract_figures(pdf)
-        figure_descriptions = self._extract_figure_descriptions(text_to_parse)
-        tables = []
+        figures = self._extract_figures(pdf) if download_figures_enabled else []
+        figure_descriptions = self._extract_figure_descriptions(text_to_parse) if download_figures_enabled else []
+        tables: list[pd.DataFrame] = []
         return Publication(
             id=publication_id,
             abstract=abstract,
@@ -97,7 +109,7 @@ class PymupdfParser(PDFParser):
                 pages=enumerate(doc, start=0),
             )
             full_text = "\n".join(block[6] for block in text_blocks)
-            if (self._is_corrupted(full_text) or self._is_too_short(full_text)) and self.text_generation:
+            if self._is_corrupted(full_text) or self._is_too_short(full_text):
                 pdf_as_images = self._extract_pdf_as_images(pdf)
                 full_text = self._extract_full_text_from_images(pdf_as_images)
 
@@ -163,9 +175,10 @@ class PymupdfParser(PDFParser):
             str: The extracted full text from the images.
         """
         full_text = ""
-        for img_base64 in pdf_as_images:
-            text_from_image = self.text_generation.convert_pdf_scan(img_base64, mime_type="image/png")
-            full_text += text_from_image + "\n"
+        if self.text_generation:
+            for img_base64 in pdf_as_images:
+                text_from_image = self.text_generation.convert_pdf_scan(img_base64, mime_type="image/png")
+                full_text += text_from_image + "\n"
         return full_text
 
     def _extract_text_blocks_without_irrelevant_border_text(
@@ -221,7 +234,7 @@ class PymupdfParser(PDFParser):
             figure_descriptions.append(description)
         return figure_descriptions
 
-    def _extract_figures(self, pdf: PDF) -> list[str]:
+    def _extract_figures(self, pdf: PDF) -> list[Path]:
         """Extract figures from the PDF and save them to the output directory."""
         output_dir = Path(self.figure_storage) / Path(pdf.path).stem
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -238,13 +251,16 @@ class PymupdfParser(PDFParser):
                         figure_count += 1
                     else:
                         continue
-            return [str(p) for p in sorted(output_dir.iterdir()) if p.is_file()]
+        return convert_image_format(
+            [Path(p) for p in sorted(output_dir.iterdir()) if p.is_file()],
+            self.unified_image_format,
+        )
 
-    def _save_figure(self, output_dir: str, figure_count: int, base_figure: dict, figure_bytes: bytes) -> None:
+    def _save_figure(self, output_dir: Path, figure_count: int, base_figure: dict, figure_bytes: bytes) -> None:
         """Save the extracted figure to the output directory."""
         image_ext = base_figure["ext"]
         image_filename = output_dir / f"figure{figure_count + 1}.{image_ext}"
-        with Path.open(image_filename, "wb") as img_file:
+        with image_filename.open("wb") as img_file:
             img_file.write(figure_bytes)
 
     def _figure_large_enough(self, figure_bytes: bytes) -> bool:

@@ -5,67 +5,71 @@ from datetime import datetime
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.databases.pubmed import QueryTooLargeError
+from aoptk.literature.id import ID
+from aoptk.literature.query import Query
 
 
 @pytest.fixture
 def mock_entrez(mocker):
-    """Mock Entrez module."""
-    return mocker.patch("aoptk.literature.databases.pubmed.Entrez")
+    """Provide a simple Entrez mock with handle-based `read` returns."""
+    ent = mocker.patch("aoptk.literature.databases.pubmed.Entrez")
+
+    ent.handles = {
+        "search": mocker.MagicMock(name="esearch_handle"),
+        "fetch": mocker.MagicMock(name="efetch_handle"),
+        "summary": mocker.MagicMock(name="esummary_handle"),
+    }
+
+    ent.esearch.return_value = ent.handles["search"]
+    ent.efetch.return_value = ent.handles["fetch"]
+    ent.esummary.return_value = ent.handles["summary"]
+    ent.responses = {}
+    ent.read.side_effect = ent.responses.get
+    return ent
 
 
 def test_can_create(mock_entrez):
     """Can create PubMed instance."""
-    mock_entrez.read.return_value = {"Count": "5", "IdList": ["1", "2", "3", "4", "5"]}
-    actual = PubMed("hepg2 thioacetamide")
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "5", "IdList": ["1", "2", "3", "4", "5"]}
+    actual = PubMed(query=Query(search_term="hepg2 thioacetamide"))
     assert actual is not None
 
 
 def test_get_abstract_not_empty(mock_entrez):
     """Get abstracts returns non-empty list."""
-    mock_entrez.read.side_effect = [
-        {"Count": "2", "IdList": ["12345", "67890"]},
-        {"Count": "2"},
-        {"Count": "2"},
-        {
-            "PubmedArticle": [
-                {
-                    "MedlineCitation": {
-                        "PMID": "12345",
-                        "Article": {
-                            "Abstract": {
-                                "AbstractText": ["Test abstract text"],
-                            },
-                        },
-                    },
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "2", "IdList": ["12345", "67890"]}
+    mock_entrez.responses[mock_entrez.handles["fetch"]] = {
+        "PubmedArticle": [
+            {
+                "MedlineCitation": {
+                    "PMID": "12345",
+                    "Article": {"Abstract": {"AbstractText": ["Test abstract text"]}},
                 },
-                {
-                    "MedlineCitation": {
-                        "PMID": "67890",
-                        "Article": {
-                            "Abstract": {
-                                "AbstractText": ["Second abstract"],
-                            },
-                        },
-                    },
+            },
+            {
+                "MedlineCitation": {
+                    "PMID": "67890",
+                    "Article": {"Abstract": {"AbstractText": ["Second abstract"]}},
                 },
-            ],
-        },
-    ]
+            },
+        ],
+    }
 
-    actual = PubMed("hepg2 thioacetamide").get_abstracts()
+    actual = PubMed(query=Query(search_term="hepg2 thioacetamide")).get_abstracts(ids=[ID("12345"), ID("67890")])
     assert actual is not None
     assert len(actual) > 0
 
 
 def test_get_publication_count(mock_entrez):
     """Get publication count returns correct number."""
-    mock_entrez.read.side_effect = [
-        {"Count": "4", "IdList": ["36835489", "37913737", "37891562", "36838959"]},
-        {"Count": "4"},
-        {"Count": "4"},
-    ]
+    mock_entrez.responses[mock_entrez.handles["search"]] = {
+        "Count": "4",
+        "IdList": ["36835489", "37913737", "37891562", "36838959"],
+    }
 
-    pubmed_instance = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))')
+    pubmed_instance = PubMed(
+        query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
+    )
     actual = pubmed_instance.publication_count
     expected = 4
     assert actual == expected
@@ -73,14 +77,10 @@ def test_get_publication_count(mock_entrez):
 
 def test_raises_query_too_large_error(mock_entrez):
     """QueryTooLargeError is raised when result count >= maximum_results."""
-    mock_entrez.read.side_effect = [
-        {"Count": str(PubMed.maximum_results), "IdList": []},
-        {"Count": str(PubMed.maximum_results)},
-        {"Count": str(PubMed.maximum_results)},
-    ]
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": str(PubMed.maximum_results), "IdList": []}
 
     with pytest.raises(QueryTooLargeError) as exc_info:
-        PubMed("cancer")
+        PubMed(query=Query(search_term="cancer"))
     assert exc_info.value.count >= PubMed.maximum_results
     assert exc_info.value.maximum == PubMed.maximum_results
 
@@ -88,14 +88,12 @@ def test_raises_query_too_large_error(mock_entrez):
 def test_get_id_list(mock_entrez):
     """Get publication count returns correct number."""
     expected = ["36835489", "37913737", "37891562", "36838959"]
-    mock_entrez.read.side_effect = [
-        {"Count": "4", "IdList": expected},
-        {"Count": "4"},
-        {"Count": "4"},
-    ]
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "4", "IdList": expected}
 
-    pubmed_instance = PubMed('(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))')
-    actual = pubmed_instance.id_list
+    pubmed_instance = PubMed(
+        query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
+    )
+    actual = pubmed_instance.get_ids()
     assert sorted(actual) == sorted(expected)
 
 
@@ -170,17 +168,12 @@ def test_generate_abstracts_for_given_query(
                 },
             )
 
-    id_list = [article["MedlineCitation"]["PMID"] for article in articles]
+    id_list: list[str] = [str(article["MedlineCitation"]["PMID"]) for article in articles]
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": str(len(id_list)), "IdList": id_list}
+    mock_entrez.responses[mock_entrez.handles["fetch"]] = {"PubmedArticle": articles}
 
-    mock_entrez.read.side_effect = [
-        {"Count": str(len(id_list)), "IdList": id_list},
-        {"Count": str(len(id_list))},
-        {"Count": str(len(id_list))},
-        {"PubmedArticle": articles},
-    ]
-
-    pubmed_instance = PubMed(query)
-    abstracts = pubmed_instance.get_abstracts()
+    pubmed_instance = PubMed(query=Query(search_term=query))
+    abstracts = pubmed_instance.get_abstracts(ids=[ID(id_str) for id_str in id_list])
     assert abstracts[position].text == expected_abstract
     assert abstracts[position].id == expected_id
 
@@ -208,20 +201,16 @@ def test_generate_abstracts_for_given_query(
 )
 def test_get_publication_metadata(mock_entrez, test_data: dict):
     """Generate publication metadata for given id."""
-    mock_entrez.read.side_effect = [
-        {"Count": "1", "IdList": [test_data["publication_id"]]},
-        {"Count": "1"},
-        {"Count": "1"},
-        [
-            {
-                "PubDate": f"{test_data['publication_date']}",
-                "Title": test_data["title"],
-                "AuthorList": test_data["authors"].split(", "),
-            },
-        ],
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [test_data["publication_id"]]}
+    mock_entrez.responses[mock_entrez.handles["summary"]] = [
+        {
+            "PubDate": f"{test_data['publication_date']}",
+            "Title": test_data["title"],
+            "AuthorList": test_data["authors"].split(", "),
+        },
     ]
 
-    publication_metadata = PubMed(test_data["publication_id"]).get_publications_metadata()[0]
+    publication_metadata = PubMed().get_publications_metadata(ids=[test_data["publication_id"]])[0]
     assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
@@ -235,28 +224,19 @@ def test_get_abstract_with_text(mock_entrez):
     """Test _get_abstract returns abstract with text when available."""
     pmid = "12345"
     expected_text = "This is a test abstract text for testing purposes."
-
-    mock_entrez.read.side_effect = [
-        {"Count": "1", "IdList": [pmid]},
-        {"Count": "1"},
-        {"Count": "1"},
-        {
-            "PubmedArticle": [
-                {
-                    "MedlineCitation": {
-                        "PMID": pmid,
-                        "Article": {
-                            "Abstract": {
-                                "AbstractText": expected_text,
-                            },
-                        },
-                    },
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [pmid]}
+    mock_entrez.responses[mock_entrez.handles["fetch"]] = {
+        "PubmedArticle": [
+            {
+                "MedlineCitation": {
+                    "PMID": pmid,
+                    "Article": {"Abstract": {"AbstractText": expected_text}},
                 },
-            ],
-        },
-    ]
+            },
+        ],
+    }
 
-    pubmed_instance = PubMed(pmid)
+    pubmed_instance = PubMed()
     abstract = pubmed_instance._get_abstract(pmid)
     assert abstract.text == expected_text
     assert abstract.id == pmid

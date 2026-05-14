@@ -10,11 +10,11 @@ from aoptk.literature.convert_image import ConvertImage
 from aoptk.literature.convert_pdf_scan import ConvertPDFScan
 from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
-from aoptk.relationship_type import Causative
-from aoptk.relationship_type import Inhibitive
-from aoptk.relationship_type import RelationshipType
 from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
+from aoptk.relationships.relationship_type import Causative
+from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.relationships.relationship_type import RelationshipType
 from aoptk.text_generation_api import TextGenerationAPI
 
 
@@ -339,7 +339,7 @@ def test_relationship_table(phthalate_table_data: dict):
         ),
     ],
 )
-def test_normalize_chemical(chemical: str, list_of_chemicals: list[str], expected_heading: str):
+def test_normalize_chemical(chemical: Chemical, list_of_chemicals: list[Chemical], expected_heading: str):
     """Test that find_chemical method finds chemicals in text."""
     actual = TextGenerationAPI().normalize_chemical(chemical, list_of_chemicals)
     assert actual.heading == expected_heading

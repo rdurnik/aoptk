@@ -19,6 +19,8 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.query import Query
+from aoptk.literature.utils import convert_image_format
 from aoptk.literature.utils import is_europepmc_id
 
 
@@ -40,14 +42,17 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         "Cache-Control": "max-age=0",
     }
     image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff")
+    unified_image_format = "png"
 
     def __init__(
         self,
-        query: str,
-        storage: str,
-        figure_storage: str,
+        storage: Path,
+        figure_storage: Path,
+        query: Query | None = None,
     ):
-        self._query = query
+        if not query:
+            query = Query(search_term="")
+        self.search_term = self.build_search_term(query)
         self.storage = storage
         self.figure_storage = figure_storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
@@ -64,45 +69,85 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self._session.mount("https://", adapter)
 
-        self.id_list = self.get_ids()
+    def build_search_term(self, query: Query) -> str:
+        """Convert Query to Europe PMC search syntax."""
+        search_term = query.search_term
+        if query.full_text_subset:
+            search_term += " HAS_FT:Y"
+        if query.only_preprint:
+            search_term += " SRC:PPR"
+        if query.exclude_preprint:
+            search_term += " NOT SRC:PPR"
+        if query.date:
+            search_term += f" E_PDATE:{query.date[0]}-{query.date[1]}-{query.date[2]}"
+        if query.licensing:
+            search_term += self._get_license_filter(query.licensing)
+        return search_term
 
-    def get_pdfs(self) -> list[PDF]:
-        """Retrieve PDFs based on the query."""
-        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
+    def _get_license_filter(self, licensing: str) -> str:
+        """Get the license filter string for a given licensing type.
 
-    def get_abstracts(self) -> list[Abstract]:
-        """Retrieve Abstracts based on the query."""
+        Args:
+            licensing (str): The licensing type.
+
+        Returns:
+            str: The license filter string for Europe PMC search.
+        """
+        license_map = {
+            "open-access": " LICENSE:CC",
+            "CC0": " LICENSE:CC0",
+            "CC-BY": " LICENSE:CC-BY",
+            "CC-BY-SA": " LICENSE:CC-BY-SA",
+            "CC-BY-ND": " LICENSE:CC-BY-ND",
+            "CC-BY-NC": " LICENSE:CC-BY-NC",
+            "CC-BY-NC-ND": " LICENSE:CC-BY-NC-ND",
+            "CC-BY-NC-SA": " LICENSE:CC-BY-NC-SA",
+        }
+        return license_map.get(licensing, "")
+
+    def get_pdfs(self, ids: list[ID]) -> list[PDF]:
+        """Retrieve PDFs."""
+        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
+
+    def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
+        """Retrieve Abstracts."""
         return [
             abstract
-            for abstract in (self._get_abstract(publication_id) for publication_id in self.id_list)
+            for abstract in (self._get_abstract(publication_id) for publication_id in ids)
             if abstract is not None
         ]
 
-    def get_publications(self) -> list[Publication]:
-        """Retrieve Publications based on the query."""
+    def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
+        """Retrieve Publications.
+
+        Args:
+            ids (list[ID]): A list of publication IDs to retrieve.
+            download_figures_enabled (bool): Whether to download figures and
+            include their paths in the Publication objects.
+        """
         return [
             publication
-            for publication in (self._get_publication(publication_id) for publication_id in self.id_list)
+            for publication in (
+                self._get_publication(publication_id, download_figures_enabled) for publication_id in ids
+            )
             if publication is not None
         ]
 
-    def get_publications_metadata(self) -> list[PublicationMetadata]:
-        """Retrieve Publication metadata based on the query."""
+    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
+        """Retrieve Publication metadata."""
         return [
             publication_metadata
-            for publication_metadata in (
-                self._get_publication_metadata(publication_id) for publication_id in self.id_list
-            )
+            for publication_metadata in (self._get_publication_metadata(publication_id) for publication_id in ids)
             if publication_metadata is not None
         ]
 
     def get_ids(self) -> list[ID]:
-        """Get a list of publication IDs from EuropePMC based on the query."""
+        """Get a list of publication IDs from EuropePMC based on the search term."""
         cursor_mark = "*"
         id_list = []
 
         while True:
-            data_europepmc = self._call_api(cursor_mark, "idlist", self._query)
+            data_europepmc = self._call_api(cursor_mark, "idlist", self.search_term)
             results = data_europepmc.get("resultList", {}).get("result", [])
 
             id_list.extend([_get_publication_id(result) for result in results])
@@ -114,21 +159,11 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
 
         return id_list
 
-    def remove_reviews(self) -> EuropePMC:
-        """Modify the query to exclude review articles."""
-        self._query += ' NOT PUB_TYPE:"Review"'
-        return self
-
-    def abstracts_only(self) -> EuropePMC:
-        """Modify the query to search in the text of abstracts only."""
-        self._query = "ABSTRACT:(" + self._query + ")"
-        return self
-
-    def _get_pdf(self, publication_id: str) -> PDF | None:
+    def _get_pdf(self, publication_id: ID) -> PDF | None:
         """Retrieve the PDF for a given publication ID.
 
         Args:
-            publication_id (str): The ID of the publication for which to retrieve the PDF.
+            publication_id (ID): The ID of the publication for which to retrieve the PDF.
 
         Returns:
             PDF | None: The PDF object if successful, None otherwise.
@@ -139,16 +174,15 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 stream=True,
                 timeout=self.timeout,
             )
-            if response.ok:
-                return self._write_pdf(publication_id, response)
-            return None
+            response.raise_for_status()
+            return self._write_pdf(publication_id, response)
         return None
 
-    def _write_pdf(self, publication_id: str, response: requests.Response) -> PDF:
+    def _write_pdf(self, publication_id: ID, response: requests.Response) -> PDF:
         """Write the PDF content to a file and return a PDF object.
 
         Args:
-            publication_id (str): The ID of the publication for which the PDF is being written.
+            publication_id (ID): The ID of the publication for which the PDF is being written.
             response (requests.Response): The HTTP response containing the PDF content.
         """
         filepath = Path(self.storage) / f"{publication_id}.pdf"
@@ -156,11 +190,11 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             f.writelines(response.iter_content(chunk_size=8192))
         return PDF(filepath)
 
-    def _get_abstract(self, publication_id: str) -> Abstract:
+    def _get_abstract(self, publication_id: ID) -> Abstract:
         """Return abstract from Europe PMC for a given publication ID.
 
         Args:
-            publication_id (str): The ID of the publication for which to retrieve the abstract.
+            publication_id (ID): The ID of the publication for which to retrieve the abstract.
 
         Returns:
             Abstract: The abstract object if successful, None otherwise.
@@ -171,23 +205,23 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            return Abstract(text=results[0].get("abstractText", ""), id=ID(publication_id))
-        return Abstract(text="", id=ID(publication_id))
+            return Abstract(text=results[0].get("abstractText", ""), id=publication_id)
+        return Abstract(text="", id=publication_id)
 
-    def _call_api(self, cursor_mark: str, result_type: str, query: str) -> dict:
+    def _call_api(self, cursor_mark: str, result_type: str, query: str | ID) -> dict:
         """Call the EuropePMC web api to query the search.
 
         Args:
             cursor_mark (str): Parameter for pagination.
             result_type (str): Whether to search for idlists or core.
-            query (str): main query to carry out - default self._query
+            query (str | ID): main query to carry out - default self._query
 
         Returns:
             dict: JSON response
         """
         url = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
         params = {
-            "query": query,
+            "query": str(query),
             "format": "json",
             "pageSize": self.page_size,
             "cursorMark": cursor_mark,
@@ -197,11 +231,11 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         response.raise_for_status()
         return response.json()
 
-    def _get_publication_metadata(self, publication_id: str) -> PublicationMetadata | None:
+    def _get_publication_metadata(self, publication_id: ID) -> PublicationMetadata | None:
         """Return abstract from Europe PMC for a given publication ID.
 
         Args:
-            publication_id (str): The ID of the publication to retrieve metadata for.
+            publication_id (ID): The ID of the publication to retrieve metadata for.
         """
         cursor_mark = "*"
 
@@ -209,14 +243,14 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            publication_id = results[0].get("id")
+            publication_id = ID(results[0].get("id"))
             publication_date = results[0].get("pubYear") or "Unknown"
             title = results[0].get("title")
             authors = results[0].get("authorString", "")
             database = "Europe PMC"
             search_date = datetime.now(UTC)
             return PublicationMetadata(
-                id=ID(publication_id),
+                id=publication_id,
                 publication_date=publication_date,
                 title=title,
                 authors=authors,
@@ -225,20 +259,21 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             )
         return None
 
-    def _get_publication(self, publication_id: str) -> Publication | None:
+    def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Return a Publication object for a given publication ID.
 
         Args:
-            publication_id (str): The ID of the publication to retrieve.
+            publication_id (ID): The ID of the publication to retrieve.
+            download_figures_enabled (bool): Whether to download figures
+            and include their paths in the Publication object.
         """
-        if xml_tree := self._get_xml(publication_id):
-            root = xml_tree.getroot()
+        if root := self._get_xml(publication_id):
             return Publication(
                 id=publication_id,
-                abstract=self._parse_xml_abstract(root),
+                abstract=Abstract(text=self._parse_xml_abstract(root), id=publication_id),
                 full_text=self._parse_xml_full_text(root),
-                figures=self._get_figures(publication_id),
-                figure_descriptions=self._parse_xml_figure_descriptions(root),
+                figures=self._get_figures(publication_id) if download_figures_enabled else [],
+                figure_descriptions=self._parse_xml_figure_descriptions(root) if download_figures_enabled else [],
                 tables=self._parse_xml_tables(root),
             )
         return None
@@ -313,11 +348,11 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             rows.append(cells)
         return rows
 
-    def _get_xml(self, publication_id: str) -> str | None:
-        """Retrieve the XML content for a given publication ID.
+    def _get_xml(self, publication_id: ID) -> ET.Element | None:
+        """Retrieve the XML root element for a given publication ID.
 
         Args:
-            publication_id (str): The ID of the publication to retrieve XML for.
+            publication_id (ID): The ID of the publication to retrieve XML for.
         """
         if is_europepmc_id(publication_id):
             response = self._session.get(
@@ -325,21 +360,22 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 stream=True,
                 timeout=self.timeout,
             )
-            if response.ok:
-                xml_path = Path(self.storage) / f"{publication_id}.xml"
-                with xml_path.open("w", encoding="utf-8") as f:
-                    f.write(response.text)
-                tree = ET.parse(xml_path)
-                Path.unlink(xml_path)
-                return tree
-            return None
+            response.raise_for_status()
+            xml_path = Path(self.storage) / f"{publication_id}.xml"
+            with xml_path.open("w", encoding="utf-8") as f:
+                f.write(response.text)
+            root = ET.parse(xml_path).getroot()
+            xml_path.unlink()
+            if root is None:
+                return None
+            return root
         return None
 
-    def _get_figures(self, publication_id: str) -> list[str]:
+    def _get_figures(self, publication_id: ID) -> list[Path]:
         """Retrieve the figure file paths for a given publication ID.
 
         Args:
-            publication_id (str): The ID of the publication to retrieve figures for.
+            publication_id (ID): The ID of the publication to retrieve figures for.
         """
         if zip_path := self._get_supplementary_zip_path(publication_id):
             base_dir = Path(self.figure_storage) / f"{publication_id}"
@@ -350,15 +386,15 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                     if file_info.filename.lower().endswith(self.image_extensions):
                         zip_ref.extract(file_info, base_dir)
                         image_paths.append(str(base_dir / file_info.filename))
-            Path.unlink(zip_path)
-            return image_paths
+            zip_path.unlink()
+            return convert_image_format([Path(path) for path in image_paths], self.unified_image_format)
         return []
 
-    def _get_supplementary_zip_path(self, publication_id: str) -> str | None:
+    def _get_supplementary_zip_path(self, publication_id: ID) -> Path | None:
         """Download the supplementary files ZIP for a given publication ID and return the path to the ZIP file.
 
         Args:
-            publication_id (str): The ID of the publication to retrieve supplementary files for.
+            publication_id (ID): The ID of the publication to retrieve supplementary files for.
         """
         if is_europepmc_id(publication_id):
             zip_path = Path(self.storage) / f"{publication_id}_supplementary.zip"
@@ -367,17 +403,20 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
                 stream=True,
                 timeout=self.timeout,
             )
-            if response.ok:
-                with zip_path.open("wb") as f:
-                    f.write(response.content)
-                    return zip_path
+            response.raise_for_status()
+            with zip_path.open("wb") as f:
+                f.write(response.content)
+                return zip_path
         return None
 
 
-def _get_publication_id(result: dict) -> str | None:
+def _get_publication_id(result: dict) -> ID:
     """Extract the publication ID from the API result, checking for 'pmcid', 'pmid', and 'id' in order.
 
     Args:
     result (dict): The API result containing publication information.
     """
-    return result.get("pmcid") or result.get("pmid") or result.get("id")
+    if publication_id := result.get("pmcid") or result.get("pmid") or result.get("id"):
+        return ID(publication_id)
+    msg = "Europe PMC result is missing a publication id"
+    raise ValueError(msg)

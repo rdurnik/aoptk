@@ -13,7 +13,7 @@ from aoptk.text_generation_api import TextGenerationAPI
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):
     """Test that PymupdfParser can be instantiated."""
-    actual = PymupdfParser(str, figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"))
+    actual = PymupdfParser([], figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"))
     assert actual is not None
 
 
@@ -24,12 +24,12 @@ def test_implements_interface():
 
 def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications method returns non-empty list."""
-    actual = PymupdfParser("", figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")).get_publications()
+    actual = PymupdfParser([], figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")).get_publications()
     assert actual is not None
 
 
 @pytest.fixture(scope="module")
-def publication(provide_publications: dict, provide_temp_storage_figures: dict):
+def publication(provide_publications: dict, provide_temp_storage_figures: Path):
     """Second stage fixture which includes PDF parsing."""
     parser = PymupdfParser(provide_publications["pdfs"], figure_storage=provide_temp_storage_figures)
     publications = parser.get_publications()
@@ -65,7 +65,7 @@ def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
     actual = (
         PymupdfParser(
-            [PDF("tests/test_pdfs/test_pdf.pdf")],
+            [PDF(Path("tests/test_pdfs/test_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
@@ -93,7 +93,7 @@ def test_extract_figures(publication: dict):
         for filename in filenames
     )
     assert len(publication["publication"].figures) == len(publication["figures"])
-    assert total_size == publication["figure_size"]
+    assert total_size == pytest.approx(publication["figure_size"], rel=0.1)
 
 
 @pytest.mark.parametrize(
@@ -142,7 +142,7 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
+            pdfs=[PDF(Path("tests/test_pdfs/7835547_corrupted_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
             text_generation=TextGenerationAPI(model="redhatai-scout"),
         )
@@ -160,7 +160,7 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF("tests/test_pdfs/7835547_corrupted_pdf.pdf")],
+            pdfs=[PDF(Path("tests/test_pdfs/7835547_corrupted_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
@@ -168,3 +168,37 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
     )
     expected = ""
     assert expected == actual
+
+
+@pytest.fixture(scope="module")
+def provide_temp_storage_figures_no_images(
+    provide_publications: dict,
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Path:
+    """Provide a separate figure storage directory for the no-images case."""
+    pub_id = provide_publications["id"]
+    return tmp_path_factory.mktemp(f"{pub_id}_figures_no_images")
+
+
+@pytest.fixture(scope="module")
+def publication_no_images(provide_publications: dict, provide_temp_storage_figures_no_images: Path):
+    """Second stage fixture which includes PDF parsing."""
+    parser = PymupdfParser(provide_publications["pdfs"], figure_storage=provide_temp_storage_figures_no_images)
+    publications_no_images = parser.get_publications(download_figures_enabled=False)
+    provide_publications.update(
+        {
+            "publication": publications_no_images[0],
+            "parser": parser,
+        },
+    )
+    return provide_publications
+
+
+def test_figure_extraction_disabled(publication_no_images: dict):
+    """Test extracting figures from PMC PDFs."""
+    total_size = sum(
+        Path(dirpath, filename).stat().st_size
+        for dirpath, dirnames, filenames in os.walk(publication_no_images["parser"].figure_storage)
+        for filename in filenames
+    )
+    assert total_size == 0
