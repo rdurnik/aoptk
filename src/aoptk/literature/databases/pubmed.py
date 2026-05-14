@@ -41,7 +41,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     def build_search_term(self, query: Query) -> str:
         """Convert Query to Europe PMC search syntax."""
         search_term = query.search_term
-        if query.has_full_text:
+        if query.full_text_subset:
             search_term += " full text[sb]"
         if query.only_preprint:
             search_term += " preprint[pt]"
@@ -50,8 +50,6 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         if query.licensing:
             msg = "Licensing filter is not available in PubMed."
             raise NotImplementedError(msg)
-        if query.only_search_abstract_title:
-            search_term += "[Title/Abstract]"
         return search_term
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
