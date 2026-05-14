@@ -71,16 +71,16 @@ class PMC(GetPublication, GetPDF, GetID):
     def build_search_term(self, query: Query) -> str:
         """Convert Query to Europe PMC search syntax."""
         search_term = query.search_term
-        if query.has_full_text:
-            search_term += ' "open access"[filter]"'
+        if query.full_text_subset:
+            search_term += " open access[filter]"
         if query.only_preprint:
-            search_term += ' ahead of print"[filter]'
+            search_term += " ahead of print[filter]"
+        if query.exclude_preprint:
+            search_term += " NOT ahead of print[filter]"
         if query.date:
             search_term += f" {query.date[0]}/{query.date[1]}/{query.date[2]}[dp]"
         if query.licensing:
             search_term += self._get_license_filter(query.licensing)
-        if query.only_search_abstract_title:
-            search_term += " [tiab]"
         return search_term
 
     def _get_license_filter(self, licensing: str) -> str:
