@@ -136,3 +136,82 @@ def test_get_publication_metadata(test_data: dict):
     assert publication_metadata.database == test_data["database"]
     assert publication_metadata.search_date.year == datetime.now(UTC).year
     assert publication_metadata.search_date.month == datetime.now(UTC).month
+
+
+@pytest.mark.parametrize(
+    ("query", "ids_to_return", "ids_not_to_return"),
+    [
+        (
+            Query(
+                search_term=("liver fibrosis"),
+                date=("2023", "01", "30"),
+            ),
+            ["36717776", "36739734", "36864944"],
+            ["32260126", "32389810", "32061651"],
+        ),
+        (
+            Query(
+                search_term=("liver fibrosis thioacetamide"),
+                full_text_subset=True,
+            ),
+            ["34028753", "30288660", "40187163"],
+            ["31592593", "6577229", "37599493"],
+        ),
+        (
+            Query(search_term=("cancer"), full_text_subset=True, date=("2024", "04", "02")),
+            ["38563834", "38566201", "38156967"],
+            ["38564116"],
+        ),
+        (
+            Query(
+                search_term=("methotrexate thioacetamide"),
+                exclude_preprint=True,
+            ),
+            ["25829334", "39637935", "8841488"],
+            [],
+        ),
+    ],
+)
+@pytest.mark.xfail(raises=HTTPError)
+def test_query_filtering(
+    query: Query,
+    ids_to_return: list[str],
+    ids_not_to_return: list[str],
+):
+    """Test that the query filters results correctly."""
+    sut = PubMed(
+        query=query,
+    )
+    actual_ids = sut.get_ids()
+    for publication_id in ids_to_return:
+        assert publication_id in actual_ids
+    for publication_id in ids_not_to_return:
+        assert publication_id not in actual_ids
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_preprint_filtering():
+    """Test that the preprint filter works correctly."""
+    sut = PubMed(
+        query=Query(
+            search_term="liver cancer",
+            only_preprint=True,
+        ),
+    )
+    actual_ids = sut.get_ids()
+    approx_number_of_preprints = 10000
+    assert len(actual_ids) < approx_number_of_preprints
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_exclude_only_preprint():
+    """Test that the preprint filter works correctly."""
+    sut = PubMed(
+        query=Query(
+            search_term="liver cancer",
+            only_preprint=True,
+            exclude_preprint=True,
+        ),
+    )
+    actual_ids = sut.get_ids()
+    assert len(actual_ids) == 0
