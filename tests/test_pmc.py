@@ -121,7 +121,7 @@ def test_figures_not_being_downloaded(
         (
             Query(
                 search_term=("liver fibrosis"),
-                date=(2023, 1, 30),
+                date=("2023", "01", "30"),
             ),
             ["PMC9922831", "PMC9952723", "PMC9923003"],
             ["PMC8941514", "PMC12813988", "PMC5116602"],
@@ -143,7 +143,7 @@ def test_figures_not_being_downloaded(
             ["PMC5493342", "PMC13094394", "PMC8934723"],
         ),
         (
-            Query(search_term=("cancer"), full_text_subset=True, date=(2024, 4, 2), licensing="CC-BY-NC-SA"),
+            Query(search_term=("cancer"), full_text_subset=True, date=("2024", "04", "02"), licensing="CC-BY-NC-SA"),
             ["PMC10986815", "PMC10988649", "PMC10986814"],
             ["PMC11202350", "PMC11470834", "PMC11177894"],
         ),
