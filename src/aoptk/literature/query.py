@@ -8,7 +8,7 @@ class Query:
     """Data structure representing a query."""
 
     search_term: str
-    date: tuple[int, int, int] | None = None
+    date: tuple[str, str, str] | None = None
     full_text_subset: bool = False
     only_preprint: bool = False
     exclude_preprint: bool = False
