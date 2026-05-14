@@ -15,12 +15,14 @@ from aoptk.literature.id import ID
 from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
-# ruff: noqa: PLR0913
 
 
-def test_can_create(provide_temp_storage: Path, provide_temp_storage_figures: Path):
+def test_can_create(tmp_path_factory: pytest.TempPathFactory):
     """Test that EuropePMCPDF can be instantiated."""
-    actual = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+    actual = EuropePMC(
+        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+    )
     assert actual is not None
 
 
@@ -49,17 +51,23 @@ def test_implements_interface():
 def test_return_id_list(
     query: Query,
     expected: list[str],
-    provide_temp_storage: Path,
-    provide_temp_storage_figures: Path,
+    tmp_path_factory: pytest.TempPathFactory,
 ):
     """Test that get_id() returns expected publication IDs."""
-    actual = EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
+    actual = EuropePMC(
+        query=query,
+        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+    ).get_ids()
     assert actual == expected
 
 
-def test_get_abstract_not_empty(provide_temp_storage: Path, provide_temp_storage_figures: Path):
+def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
     """Get abstracts returns non-empty list."""
-    actual = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_abstracts(
+    actual = EuropePMC(
+        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+    ).get_abstracts(
         ids=[],
     )
     assert actual is not None
@@ -105,18 +113,29 @@ def test_generate_abstracts_for_given_query(
     expected_abstract: str,
     expected_id: str,
     position: int,
-    provide_temp_storage: Path,
-    provide_temp_storage_figures: Path,
+    tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
-    ids = EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures).get_ids()
+    ids = EuropePMC(
+        query=query,
+        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+    ).get_ids()
     abstract = (
-        EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(
+            query=query,
+            storage=tmp_path_factory.mktemp("europepmc_storage"),
+            figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+        )
         .get_abstracts(ids=ids)[position]
         .text
     )
     publication_id = (
-        EuropePMC(query=query, storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
+        EuropePMC(
+            query=query,
+            storage=tmp_path_factory.mktemp("europepmc_storage"),
+            figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+        )
         .get_abstracts(ids=ids)[position]
         .id
     )
@@ -146,11 +165,11 @@ def test_generate_abstracts_for_given_query(
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata(test_data: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
+def test_get_publication_metadata(test_data: dict, tmp_path_factory: pytest.TempPathFactory):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
-        storage=provide_temp_storage,
-        figure_storage=provide_temp_storage_figures,
+        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
     ).get_publications_metadata(ids=[test_data["publication_id"]])[0]
     assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
