@@ -113,3 +113,97 @@ def test_figures_not_being_downloaded(
     )
     expected: list = []
     assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("query", "ids_to_return", "ids_not_to_return"),
+    [
+        (
+            Query(
+                search_term=("liver fibrosis"),
+                date=(2023, 1, 30),
+            ),
+            ["PMC9922831", "PMC9952723", "PMC9923003"],
+            ["PMC8941514", "PMC12813988", "PMC5116602"],
+        ),
+        (
+            Query(
+                search_term=("liver fibrosis hepg2 spheroid"),
+                full_text_subset=True,
+            ),
+            ["PMC12134770", "PMC11942424", "PMC6833180"],
+            ["PMC12209135", "PMC11151446", "PMC1858558"],
+        ),
+        (
+            Query(
+                search_term=("methotrexate thioacetamide"),
+                licensing="CC-BY-NC-ND",
+            ),
+            ["PMC8864607", "PMC11926359", "PMC10184048"],
+            ["PMC5493342", "PMC13094394", "PMC8934723"],
+        ),
+        (
+            Query(search_term=("cancer"), full_text_subset=True, date=(2024, 4, 2), licensing="CC-BY-NC-SA"),
+            ["PMC10986815", "PMC10988649", "PMC10986814"],
+            ["PMC11202350", "PMC11470834", "PMC11177894"],
+        ),
+        (
+            Query(
+                search_term=("methotrexate thioacetamide"),
+                exclude_preprint=True,
+            ),
+            ["PMC5493342", "PMC10224822", "PMC2096525"],
+            [],
+        ),
+    ],
+)
+@pytest.mark.xfail(raises=HTTPError)
+def test_query_filtering(
+    tmp_path_factory: pytest.TempPathFactory,
+    query: Query,
+    ids_to_return: list[str],
+    ids_not_to_return: list[str],
+):
+    """Test that the query filters results correctly."""
+    sut = PMC(
+        query=query,
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    )
+    actual_ids = sut.get_ids()
+    for publication_id in ids_to_return:
+        assert publication_id in actual_ids
+    for publication_id in ids_not_to_return:
+        assert publication_id not in actual_ids
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_preprint_filtering(tmp_path_factory: pytest.TempPathFactory):
+    """Test that the preprint filter works correctly."""
+    sut = PMC(
+        query=Query(
+            search_term="liver cancer",
+            only_preprint=True,
+        ),
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    )
+    actual_ids = sut.get_ids()
+    approx_number_of_preprints = 10000
+    assert len(actual_ids) < approx_number_of_preprints
+
+
+@pytest.mark.xfail(raises=HTTPError)
+def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
+    """Test that the preprint filter works correctly."""
+    sut = PMC(
+        query=Query(
+            search_term="liver cancer",
+            only_preprint=True,
+            exclude_preprint=True,
+        ),
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    )
+    actual_ids = sut.get_ids()
+    assert len(actual_ids) == 0
