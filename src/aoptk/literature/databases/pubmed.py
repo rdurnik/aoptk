@@ -9,6 +9,7 @@ from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.query import Query
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
@@ -29,25 +30,29 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     batch_size = 200
     max_retries = 5
 
-    def __init__(self, query: str):
-        self._query = query
+    def __init__(self, query: Query | None = None):
+        if not query:
+            query = Query(search_term="queryblank")
+        self.search_term = self.build_search_term(query)
         self.publication_count = self.get_publication_count()
         if self.get_publication_count() >= self.maximum_results:
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
 
-    @property
-    def query(self) -> str:
-        """Get the current query string."""
-        return self._query
-
-    @query.setter
-    def query(self, value: str) -> None:
-        """Set a new query string.
-
-        Args:
-            value (str): The new query string to set.
-        """
-        self._query = value
+    def build_search_term(self, query: Query) -> str:
+        """Convert Query to Europe PMC search syntax."""
+        search_term = query.search_term
+        if query.has_full_text:
+            search_term += " full text[sb]"
+        if query.only_preprint:
+            search_term += " preprint[pt]"
+        if query.date:
+            search_term += f" {query.date[0]}/{query.date[1]}/{query.date[2]} [dp]"
+        if query.licensing:
+            msg = "Licensing filter is not available in PubMed."
+            raise NotImplementedError(msg)
+        if query.only_search_abstract_title:
+            search_term += "[Title/Abstract]"
+        return search_term
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
@@ -70,7 +75,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         return abstracts
 
     def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
-        """Retrieve Publication metadata based on the query."""
+        """Retrieve Publication metadata."""
         return [
             publication_metadata
             for publication_metadata in (self._get_publication_metadata(publication_id) for publication_id in ids)
@@ -78,15 +83,15 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         ]
 
     def get_publication_count(self) -> int:
-        """Return the number of publications matching the query in PubMed."""
-        handle = Entrez.esearch(db="pubmed", term=self._query, retmax=0)
+        """Return the number of publications."""
+        handle = Entrez.esearch(db="pubmed", term=self.search_term, retmax=0)
         record = Entrez.read(handle)
         handle.close()
         return int(record.get("Count", 0))
 
     def get_ids(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
-        handle = Entrez.esearch(db="pubmed", term=self._query, retmax=self.maximum_results)
+        handle = Entrez.esearch(db="pubmed", term=self.search_term, retmax=self.maximum_results)
         record = Entrez.read(handle)
         handle.close()
         return record.get("IdList", [])
