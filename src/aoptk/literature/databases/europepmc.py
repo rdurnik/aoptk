@@ -72,16 +72,16 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
     def build_search_term(self, query: Query) -> str:
         """Convert Query to Europe PMC search syntax."""
         search_term = query.search_term
-        if query.has_full_text:
+        if query.full_text_subset:
             search_term += " HAS_FT:Y"
         if query.only_preprint:
             search_term += " SRC:PPR"
+        if query.exclude_preprint:
+            search_term += " NOT SRC:PPR"
         if query.date:
-            search_term += f" E_PDATE:{query.date[0]}/{query.date[1]}/{query.date[2]}"
+            search_term += f" E_PDATE:{query.date[0]}-{query.date[1]}-{query.date[2]}"
         if query.licensing:
             search_term += self._get_license_filter(query.licensing)
-        if query.only_search_abstract_title:
-            search_term = f"TITLE_ABS:({search_term})"
         return search_term
 
     def _get_license_filter(self, licensing: str) -> str:
@@ -94,14 +94,14 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             str: The license filter string for Europe PMC search.
         """
         license_map = {
-            "open-access": "LICENSE:CC",
-            "CC0": "LICENSE:CC0",
-            "CC-BY": 'LICENSE:"CC-BY"',
-            "CC-BY-SA": 'LICENSE:"CC-BY-SA"',
-            "CC-BY-ND": 'LICENSE:"CC-BY-ND"',
-            "CC-BY-NC": 'LICENSE:"CC-BY-NC"',
-            "CC-BY-NC-ND": 'LICENSE:"CC-BY-NC-ND"',
-            "CC-BY-NC-SA": 'LICENSE:"CC-BY-NC-SA"',
+            "open-access": " LICENSE:CC",
+            "CC0": " LICENSE:CC0",
+            "CC-BY": " LICENSE:CC-BY",
+            "CC-BY-SA": " LICENSE:CC-BY-SA",
+            "CC-BY-ND": " LICENSE:CC-BY-ND",
+            "CC-BY-NC": " LICENSE:CC-BY-NC",
+            "CC-BY-NC-ND": " LICENSE:CC-BY-NC-ND",
+            "CC-BY-NC-SA": " LICENSE:CC-BY-NC-SA",
         }
         return license_map.get(licensing, "")
 
