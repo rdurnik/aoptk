@@ -45,6 +45,8 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             search_term += " full text[sb]"
         if query.only_preprint:
             search_term += " preprint[pt]"
+        if query.exclude_preprint:
+            search_term += " NOT preprint[pt]"
         if query.date:
             search_term += f" {query.date[0]}/{query.date[1]}/{query.date[2]} [dp]"
         if query.licensing:
