@@ -9,8 +9,9 @@ class Query:
 
     search_term: str
     date: tuple[int, int, int] | None = None
-    has_full_text: bool = False
+    full_text_subset: bool = False
     only_preprint: bool = False
+    exclude_preprint: bool = False
     licensing: (
         Literal[
             "open-access",
@@ -24,4 +25,3 @@ class Query:
         ]
         | None
     ) = None
-    only_search_abstract_title: bool = False
