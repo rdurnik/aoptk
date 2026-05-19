@@ -25,7 +25,7 @@ from aoptk.literature.utils import is_europepmc_id
 
 
 class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetadata):
-    """Class to get PDFs from EuropePMC based on a query."""
+    """Class to get data from Europe PMC based on a query."""
 
     page_size = 1000
     timeout = 10

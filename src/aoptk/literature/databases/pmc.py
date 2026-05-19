@@ -31,7 +31,7 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
 class PMC(GetPublication, GetPDF, GetID):
-    """Class for retrieving and parsing open access PMC publications."""
+    """Class to get data from PMC based on a query."""
 
     aws_region = "us-east-1"
     s3 = boto3.client(
@@ -69,7 +69,7 @@ class PMC(GetPublication, GetPDF, GetID):
         Path(self.figure_storage).mkdir(parents=True, exist_ok=True)
 
     def build_search_term(self, query: Query) -> str:
-        """Convert Query to Europe PMC search syntax."""
+        """Convert Query to PMC search syntax."""
         search_term = query.search_term
         if query.full_text_subset:
             search_term += " open access[filter]"
@@ -90,7 +90,7 @@ class PMC(GetPublication, GetPDF, GetID):
             licensing (str): The licensing type.
 
         Returns:
-            str: The license filter string for PubMed search.
+            str: The license filter string for PMC search.
         """
         license_map = {
             "open-access": ' "open access"[filter]',

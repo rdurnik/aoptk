@@ -39,7 +39,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             raise QueryTooLargeError(self.publication_count, self.maximum_results)
 
     def build_search_term(self, query: Query) -> str:
-        """Convert Query to Europe PMC search syntax."""
+        """Convert Query to PubMed search syntax."""
         search_term = query.search_term
         if query.full_text_subset:
             search_term += " full text[sb]"
