@@ -1,0 +1,14 @@
+Task:
+Categorize the provided context into exactly one category from the following list:
+{{ categories }}
+
+{{ specification_categorization_prompt }}
+
+Output requirements:
+1. Return only one category.
+2. Do not include explanations, labels, punctuation, or additional text.
+3. If there is no fitting category, return exactly:
+"none"
+
+Context:
+{{ text }}
