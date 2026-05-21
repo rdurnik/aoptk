@@ -89,14 +89,16 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
                 title = summary.get("Title", None)
                 authors = ", ".join(summary.get("AuthorList", []))
                 search_date = datetime.now(UTC)
-            publications_metadata.append(PublicationMetadata(
-                id=publication_id,
-                publication_date=year_publication,
-                title=title,
-                authors=authors,
-                database="PubMed",
-                search_date=search_date,
-            ))
+            publications_metadata.append(
+                PublicationMetadata(
+                    id=publication_id,
+                    publication_date=year_publication,
+                    title=title,
+                    authors=authors,
+                    database="PubMed",
+                    search_date=search_date,
+                ),
+            )
         return publications_metadata
 
     def get_publication_count(self) -> int:
