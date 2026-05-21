@@ -181,14 +181,14 @@ def test_generate_abstracts_for_given_query(
     "test_data",
     [
         {
-            "publication_id": "41345959",
+            "publication_id": ID("41345959"),
             "publication_date": "2025",
             "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
             "authors": "Li J, Li X, Wang R, Li M, Xiao Y",
             "database": "PubMed",
         },
         {
-            "publication_id": "40785269",
+            "publication_id": ID("40785269"),
             "publication_date": "2025",
             "title": "Flexibility-Aided Orientational Self-Sorting and "
             "Transformations of Bioactive Homochiral Cuboctahedron Pd(12)L(16).",
@@ -200,9 +200,10 @@ def test_generate_abstracts_for_given_query(
 )
 def test_get_publication_metadata(mock_entrez, test_data: dict):
     """Generate publication metadata for given id."""
-    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [test_data["publication_id"]]}
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [str(test_data["publication_id"]) ]}
     mock_entrez.responses[mock_entrez.handles["summary"]] = [
         {
+            "Id": str(test_data["publication_id"]),
             "PubDate": f"{test_data['publication_date']}",
             "Title": test_data["title"],
             "AuthorList": test_data["authors"].split(", "),
