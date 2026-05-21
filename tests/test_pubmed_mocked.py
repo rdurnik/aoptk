@@ -1,5 +1,4 @@
 # ruff: noqa: ANN001
-# ruff: noqa: SLF001
 from datetime import UTC
 from datetime import datetime
 import pytest
@@ -218,25 +217,3 @@ def test_get_publication_metadata(mock_entrez, test_data: dict):
     assert publication_metadata.database == test_data["database"]
     assert publication_metadata.search_date.year == datetime.now(UTC).year
     assert publication_metadata.search_date.month == datetime.now(UTC).month
-
-
-def test_get_abstract_with_text(mock_entrez):
-    """Test _get_abstract returns abstract with text when available."""
-    pmid = "12345"
-    expected_text = "This is a test abstract text for testing purposes."
-    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [pmid]}
-    mock_entrez.responses[mock_entrez.handles["fetch"]] = {
-        "PubmedArticle": [
-            {
-                "MedlineCitation": {
-                    "PMID": pmid,
-                    "Article": {"Abstract": {"AbstractText": expected_text}},
-                },
-            },
-        ],
-    }
-
-    pubmed_instance = PubMed()
-    abstract = pubmed_instance._get_abstract(pmid)
-    assert abstract.text == expected_text
-    assert abstract.id == pmid

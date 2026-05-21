@@ -96,17 +96,6 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         handle.close()
         return record.get("IdList", [])
 
-    def _get_abstract(self, pmid: ID) -> Abstract:
-        """Get the abstract for a given PubMed ID."""
-        handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml", max_retry=self.max_retries)
-        record = Entrez.read(handle)
-        handle.close()
-        abstract_text = ""
-        if abstract_obj := record["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]:
-            abstract_text = "".join(abstract_obj)
-            return Abstract(text=abstract_text, id=pmid)
-        return Abstract(text="", id=pmid)
-
     def _get_publication_metadata(self, pmid: ID) -> PublicationMetadata:
         """Get the publication metadata for a given PubMed ID."""
         handle = Entrez.esummary(db="pubmed", id=pmid, max_retry=self.max_retries)
