@@ -200,7 +200,7 @@ def test_generate_abstracts_for_given_query(
 )
 def test_get_publication_metadata(mock_entrez, test_data: dict):
     """Generate publication metadata for given id."""
-    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [str(test_data["publication_id"]) ]}
+    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [str(test_data["publication_id"])]}
     mock_entrez.responses[mock_entrez.handles["summary"]] = [
         {
             "Id": str(test_data["publication_id"]),
