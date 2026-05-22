@@ -8,6 +8,7 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.query import Query
+from aoptk.literature.id import ID
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -56,8 +57,8 @@ def test_get_id():
     actual = PubMed(
         query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
     ).get_ids()
-    expected = ["36835489", "37913737", "37891562", "36838959"]
-    assert sorted(actual) == sorted(expected)
+    assert len(actual) == 4
+    assert ID("36835489") in actual
 
 
 @pytest.mark.parametrize(

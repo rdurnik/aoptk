@@ -2,7 +2,7 @@ class ID:
     """Base class for different types of publication IDs."""
 
     def __init__(self, id_str: str):
-        self.id_str = id_str
+        self.id_str = str(id_str)
 
     def __str__(self) -> str:
         return self.id_str

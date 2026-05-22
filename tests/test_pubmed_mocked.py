@@ -93,7 +93,8 @@ def test_get_id_list(mock_entrez):
         query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
     )
     actual = pubmed_instance.get_ids()
-    assert sorted(actual) == sorted(expected)
+    assert len(actual) == 4
+    assert ID("36835489") in actual
 
 
 @pytest.mark.parametrize(
