@@ -27,13 +27,12 @@ class NCBI(GetID):
     batch_size = 200
     max_retries = 5
 
-    def __init__(self, search_term, database: Literal["pmc", "pubmed"]):
+    def __init__(self, database: Literal["pmc", "pubmed"]):
         self.database = database
-        self.search_term = search_term
 
-    def get_ids(self) -> list[ID]:
+    def get_ids(self, search_term: str) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
-        return asyncio.run(self._async_get_ids())
+        return asyncio.run(self._async_get_ids(search_term))
     
     def get_abstract_records(self, ids: list[ID]) -> dict[str, list]:
         """Retrieve abstract records based on the list of IDs."""
@@ -62,14 +61,14 @@ class NCBI(GetID):
             handle.close()
         return records
 
-    async def _async_get_ids(self) -> list[ID]:
+    async def _async_get_ids(self, search_term: str) -> list[ID]:
         """Asynchronously retrieve a list of publication IDs based on the search term."""
-        count, pmc_ids = await self._async_get_publication_count_and_ids()
+        count, pmc_ids = await self._async_get_publication_count_and_ids(search_term=search_term)
         if count <= self.max_pmc_results:
             return [ID(pmcid) for pmcid in pmc_ids]
 
         tasks = [
-            self._collect_ids_for_year(year)
+            self._collect_ids_for_year(search_term=search_term, year=year)
             for year in range(self.minimal_year_publication, datetime.datetime.now(datetime.UTC).year + 1)
         ]
         yearly_results = await asyncio.gather(*tasks)
@@ -79,12 +78,13 @@ class NCBI(GetID):
 
     def _get_publication_count_and_ids(
         self,
+        search_term: str,
         mindate: str | None = None,
         maxdate: str | None = None,
     ) -> tuple[int, list[str]]:
         handle = Entrez.esearch(
             db=self.database,
-            term=self.search_term,
+            term=search_term,
             retmax=self.max_pmc_results,
             mindate=mindate,
             maxdate=maxdate,
@@ -98,6 +98,7 @@ class NCBI(GetID):
 
     async def _async_get_publication_count_and_ids(
         self,
+        search_term: str,
         mindate: str | None = None,
         maxdate: str | None = None,
     ) -> tuple[int, list[str]]:
@@ -112,27 +113,30 @@ class NCBI(GetID):
                     await self.limiter.wait_turn()
                     return await asyncio.to_thread(
                         self._get_publication_count_and_ids,
-                        mindate,
-                        maxdate,
+                        search_term=search_term,
+                        mindate=mindate,
+                        maxdate=maxdate,
                     )
         msg = "Unexpected control flow: retry exceeded without returning"
         raise RuntimeError(msg)
 
-    async def _collect_ids_for_year(self, year: int) -> list[str]:
+    async def _collect_ids_for_year(self, search_term: str, year: int) -> list[str]:
         year_count, year_ids = await self._async_get_publication_count_and_ids(
+            search_term=search_term,
             mindate=f"{year}/01/01",
             maxdate=f"{year}/12/31",
         )
         if year_count <= self.max_pmc_results:
             return year_ids
 
-        return await self._collect_ids_split_by_months_days(year)
+        return await self._collect_ids_split_by_months_days(search_term=search_term, year=year)
 
-    async def _collect_ids_split_by_months_days(self, year: int) -> list[str]:
+    async def _collect_ids_split_by_months_days(self, search_term: str, year: int) -> list[str]:
         year_month_days_ids = []
         for month in range(1, 13):
             days_in_month = calendar.monthrange(year, month)[1]
             month_count, month_ids = await self._async_get_publication_count_and_ids(
+                search_term=search_term,
                 mindate=f"{year}/{month:02d}/01",
                 maxdate=f"{year}/{month:02d}/{days_in_month:02d}",
             )
@@ -142,6 +146,7 @@ class NCBI(GetID):
 
             for day in range(1, days_in_month + 1):
                 _day_count, day_ids = await self._async_get_publication_count_and_ids(
+                    search_term=search_term,
                     mindate=f"{year}/{month:02d}/{day:02d}",
                     maxdate=f"{year}/{month:02d}/{day:02d}",
                 )
