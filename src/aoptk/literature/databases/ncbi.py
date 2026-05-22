@@ -17,8 +17,8 @@ class NCBI(GetID):
     """Helper class to retrieve data from NCBI databases - PubMed and PMC."""
 
     max_pmc_results = 9998
-    max_concurrency = 4
-    max_requests_per_second = 4
+    max_concurrency = 2
+    max_requests_per_second = 2
     minimal_year_publication = 1940
     semaphore = asyncio.Semaphore(max_concurrency)
     limiter = AsyncRequestLimiter(max_requests_per_second)

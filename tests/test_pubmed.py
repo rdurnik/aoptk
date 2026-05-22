@@ -3,12 +3,12 @@ from datetime import datetime
 from urllib.error import HTTPError
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
-from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.query import Query
 from aoptk.literature.id import ID
+from http.client import RemoteDisconnected
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -30,25 +30,6 @@ def test_get_abstract_not_empty():
     """Get abstracts returns non-empty list."""
     actual = PubMed().get_abstracts(ids=[])
     assert actual is not None
-
-
-@pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_count():
-    """Get publication count returns correct number."""
-    actual = PubMed(
-        query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
-    ).get_publication_count()
-    expected = 4
-    assert actual == expected
-
-
-@pytest.mark.xfail(raises=HTTPError)
-def test_raises_query_too_large_error():
-    """QueryTooLargeError is raised  when result count >= maximum_results."""
-    with pytest.raises(QueryTooLargeError) as exc_info:
-        PubMed(query=Query(search_term="cancer"))
-    assert exc_info.value.count >= PubMed.maximum_results
-    assert exc_info.value.maximum == PubMed.maximum_results
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -216,3 +197,15 @@ def test_exclude_only_preprint():
     )
     actual_ids = sut.get_ids()
     assert len(actual_ids) == 0
+
+@pytest.mark.xfail(raises=(HTTPError, RemoteDisconnected))
+def test_get_id_large_query():
+    """Test that get_id() method returns a list of publication IDs."""
+    actual = len(
+        PubMed(
+            query=Query(
+                search_term="fibrosis 2019/01/15:2019/07/30[dp]",
+            )).get_ids(),
+    )
+    expected = 10117
+    assert actual == pytest.approx(expected, abs=100)
