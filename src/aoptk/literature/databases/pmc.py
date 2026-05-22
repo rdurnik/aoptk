@@ -18,7 +18,6 @@ from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.query import Query
-from aoptk.literature.utils import AsyncRequestLimiter
 from aoptk.literature.utils import convert_image_format
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
