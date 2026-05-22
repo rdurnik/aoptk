@@ -24,14 +24,32 @@ class NCBI(GetID):
     limiter = AsyncRequestLimiter(max_requests_per_second)
     retries = 5
     datetype = "pdat"
+    batch_size = 200
+    max_retries = 5
 
-    def __init__(self, search_term: str, database: Literal["pmc", "pubmed"]):
+    def __init__(self, search_term, database: Literal["pmc", "pubmed"]):
         self.database = database
         self.search_term = search_term
 
     def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
         return asyncio.run(self._async_get_ids())
+    
+    def get_abstract_records(self, ids: list[ID]) -> dict[str, list]:
+        """Retrieve abstract records based on the list of IDs."""
+        records: dict[str, list] = {"PubmedArticle": []}
+        for i in range(0, len(ids), self.batch_size):
+            batch_ids = ids[i : i + self.batch_size]
+            handle = Entrez.efetch(
+                db="pubmed",
+                id=",".join(map(str, batch_ids)),
+                rettype="xml",
+                max_retry=self.max_retries,
+            )
+            records_batch = Entrez.read(handle)
+            records["PubmedArticle"].extend(records_batch.get("PubmedArticle", []))
+            handle.close()
+        return records
 
     async def _async_get_ids(self) -> list[ID]:
         """Asynchronously retrieve a list of publication IDs based on the search term."""
