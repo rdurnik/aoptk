@@ -3,7 +3,6 @@ from datetime import UTC
 from datetime import datetime
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
-from aoptk.literature.databases.pubmed import QueryTooLargeError
 from aoptk.literature.id import ID
 from aoptk.literature.query import Query
 
@@ -12,6 +11,7 @@ from aoptk.literature.query import Query
 def mock_entrez(mocker):
     """Provide a simple Entrez mock with handle-based `read` returns."""
     ent = mocker.patch("aoptk.literature.databases.pubmed.Entrez")
+    mocker.patch("aoptk.literature.databases.ncbi.Entrez", new=ent)
 
     ent.handles = {
         "search": mocker.MagicMock(name="esearch_handle"),
@@ -57,32 +57,6 @@ def test_get_abstract_not_empty(mock_entrez):
     actual = PubMed(query=Query(search_term="hepg2 thioacetamide")).get_abstracts(ids=[ID("12345"), ID("67890")])
     assert actual is not None
     assert len(actual) > 0
-
-
-def test_get_publication_count(mock_entrez):
-    """Get publication count returns correct number."""
-    mock_entrez.responses[mock_entrez.handles["search"]] = {
-        "Count": "4",
-        "IdList": ["36835489", "37913737", "37891562", "36838959"],
-    }
-
-    pubmed_instance = PubMed(
-        query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
-    )
-    actual = pubmed_instance.publication_count
-    expected = 4
-    assert actual == expected
-
-
-def test_raises_query_too_large_error(mock_entrez):
-    """QueryTooLargeError is raised when result count >= maximum_results."""
-    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": str(PubMed.maximum_results), "IdList": []}
-
-    with pytest.raises(QueryTooLargeError) as exc_info:
-        PubMed(query=Query(search_term="cancer"))
-    assert exc_info.value.count >= PubMed.maximum_results
-    assert exc_info.value.maximum == PubMed.maximum_results
-
 
 def test_get_id_list(mock_entrez):
     """Get publication count returns correct number."""
