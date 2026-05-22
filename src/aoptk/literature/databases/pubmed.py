@@ -62,19 +62,22 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
         """Retrieve Publication metadata."""
+        records = NCBI(self.search_term, "pubmed").get_publications_metadata_records(ids)
+        return self._parse_pubmed_metadata_records(records)
+
+    def _parse_pubmed_metadata_records(self, records: dict[str, list]) -> list[PublicationMetadata]:
+        """Parse PubMed metadata records and return a list of PublicationMetadata objects.
+
+        Args:
+            records (dict): A dictionary containing PubMed article records."""
         publications_metadata = []
-        for i in range(0, len(ids), self.batch_size):
-            batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.esummary(db="pubmed", id=",".join(map(str, batch_ids)), max_retry=self.max_retries)
-            summary_records = Entrez.read(handle)
-            handle.close()
-            for summary in summary_records:
-                publication_id = ID(summary.get("Id", "Unknown"))
-                pub_date = summary.get("PubDate", None)
-                year_publication = pub_date.split()[0] if pub_date else "Unknown"
-                title = summary.get("Title", None)
-                authors = ", ".join(summary.get("AuthorList", []))
-                search_date = datetime.now(UTC)
+        for summary in records.get("PubmedArticle", []):
+            publication_id = ID(summary.get("Id", "Unknown"))
+            pub_date = summary.get("PubDate", None)
+            year_publication = pub_date.split()[0] if pub_date else "Unknown"
+            title = summary.get("Title", None)
+            authors = ", ".join(summary.get("AuthorList", []))
+            search_date = datetime.now(UTC)
             publications_metadata.append(
                 PublicationMetadata(
                     id=publication_id,
