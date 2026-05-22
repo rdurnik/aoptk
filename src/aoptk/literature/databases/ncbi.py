@@ -10,9 +10,10 @@ from tenacity import stop_after_attempt
 from tenacity import wait_random_exponential
 from aoptk.literature.id import ID
 from aoptk.literature.utils import AsyncRequestLimiter
+from aoptk.literature.get_id import GetID
 
 
-class NCBI:
+class NCBI(GetID):
     """Helper class to retrieve data from NCBI databases - PubMed and PMC."""
 
     max_pmc_results = 9998

@@ -118,7 +118,7 @@ class PMC(GetPublication, GetPDF, GetID):
 
     def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
-        ids = asyncio.run(NCBI(self.search_term, database="pmc")._async_get_ids())
+        ids = NCBI(self.search_term, database="pmc").get_ids()
         ids = [ID(f"PMC{pmcid}") for pmcid in ids]
         return ids
 
