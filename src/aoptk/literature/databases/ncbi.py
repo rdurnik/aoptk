@@ -41,13 +41,24 @@ class NCBI(GetID):
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
             handle = Entrez.efetch(
-                db="pubmed",
+                db=self.database,
                 id=",".join(map(str, batch_ids)),
                 rettype="xml",
                 max_retry=self.max_retries,
             )
             records_batch = Entrez.read(handle)
             records["PubmedArticle"].extend(records_batch.get("PubmedArticle", []))
+            handle.close()
+        return records
+    
+    def get_publications_metadata_records(self, ids: list[ID]) -> dict[str, list]:
+        """Retrieve abstract records based on the list of IDs."""
+        records: dict[str, list] = {"PubmedArticle": []}
+        for i in range(0, len(ids), self.batch_size):
+            batch_ids = ids[i : i + self.batch_size]
+            handle = Entrez.esummary(db=self.database, id=",".join(map(str, batch_ids)), max_retry=self.max_retries)
+            records_batch = Entrez.read(handle)
+            records["PubmedArticle"].extend(records_batch)
             handle.close()
         return records
 
