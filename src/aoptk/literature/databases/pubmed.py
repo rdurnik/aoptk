@@ -18,8 +18,8 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     """Class to get data from PubMed based on a query."""
 
-    batch_size = 200
     max_retries = 5
+    batch_size = 200
 
     def __init__(self, query: Query | None = None):
         if not query:
@@ -44,22 +44,20 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
+        records = NCBI(self.search_term, "pubmed").get_abstract_records(ids)
+        return self._parse_pubmed_abstract_records(records)
+    
+    def _parse_pubmed_abstract_records(self, records: dict[str, list]) -> list[Abstract]:
+        """Parse PubMed abstract records and return a list of Abstract objects.
+        
+        Args:
+            records (dict): A dictionary containing PubMed article records."""
         abstracts = []
-        for i in range(0, len(ids), self.batch_size):
-            batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.efetch(
-                db="pubmed",
-                id=",".join(map(str, batch_ids)),
-                rettype="xml",
-                max_retry=self.max_retries,
-            )
-            records = Entrez.read(handle)
-            handle.close()
-            for article in records.get("PubmedArticle", []):
-                pmid = ID(article["MedlineCitation"]["PMID"])
-                abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
-                abstract_text = "".join(abstract_obj) if abstract_obj else ""
-                abstracts.append(Abstract(text=abstract_text, id=pmid))
+        for article in records.get("PubmedArticle", []):
+            pmid = ID(article["MedlineCitation"]["PMID"])
+            abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
+            abstract_text = "".join(abstract_obj) if abstract_obj else ""
+            abstracts.append(Abstract(text=abstract_text, id=pmid))
         return abstracts
 
     def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
