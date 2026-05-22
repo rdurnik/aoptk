@@ -36,13 +36,6 @@ class PMC(GetPublication, GetPDF, GetID):
     bucket = "pmc-oa-opendata"
     paginator = s3.get_paginator("list_objects_v2")
 
-    max_pmc_results = 9998
-    max_concurrency = 2
-    max_requests_per_second = 2
-    minimal_year_publication = 1800
-    semaphore = asyncio.Semaphore(max_concurrency)
-    limiter = AsyncRequestLimiter(max_requests_per_second)
-    retries = 5
     image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
     unified_image_format = "png"
 
@@ -125,7 +118,9 @@ class PMC(GetPublication, GetPDF, GetID):
 
     def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
-        return asyncio.run(NCBI(search_term=self.search_term, database="pmc").async_get_ids())
+        ids = asyncio.run(NCBI(self.search_term, database="pmc")._async_get_ids())
+        ids = [ID(f"PMC{pmcid}") for pmcid in ids]
+        return ids
 
     def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Parse a single PDF and return a Publication object.

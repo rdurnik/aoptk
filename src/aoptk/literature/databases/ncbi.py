@@ -16,20 +16,27 @@ class NCBI:
     """Helper class to retrieve data from NCBI databases - PubMed and PMC."""
 
     max_pmc_results = 9998
-    minimal_year_publication = 1800
+    max_concurrency = 4
+    max_requests_per_second = 4
+    minimal_year_publication = 1940
+    semaphore = asyncio.Semaphore(max_concurrency)
+    limiter = AsyncRequestLimiter(max_requests_per_second)
     retries = 5
-    semaphore = asyncio.Semaphore(2)
-    limiter = AsyncRequestLimiter(2)
+    datetype = "pdat"
 
     def __init__(self, search_term: str, database: Literal["pmc", "pubmed"]):
         self.database = database
         self.search_term = search_term
 
-    async def async_get_ids(self) -> list[ID]:
+    def get_ids(self) -> list[ID]:
+        """Retrieve a list of publication IDs based on the search term."""
+        return asyncio.run(self._async_get_ids())
+
+    async def _async_get_ids(self) -> list[ID]:
         """Asynchronously retrieve a list of publication IDs based on the search term."""
         count, pmc_ids = await self._async_get_publication_count_and_ids()
         if count <= self.max_pmc_results:
-            return [ID(f"PMC{pmcid}") for pmcid in pmc_ids]
+            return [ID(pmcid) for pmcid in pmc_ids]
 
         tasks = [
             self._collect_ids_for_year(year)
@@ -37,7 +44,7 @@ class NCBI:
         ]
         yearly_results = await asyncio.gather(*tasks)
 
-        collected_ids = [ID(f"PMC{pmcid}") for year_ids in yearly_results for pmcid in year_ids]
+        collected_ids = [ID(pmcid) for year_ids in yearly_results for pmcid in year_ids]
         return list(set(collected_ids))
 
     def _get_publication_count_and_ids(
@@ -46,12 +53,12 @@ class NCBI:
         maxdate: str | None = None,
     ) -> tuple[int, list[str]]:
         handle = Entrez.esearch(
-            db="pmc",
+            db=self.database,
             term=self.search_term,
             retmax=self.max_pmc_results,
             mindate=mindate,
             maxdate=maxdate,
-            datetype="pdat",
+            datetype=self.datetype,
         )
         record = Entrez.read(handle)
         handle.close()
