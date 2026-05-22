@@ -44,7 +44,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
-        records = NCBI(self.search_term, "pubmed").get_abstract_records(ids)
+        records = NCBI(database="pubmed").get_abstract_records(ids)
         return self._parse_pubmed_abstract_records(records)
     
     def _parse_pubmed_abstract_records(self, records: dict[str, list]) -> list[Abstract]:
@@ -62,7 +62,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
         """Retrieve Publication metadata."""
-        records = NCBI(self.search_term, "pubmed").get_publications_metadata_records(ids)
+        records = NCBI(database="pubmed").get_publications_metadata_records(ids)
         return self._parse_pubmed_metadata_records(records)
 
     def _parse_pubmed_metadata_records(self, records: dict[str, list]) -> list[PublicationMetadata]:
@@ -92,4 +92,4 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def get_ids(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
-        return NCBI(search_term=self.search_term, database="pubmed").get_ids()
+        return NCBI(database="pubmed").get_ids(search_term=self.search_term)
