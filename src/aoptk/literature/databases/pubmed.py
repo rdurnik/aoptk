@@ -10,6 +10,7 @@ from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.query import Query
+from aoptk.literature.databases.ncbi import NCBI
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
@@ -68,10 +69,10 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             records = Entrez.read(handle)
             handle.close()
             for article in records.get("PubmedArticle", []):
-                pmid = str(article["MedlineCitation"]["PMID"])
+                pmid = ID(article["MedlineCitation"]["PMID"])
                 abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
                 abstract_text = "".join(abstract_obj) if abstract_obj else ""
-                abstracts.append(Abstract(text=abstract_text, id=ID(pmid)))
+                abstracts.append(Abstract(text=abstract_text, id=pmid))
         return abstracts
 
     def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
@@ -110,7 +111,4 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
 
     def get_ids(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
-        handle = Entrez.esearch(db="pubmed", term=self.search_term, retmax=self.maximum_results)
-        record = Entrez.read(handle)
-        handle.close()
-        return record.get("IdList", [])
+        return NCBI(search_term=self.search_term, database="pubmed").get_ids()
