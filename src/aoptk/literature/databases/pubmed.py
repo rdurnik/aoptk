@@ -15,15 +15,6 @@ from aoptk.literature.databases.ncbi import NCBI
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class QueryTooLargeError(Exception):
-    """Exception raised when query returns more than maximum_results."""
-
-    def __init__(self, count: int, maximum: int):
-        self.count = count
-        self.maximum = maximum
-        super().__init__(f"Query returned {count} results. Maximum allowed is {maximum - 1}.")
-
-
 class PubMed(GetAbstract, GetID, GetPublicationMetadata):
     """Class to get data from PubMed based on a query."""
 
@@ -35,9 +26,6 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         if not query:
             query = Query(search_term="queryblank")
         self.search_term = self.build_search_term(query)
-        self.publication_count = self.get_publication_count()
-        if self.get_publication_count() >= self.maximum_results:
-            raise QueryTooLargeError(self.publication_count, self.maximum_results)
 
     def build_search_term(self, query: Query) -> str:
         """Convert Query to PubMed search syntax."""
@@ -101,13 +89,6 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
                 ),
             )
         return publications_metadata
-
-    def get_publication_count(self) -> int:
-        """Return the number of publications."""
-        handle = Entrez.esearch(db="pubmed", term=self.search_term, retmax=0)
-        record = Entrez.read(handle)
-        handle.close()
-        return int(record.get("Count", 0))
 
     def get_ids(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
