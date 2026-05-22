@@ -16,7 +16,7 @@ from aoptk.literature.get_id import GetID
 class NCBI(GetID):
     """Helper class to retrieve data from NCBI databases - PubMed and PMC."""
 
-    max_pmc_results = 9998
+    max_ncbi_results = 9998
     max_concurrency = 2
     max_requests_per_second = 2
     minimal_year_publication = 1940
@@ -34,9 +34,13 @@ class NCBI(GetID):
         """Retrieve a list of publication IDs based on the search term."""
         return asyncio.run(self._async_get_ids(search_term))
     
-    def get_abstract_records(self, ids: list[ID]) -> dict[str, list]:
-        """Retrieve abstract records based on the list of IDs."""
-        records: dict[str, list] = {"PubmedArticle": []}
+    def get_abstract_records(self, ids: list[ID]) -> list[dict]:
+        """Retrieve abstract records based on the list of IDs.
+        Note: There is still the 10 000 records limit.
+        
+        Args:
+            ids (list[ID]): A list of publication IDs for which to retrieve abstracts."""
+        records = []
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
             handle = Entrez.efetch(
@@ -45,8 +49,11 @@ class NCBI(GetID):
                 rettype="xml",
                 max_retry=self.max_retries,
             )
-            records_batch = Entrez.read(handle)
-            records["PubmedArticle"].extend(records_batch.get("PubmedArticle", []))
+            if self.database == "pubmed":
+                records_batch = Entrez.read(handle)
+            elif self.database == "pmc":
+                records_batch = handle.read()
+            records.append(records_batch)
             handle.close()
         return records
     
@@ -64,7 +71,7 @@ class NCBI(GetID):
     async def _async_get_ids(self, search_term: str) -> list[ID]:
         """Asynchronously retrieve a list of publication IDs based on the search term."""
         count, pmc_ids = await self._async_get_publication_count_and_ids(search_term=search_term)
-        if count <= self.max_pmc_results:
+        if count <= self.max_ncbi_results:
             return [ID(pmcid) for pmcid in pmc_ids]
 
         tasks = [
@@ -85,7 +92,7 @@ class NCBI(GetID):
         handle = Entrez.esearch(
             db=self.database,
             term=search_term,
-            retmax=self.max_pmc_results,
+            retmax=self.max_ncbi_results,
             mindate=mindate,
             maxdate=maxdate,
             datetype=self.datetype,
@@ -126,7 +133,7 @@ class NCBI(GetID):
             mindate=f"{year}/01/01",
             maxdate=f"{year}/12/31",
         )
-        if year_count <= self.max_pmc_results:
+        if year_count <= self.max_ncbi_results:
             return year_ids
 
         return await self._collect_ids_split_by_months_days(search_term=search_term, year=year)
@@ -140,7 +147,7 @@ class NCBI(GetID):
                 mindate=f"{year}/{month:02d}/01",
                 maxdate=f"{year}/{month:02d}/{days_in_month:02d}",
             )
-            if month_count <= self.max_pmc_results:
+            if month_count <= self.max_ncbi_results:
                 year_month_days_ids.extend(month_ids)
                 continue
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+from itertools import chain
 from datetime import UTC
 from datetime import datetime
 from Bio import Entrez
@@ -47,16 +48,15 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         records = NCBI(database="pubmed").get_abstract_records(ids)
         return self._parse_pubmed_abstract_records(records)
     
-    def _parse_pubmed_abstract_records(self, records: dict[str, list]) -> list[Abstract]:
+    def _parse_pubmed_abstract_records(self, records: list[dict]) -> list[Abstract]:
         """Parse PubMed abstract records and return a list of Abstract objects.
         
         Args:
             records (dict): A dictionary containing PubMed article records."""
         abstracts = []
-        for article in records.get("PubmedArticle", []):
+        for article in chain.from_iterable(batch.get("PubmedArticle", []) for batch in records):
             pmid = ID(article["MedlineCitation"]["PMID"])
-            abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
-            abstract_text = "".join(abstract_obj) if abstract_obj else ""
+            abstract_text = "".join(article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", ""))
             abstracts.append(Abstract(text=abstract_text, id=pmid))
         return abstracts
 
