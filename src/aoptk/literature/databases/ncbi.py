@@ -17,8 +17,8 @@ from aoptk.literature.utils import AsyncRequestLimiter
 class NCBI(GetID):
     """Helper class to retrieve data from NCBI databases - PubMed and PMC."""
 
-    Entrez.max_tries = 6
-    Entrez.sleep_between_tries = 20
+    Entrez.max_tries = 10
+    Entrez.sleep_between_tries = 30
     max_ncbi_results = 9998
     max_concurrency = 2
     max_requests_per_second = 2
