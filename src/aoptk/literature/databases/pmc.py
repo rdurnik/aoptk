@@ -136,9 +136,10 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract):
         for record in records:
             root = ET.fromstring(record)
             for article in root.findall(".//article"):
-                pmc_id = article.findall(".//article-id")
-                if abstract_node := article.find(".//abstract"):
-                    abstract_text = " ".join(" ".join(abstract_node.itertext()).split())
+                pmc_id = article.findtext(".//article-id")
+                if not pmc_id or (abstract_node := article.find(".//abstract")) is None:
+                    continue
+                abstract_text = " ".join(" ".join(abstract_node.itertext()).split())
                 abstracts.append(Abstract(text=abstract_text, id=ID(pmc_id)))
         return abstracts
 
