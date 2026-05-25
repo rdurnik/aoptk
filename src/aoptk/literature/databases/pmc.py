@@ -1,6 +1,8 @@
 import json
 import os
 import xml.etree.ElementTree as ET
+from datetime import UTC
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -15,16 +17,18 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
+from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.query import Query
 from aoptk.literature.utils import convert_image_format
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class PMC(GetPublication, GetPDF, GetID, GetAbstract):
+class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
     """Class to get data from PMC based on a query."""
 
     aws_region = "us-east-1"
@@ -142,6 +146,60 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract):
                 abstract_text = " ".join(" ".join(abstract_node.itertext()).split())
                 abstracts.append(Abstract(text=abstract_text, id=ID(pmc_id)))
         return abstracts
+
+    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
+        """Retrieve Publication metadata.
+
+        Args:
+            ids (list[ID]): A list of publication IDs for which to retrieve metadata.
+        """
+        records = NCBI(database="pmc").get_publications_metadata_records(self._remove_pmc_prefix(ids))
+        return self._parse_pmc_metadata_records(records)
+
+    def _remove_pmc_prefix(self, pmc_ids: list[ID]) -> list[ID]:
+        """Remove the 'PMC' prefix from a PMC ID.
+
+        Args:
+            pmc_ids (list[ID]): A list of PMC IDs to remove the prefix from.
+        """
+        return [ID(str(pmc_id)[3:]) for pmc_id in pmc_ids]
+
+    def _parse_pmc_metadata_records(self, records: dict[str, list]) -> list[PublicationMetadata]:
+        """Parse PMC metadata records and return a list of PublicationMetadata objects.
+
+        Args:
+            records (dict): A dictionary containing PMC article records.
+        """
+        publications_metadata: list[PublicationMetadata] = []
+
+        for record in records:
+            root = ET.fromstring(record)
+            for article in root.findall(".//DocSum"):
+                pmcid = article.findtext("./Item[@Name='pmcid']")
+                publication_id = ID(pmcid or f"PMC{article.findtext('./Id', 'Unknown')}")
+
+                pub_date = article.findtext("./Item[@Name='PubDate']") or "Unknown"
+                year_publication = pub_date.split()[0] if pub_date != "Unknown" else "Unknown"
+                title = article.findtext("./Item[@Name='Title']") or "Unknown"
+                authors = ", ".join(
+                    author.text
+                    for author in article.findall("./Item[@Name='AuthorList']/Item[@Name='Author']")
+                    if author.text
+                )
+
+                search_date = datetime.now(UTC)
+                publications_metadata.append(
+                    PublicationMetadata(
+                        id=publication_id,
+                        publication_date=year_publication,
+                        title=title,
+                        authors=authors,
+                        database="PMC",
+                        search_date=search_date,
+                    ),
+                )
+
+        return publications_metadata
 
     def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Parse a single PDF and return a Publication object.
