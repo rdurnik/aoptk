@@ -4,11 +4,12 @@ from pathlib import Path
 import pytest
 from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC
+from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.id import ID
 from aoptk.literature.query import Query
-from aoptk.literature.get_abstract import GetAbstract
+
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):
     """Test that PMC can be instantiated."""
@@ -209,16 +210,22 @@ def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
     actual_ids = sut.get_ids()
     assert len(actual_ids) == 0
 
+
 @pytest.mark.parametrize(
     ("ids", "expected_abstracts"),
     [
         (
             [ID("PMC12416454")],
-            ["Abstract The rational design and selective self‐assembly of flexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination‐driven self‐assembly of natural ursodeoxycholic‐bile‐acid‐derived unsymmetric tris ‐pyridyl ligand ( L ) resulting in the selective and switchable formation of chiral stellated Pd 6 L 8 and Pd 12 L 16 cages. The selectivity of the cage originates in the adaptivity and flexibility of the arms of the ligand bearing pyridyl moieties. The interspecific transformations can be controlled by changes in the reaction conditions. The orientational self‐sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right‐handed helical species, was confirmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2."],
+            [
+                "Abstract The rational design and selective self‐assembly of flexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination‐driven self‐assembly of natural ursodeoxycholic‐bile‐acid‐derived unsymmetric tris ‐pyridyl ligand ( L ) resulting in the selective and switchable formation of chiral stellated Pd 6 L 8 and Pd 12 L 16 cages. The selectivity of the cage originates in the adaptivity and flexibility of the arms of the ligand bearing pyridyl moieties. The interspecific transformations can be controlled by changes in the reaction conditions. The orientational self‐sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right‐handed helical species, was confirmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2.",
+            ],
         ),
         (
             [ID("PMC12416454"), ID("PMC6213128")],
-            ["Abstract The rational design and selective self‐assembly of flexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination‐driven self‐assembly of natural ursodeoxycholic‐bile‐acid‐derived unsymmetric tris ‐pyridyl ligand ( L ) resulting in the selective and switchable formation of chiral stellated Pd 6 L 8 and Pd 12 L 16 cages. The selectivity of the cage originates in the adaptivity and flexibility of the arms of the ligand bearing pyridyl moieties. The interspecific transformations can be controlled by changes in the reaction conditions. The orientational self‐sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right‐handed helical species, was confirmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2.", "Cirrhosis is a form of liver fibrosis resulting from chronic hepatitis and caused by various liver diseases, including viral hepatitis, alcoholic liver damage, nonalcoholic steatohepatitis, and autoimmune liver disease. Cirrhosis leads to various complications, resulting in poor prognoses; therefore, it is important to develop novel antifibrotic therapies to counter liver cirrhosis. Wnt/β-catenin signaling is associated with the development of tissue fibrosis, making it a major therapeutic target for treating liver fibrosis. In this review, we present recent insights into the correlation between Wnt/β-catenin signaling and liver fibrosis and discuss the antifibrotic effects of the cAMP-response element binding protein/β-catenin inhibitor PRI-724."],
+            [
+                "Abstract The rational design and selective self‐assembly of flexible and unsymmetric ligands into large coordination complexes is an eminent challenge in supramolecular coordination chemistry. Here, we present the coordination‐driven self‐assembly of natural ursodeoxycholic‐bile‐acid‐derived unsymmetric tris ‐pyridyl ligand ( L ) resulting in the selective and switchable formation of chiral stellated Pd 6 L 8 and Pd 12 L 16 cages. The selectivity of the cage originates in the adaptivity and flexibility of the arms of the ligand bearing pyridyl moieties. The interspecific transformations can be controlled by changes in the reaction conditions. The orientational self‐sorting of L into a single constitutional isomer of each cage, i.e., homochiral quadruple and octuple right‐handed helical species, was confirmed by a combination of molecular modelling and circular dichroism. The cages, derived from natural amphiphilic transport molecules, mediate the higher cellular uptake and increase the anticancer activity of bioactive palladium cations as determined in studies using in vitro 3D spheroids of the human hepatic cells HepG2.",
+                "Cirrhosis is a form of liver fibrosis resulting from chronic hepatitis and caused by various liver diseases, including viral hepatitis, alcoholic liver damage, nonalcoholic steatohepatitis, and autoimmune liver disease. Cirrhosis leads to various complications, resulting in poor prognoses; therefore, it is important to develop novel antifibrotic therapies to counter liver cirrhosis. Wnt/β-catenin signaling is associated with the development of tissue fibrosis, making it a major therapeutic target for treating liver fibrosis. In this review, we present recent insights into the correlation between Wnt/β-catenin signaling and liver fibrosis and discuss the antifibrotic effects of the cAMP-response element binding protein/β-catenin inhibitor PRI-724.",
+            ],
         ),
     ],
 )
@@ -229,18 +236,14 @@ def test_generate_abstracts_for_specific_publications(
     tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
-    abstracts = (
-        PMC(
-            storage=tmp_path_factory.mktemp("pmc_storage"),
-            figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-        )
-        .get_abstracts(ids=ids)
-    )
+    abstracts = PMC(
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    ).get_abstracts(ids=ids)
     abstract_texts = []
     for abstract in abstracts:
         abstract_texts.append(abstract.text)
     assert sorted(abstract_texts) == sorted(expected_abstracts)
-    
 
 
 def test_generate_abstracts_multiple_abstracts(

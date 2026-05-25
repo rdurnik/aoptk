@@ -8,9 +8,9 @@ from tenacity import AsyncRetrying
 from tenacity import retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_random_exponential
+from aoptk.literature.get_id import GetID
 from aoptk.literature.id import ID
 from aoptk.literature.utils import AsyncRequestLimiter
-from aoptk.literature.get_id import GetID
 
 
 class NCBI(GetID):
@@ -33,13 +33,14 @@ class NCBI(GetID):
     def get_ids(self, search_term: str) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
         return asyncio.run(self._async_get_ids(search_term))
-    
+
     def get_abstract_records(self, ids: list[ID]) -> list[dict]:
         """Retrieve abstract records based on the list of IDs.
         Note: There is still the 10 000 records limit.
-        
+
         Args:
-            ids (list[ID]): A list of publication IDs for which to retrieve abstracts."""
+            ids (list[ID]): A list of publication IDs for which to retrieve abstracts.
+        """
         records = []
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
@@ -56,7 +57,7 @@ class NCBI(GetID):
             records.append(records_batch)
             handle.close()
         return records
-    
+
     def get_publications_metadata_records(self, ids: list[ID]) -> dict[str, list]:
         """Retrieve abstract records based on the list of IDs."""
         records: dict[str, list] = {"PubmedArticle": []}

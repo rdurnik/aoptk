@@ -1,14 +1,14 @@
 from datetime import UTC
 from datetime import datetime
+from http.client import RemoteDisconnected
 from urllib.error import HTTPError
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
-from aoptk.literature.query import Query
 from aoptk.literature.id import ID
-from http.client import RemoteDisconnected
+from aoptk.literature.query import Query
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -198,6 +198,7 @@ def test_exclude_only_preprint():
     actual_ids = sut.get_ids()
     assert len(actual_ids) == 0
 
+
 @pytest.mark.xfail(raises=(HTTPError, RemoteDisconnected))
 def test_get_id_large_query():
     """Test that get_id() method returns a list of publication IDs."""
@@ -205,15 +206,17 @@ def test_get_id_large_query():
         PubMed(
             query=Query(
                 search_term="fibrosis 2019/01/15:2019/07/30[dp]",
-            )).get_ids(),
+            ),
+        ).get_ids(),
     )
     expected = 10117
     assert actual == pytest.approx(expected, abs=100)
 
+
 def test_generate_abstracts_multiple_abstracts():
     """Generate list of abstracts for given query."""
     ids = PubMed(
-        query=Query(search_term="thioacetamide liver fibrosis cancer")
+        query=Query(search_term="thioacetamide liver fibrosis cancer"),
     ).get_ids()
     abstracts = PubMed().get_abstracts(ids=ids)
     assert len(abstracts) > 150
