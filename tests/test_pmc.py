@@ -1,4 +1,6 @@
 from __future__ import annotations
+from datetime import UTC
+from datetime import datetime
 from http.client import RemoteDisconnected
 from pathlib import Path
 import pytest
@@ -7,6 +9,7 @@ from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.query import Query
 
@@ -25,6 +28,7 @@ def test_implements_interface():
     assert issubclass(PMC, GetPublication)
     assert issubclass(PMC, GetPDF)
     assert issubclass(PMC, GetAbstract)
+    assert issubclass(PMC, GetPublicationMetadata)
 
 
 def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory):
@@ -316,3 +320,57 @@ def test_generate_abstracts_multiple_abstracts(
     ).get_abstracts(ids=ids)
     minimal_number_of_expected_abstracts = 300
     assert len(abstracts) > minimal_number_of_expected_abstracts
+
+
+def test_generate_metadata_multiple_publications(tmp_path_factory: pytest.TempPathFactory):
+    """Generate list of publication metadata for given query."""
+    ids = PMC(
+        query=Query(search_term="thioacetamide liver fibrosis methotrexate"),
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    ).get_ids()
+    metadata = PMC(
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    ).get_publications_metadata(ids=ids)
+    minimal_number_of_expected_metadata = 350
+    assert len(metadata) > minimal_number_of_expected_metadata
+
+
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "publication_ids": [ID("PMC6470827"), ID("PMC12696947")],
+            "publication_id": ID("PMC12696947"),
+            "publication_date": "2025",
+            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
+            "authors": "Li J, Li X, Wang R, Li M, Xiao Y",
+            "database": "PMC",
+        },
+        {
+            "publication_ids": [ID("PMC6470827"), ID("PMC12416454")],
+            "publication_id": ID("PMC12416454"),
+            "publication_date": "2025",
+            "title": "Flexibility-Aided Orientational Self-Sorting and "
+            "Transformations of Bioactive Homochiral Cuboctahedron Pd(12)L(16).",
+            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
+            "Babica P, Kuta J, Marek R, Jurček O",
+            "database": "PMC",
+        },
+    ],
+)
+@pytest.mark.xfail(raises=HTTPError)
+def test_get_publication_metadata(test_data: dict, tmp_path_factory: pytest.TempPathFactory):
+    """Generate publication metadata for given id."""
+    publication_metadata = PMC(
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+    ).get_publications_metadata(ids=test_data["publication_ids"])[1]
+    assert publication_metadata.id == test_data["publication_id"]
+    assert publication_metadata.publication_date == test_data["publication_date"]
+    assert publication_metadata.title == test_data["title"]
+    assert publication_metadata.authors == test_data["authors"]
+    assert publication_metadata.database == test_data["database"]
+    assert publication_metadata.search_date.year == datetime.now(UTC).year
+    assert publication_metadata.search_date.month == datetime.now(UTC).month
