@@ -35,8 +35,7 @@ class NCBI(GetID):
         return asyncio.run(self._async_get_ids(search_term))
 
     def get_abstract_records(self, ids: list[ID]) -> list[dict]:
-        """Retrieve abstract records based on the list of IDs.
-        Note: There is still the 10 000 records limit.
+        """Retrieve abstract records based on the list of IDs. Note: There is still the 10 000 records limit.
 
         Args:
             ids (list[ID]): A list of publication IDs for which to retrieve abstracts.

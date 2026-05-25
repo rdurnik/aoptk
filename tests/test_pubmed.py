@@ -38,7 +38,8 @@ def test_get_id():
     actual = PubMed(
         query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
     ).get_ids()
-    assert len(actual) == 4
+    number_of_expected_ids = 4
+    assert len(actual) == number_of_expected_ids
     assert ID("36835489") in actual
 
 
@@ -219,4 +220,5 @@ def test_generate_abstracts_multiple_abstracts():
         query=Query(search_term="thioacetamide liver fibrosis cancer"),
     ).get_ids()
     abstracts = PubMed().get_abstracts(ids=ids)
-    assert len(abstracts) > 150
+    minimal_number_of_expected_abstracts = 150
+    assert len(abstracts) > minimal_number_of_expected_abstracts

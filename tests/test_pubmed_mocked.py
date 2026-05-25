@@ -68,7 +68,8 @@ def test_get_id_list(mock_entrez):
         query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
     )
     actual = pubmed_instance.get_ids()
-    assert len(actual) == 4
+    number_of_expected_ids = 4
+    assert len(actual) == number_of_expected_ids
     assert ID("36835489") in actual
 
 
