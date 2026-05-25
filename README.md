@@ -6,15 +6,18 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 
 ## Badges
 
+- License: [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk)
+- Community registries: [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) [![Bioconda](https://anaconda.org/bioconda/aoptk/badges/version.svg)](https://anaconda.org/bioconda/aoptk)
+- How to cite: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20036704.svg)](https://doi.org/10.5281/zenodo.20036704)
+- Static analysis: [![workflow scq badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=alert_status)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk)
+- Coverage: [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=coverage)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk)
+- Documentation: [![Documentation Status](https://readthedocs.org/projects/aoptk/badge/?version=latest)](https://aoptk.readthedocs.io/en/latest/?badge=latest)
+- GitHub Actions: &nbsp;W
+- Build: [![build](https://github.com/rdurnik/aoptk/actions/workflows/build.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/build.yml)
+- Citation data consistency: [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml)
+- SonarCloud: [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml)
 
-| :-- | :--  |
-| License                     | [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk) |
-| Community registries          | [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) [![Bioconda](https://anaconda.org/bioconda/aoptk/badges/version.svg)](https://anaconda.org/bioconda/aoptk)|
-| How to cite                 | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20036704.svg)](https://doi.org/10.5281/zenodo.20036704)|
-| Static analysis                    | [![workflow scq badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=alert_status)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk) |
-| Coverage                           | [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=coverage)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk) || Documentation                      | [![Documentation Status](https://readthedocs.org/projects/aoptk/badge/?version=latest)](https://aoptk.readthedocs.io/en/latest/?badge=latest) || **GitHub Actions**                 | &nbsp; |
-| Build                              | [![build](https://github.com/rdurnik/aoptk/actions/workflows/build.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/build.yml) |
-| Citation data consistency          | [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml) |## How to use aoptk
+## How to use aoptk
 
 
 ## Installation
