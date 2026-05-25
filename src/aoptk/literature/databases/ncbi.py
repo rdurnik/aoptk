@@ -22,10 +22,10 @@ class NCBI(GetID):
     minimal_year_publication = 1940
     semaphore = asyncio.Semaphore(max_concurrency)
     limiter = AsyncRequestLimiter(max_requests_per_second)
-    retries = 5
     datetype = "pdat"
     batch_size = 200
-    max_retries = 5
+    entrez_retries = 8
+    async_retries = 8
 
     def __init__(self, database: Literal["pmc", "pubmed"]):
         self.database = database
@@ -47,7 +47,7 @@ class NCBI(GetID):
                 db=self.database,
                 id=",".join(map(str, batch_ids)),
                 rettype="xml",
-                max_retry=self.max_retries,
+                max_retry=self.entrez_retries,
             )
             if self.database == "pubmed":
                 records_batch = Entrez.read(handle)
@@ -62,7 +62,7 @@ class NCBI(GetID):
         records: dict[str, list] = {"PubmedArticle": []}
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.esummary(db=self.database, id=",".join(map(str, batch_ids)), max_retry=self.max_retries)
+            handle = Entrez.esummary(db=self.database, id=",".join(map(str, batch_ids)), max_retry=self.entrez_retries)
             records_batch = Entrez.read(handle)
             records["PubmedArticle"].extend(records_batch)
             handle.close()
@@ -112,7 +112,7 @@ class NCBI(GetID):
         async for attempt in AsyncRetrying(
             retry=retry_if_exception_type(HTTPError),
             wait=wait_random_exponential(multiplier=0.5, max=30),
-            stop=stop_after_attempt(self.retries),
+            stop=stop_after_attempt(self.async_retries),
             reraise=True,
         ):
             with attempt:
