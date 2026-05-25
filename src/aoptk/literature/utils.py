@@ -58,3 +58,12 @@ def _image_in_this_format_already_exists(target_format: str, image_path: Path) -
         image_path: The path of the image to check.
     """
     return image_path.suffix.lower() == f".{target_format}"
+
+
+def remove_pmc_prefix(ids: list[ID]) -> list[ID]:
+    """Remove the 'PMC' prefix from ID.
+
+    Args:
+        ids (list[ID]): A list of IDs to remove the prefix from.
+    """
+    return [ID(str(publication_id)[3:]) for publication_id in ids]

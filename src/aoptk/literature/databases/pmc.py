@@ -24,6 +24,7 @@ from aoptk.literature.publication import Publication
 from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.query import Query
 from aoptk.literature.utils import convert_image_format
+from aoptk.literature.utils import remove_pmc_prefix
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
@@ -153,16 +154,8 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
         Args:
             ids (list[ID]): A list of publication IDs for which to retrieve metadata.
         """
-        records = NCBI(database="pmc").get_publications_metadata_records(self._remove_pmc_prefix(ids))
+        records = NCBI(database="pmc").get_publications_metadata_records(remove_pmc_prefix(ids))
         return self._parse_pmc_metadata_records(records)
-
-    def _remove_pmc_prefix(self, pmc_ids: list[ID]) -> list[ID]:
-        """Remove the 'PMC' prefix from a PMC ID.
-
-        Args:
-            pmc_ids (list[ID]): A list of PMC IDs to remove the prefix from.
-        """
-        return [ID(str(pmc_id)[3:]) for pmc_id in pmc_ids]
 
     def _parse_pmc_metadata_records(self, records: list[str]) -> list[PublicationMetadata]:
         """Parse PMC metadata records and return a list of PublicationMetadata objects.
