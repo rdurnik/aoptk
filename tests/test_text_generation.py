@@ -210,7 +210,7 @@ def test_extract_text_from_pdf_image():
         base64_str,
         mime_type="image/jpeg",
     )
-    assert ("Polycyclic aromatic hydrocarbons (PAHs), many of which are") in actual
+    assert ("More than three decades after the first discovery, most") in actual
 
 
 @pytest.mark.openai
@@ -226,7 +226,7 @@ def test_extract_text_from_pdf_image():
 )
 def test_find_relationships_in_text_and_images(text: str, images: list[str], expected_chemicals: list[str]):
     """Test that find_relationships_in_text_and_images method finds relationships in text and images."""
-    actual = TextGenerationAPI(model="qwen3.5").find_relationships_in_text_and_images(
+    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").find_relationships_in_text_and_images(
         text=text,
         image_paths=images,
         relationship_type=Inhibitive(),
