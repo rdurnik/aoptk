@@ -22,8 +22,8 @@ class NCBI(GetID):
     minimal_year_publication = 1940
     datetype = "pdat"
     batch_size = 200
-    entrez_retries = 8
-    async_retries = 8
+    entrez_retries = 10
+    async_retries = 10
 
     def __init__(self, database: Literal["pmc", "pubmed"]):
         self.database = database
@@ -96,6 +96,7 @@ class NCBI(GetID):
             mindate=mindate,
             maxdate=maxdate,
             datetype=self.datetype,
+            max_retry=self.entrez_retries,
         )
         record = Entrez.read(handle)
         handle.close()
