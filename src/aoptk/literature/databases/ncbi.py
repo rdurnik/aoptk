@@ -16,13 +16,14 @@ from aoptk.literature.utils import AsyncRequestLimiter
 class NCBI(GetID):
     """Helper class to retrieve data from NCBI databases - PubMed and PMC."""
 
+    Entrez.max_tries = 6
+    Entrez.sleep_between_tries = 20
     max_ncbi_results = 9998
     max_concurrency = 2
     max_requests_per_second = 2
     minimal_year_publication = 1940
     datetype = "pdat"
     batch_size = 200
-    entrez_retries = 10
     async_retries = 10
 
     def __init__(self, database: Literal["pmc", "pubmed"]):
@@ -47,7 +48,6 @@ class NCBI(GetID):
                 db=self.database,
                 id=",".join(map(str, batch_ids)),
                 rettype="xml",
-                max_retry=self.entrez_retries,
             )
             if self.database == "pubmed":
                 records_batch = Entrez.read(handle)
@@ -62,7 +62,7 @@ class NCBI(GetID):
         records: dict[str, list] = {"PubmedArticle": []}
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.esummary(db=self.database, id=",".join(map(str, batch_ids)), max_retry=self.entrez_retries)
+            handle = Entrez.esummary(db=self.database, id=",".join(map(str, batch_ids)))
             records_batch = Entrez.read(handle)
             records["PubmedArticle"].extend(records_batch)
             handle.close()
@@ -96,7 +96,6 @@ class NCBI(GetID):
             mindate=mindate,
             maxdate=maxdate,
             datetype=self.datetype,
-            max_retry=self.entrez_retries,
         )
         record = Entrez.read(handle)
         handle.close()
