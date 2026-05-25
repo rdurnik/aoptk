@@ -6,19 +6,15 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 
 ## Badges
 
-| fair-software.eu recommendations | |
+| Badges | |
 | :-- | :--  |
-| (1/5) code repository              | [![github repo badge](https://img.shields.io/badge/github-repo-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/rdurnik/aoptk) |
-| (2/5) license                      | [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk) |
-| (3/5) community registry           | [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) [![Bioconda](https://anaconda.org/bioconda/aoptk/badges/version.svg)](https://anaconda.org/bioconda/aoptk)|
-| (4/5) citation                     | [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-B31B1B)](https://doi.org/10.64898/2026.04.15.718674) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20036704.svg)](https://doi.org/10.5281/zenodo.20036704)|
-| (5/5) checklist                    | [![workflow cii badge](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>/badge)](https://bestpractices.coreinfrastructure.org/projects/<replace-with-created-project-identifier>) |
-| howfairis                          | [![fair-software badge](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8F%20%20%E2%97%8B-yellow)](https://fair-software.eu) |
-| **Other best practices**           | &nbsp; |
+| License                      | [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk) |
+| Community registries           | [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) [![Bioconda](https://anaconda.org/bioconda/aoptk/badges/version.svg)](https://anaconda.org/bioconda/aoptk)|
+| How to cite                    | [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20036704.svg)](https://doi.org/10.5281/zenodo.20036704)|
 | Static analysis                    | [![workflow scq badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=alert_status)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk) |
 | Coverage                           | [![workflow scc badge](https://sonarcloud.io/api/project_badges/measure?project=rdurnik_aoptk&metric=coverage)](https://sonarcloud.io/dashboard?id=rdurnik_aoptk) || Documentation                      | [![Documentation Status](https://readthedocs.org/projects/aoptk/badge/?version=latest)](https://aoptk.readthedocs.io/en/latest/?badge=latest) || **GitHub Actions**                 | &nbsp; |
 | Build                              | [![build](https://github.com/rdurnik/aoptk/actions/workflows/build.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/build.yml) |
-| Citation data consistency          | [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml) |## How to use aoptk
+| Citation data consistency          | [![cffconvert](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/cffconvert.yml) || SonarCloud                         | [![sonarcloud](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml/badge.svg)](https://github.com/rdurnik/aoptk/actions/workflows/sonarcloud.yml) |
 
 ## How to use aoptk
 
