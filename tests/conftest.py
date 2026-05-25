@@ -11,28 +11,7 @@ from aoptk.literature.id import ID
     params=[
         {
             "id": ID("PMC12416454"),
-            "expected_abstract": "The rational design and "
-            "selective self-assembly of ﬂexible and unsymmetric"
-            " ligands into large coordination complexes is an"
-            " eminent challenge in supramolecular coordination"
-            " chemistry. Here, we present the coordination-driven"
-            " self-assembly of natural ursodeoxycholic-bile-acid-derived"
-            " unsymmetric tris-pyridyl ligand (L) resulting in "
-            "the selective and switchable formation of chiral "
-            "stellated Pd6L8 and Pd12L16 cages. The selectivity "
-            "of the cage originates in the adaptivity and ﬂexibility "
-            "of the arms of the ligand bearing pyridyl moieties. The "
-            "interspeciﬁc transformations can be controlled by changes"
-            " in the reaction conditions. The orientational self-sorting "
-            "of L into a single constitutional isomer of each cage,"
-            " i.e., homochiral quadruple and octuple right-handed "
-            "helical species, was conﬁrmed by a combination of"
-            " molecular modelling and circular dichroism. The "
-            "cages, derived from natural amphiphilic transport "
-            "molecules, mediate the higher cellular uptake and "
-            "increase the anticancer activity of bioactive "
-            "palladium cations as determined in studies using "
-            "in vitro 3D spheroids of the human hepatic cells HepG2.",
+            "expected_abstract": Path("tests/test-data/PMC12416454_abstract.txt").read_text(encoding="utf-8"),
             "full_text": Path("tests/test-data/PMC12416454.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12416454/figure1.png",
@@ -74,37 +53,7 @@ from aoptk.literature.id import ID
         },
         {
             "id": ID("PMC12231352"),
-            "expected_abstract": "1School of Clinical Medical, Hubei University of Chinese Medicine, "
-            "Wuhan, China, 2Department of Gastroenterology, Hubei Provincial Hospital "
-            "of Integrated Chinese and Western Medicine, Wuhan, China, 3Department of "
-            "Health Management Center, Hubei Provincial Hospital of Traditional Chinese "
-            "Medicine, Wuhan, China\n"
-            "Background: The role of nucleotide-binding oligomerization domain-like "
-            "receptors containing pyrin domain 3 (NLRP3) inﬂammasome and pyroptosis in "
-            "the inﬂammatory microenvironment of metabolic-associated fatty liver disease"
-            " (MASLD) has been posited as crucial. Bletilla striata polysaccharides (BSPs),"
-            " extracted from the tubers of Bletilla striata (Thunb.) Rchb.f., exhibit signiﬁcant"
-            " anti-inﬂammatory properties. However, their potential protective effects "
-            "on MASLD and their role in regulating pyroptosis remain unclear.\n"
-            "Objectives: This study investigates the efﬁcacy of BSP-1, a puriﬁed "
-            "metabolite isolated from crude BSPs, on MASLD by evaluating its ability"
-            " to modulate the NLRP3/caspase-1/GSDMD signaling pathway.\n"
-            "Methods: To simulate MASLD in vivo and in vitro, high-fat diet (HFD)-induced"
-            " rat models and free fatty acid (FFA)-stimulated HepG2 cells were used. "
-            "Serum indicators and histopathological staining were employed to assess "
-            "liver injury and lipid deposition. Additionally, enzyme-linked immunosorbent "
-            "assay (ELISA), immunohistochemistry (IHC), immunoﬂuorescence, real-time quantitative"
-            " polymerase chain reaction (RT-qPCR), and western blotting (WB) analysis"
-            " were conducted to examine the NLRP3/caspase-1/GSDMD pathway and related cytokine levels.\n"
-            "Results: BSP-1 signiﬁcantly ameliorates alanine aminotransferase (ALT), "
-            "aspartate aminotransferase (AST), total cholesterol (TC), and triglyceride "
-            "(TG) levels in both rat serum and HepG2 cells. Furthermore, BSP-1 reduces "
-            "inﬂammatory factors interleukin (IL)-1β and IL-18, while improving pathological "
-            "changes in rat liver tissue. Mechanistically, BSP-1 regulates the expression of"
-            " pyroptosis-related proteins and mRNAs in the NLRP3/caspase-1/GSDMD pathway, "
-            "thereby protecting against MASLD.\n"
-            "Discussion: BSP-1 may represent a promising therapeutic agent for MASLD treatment"
-            " by inhibiting the NLRP3/caspase-1/GSDMD signaling pathway.",
+            "expected_abstract": Path("tests/test-data/PMC12231352_abstract.txt").read_text(encoding="utf-8"),
             "full_text": Path("tests/test-data/PMC12231352.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12231352/figure1.png",
@@ -133,27 +82,7 @@ from aoptk.literature.id import ID
         },
         {
             "id": ID("PMC12181427"),
-            "expected_abstract": "This study explores the potential of six novel "
-            "thiophene derivative thin films (THIOs) for reducing cancer cell adhesion"
-            " and enhancing controlled drug release on inert glass substrates. Thiophene"
-            " derivatives 3a–c and 5a–c were synthesized and characterized using IR, 1H NMR,"
-            " 13C NMR, and elemental analysis before being spin-coated onto glass to form thin"
-            " films. SEM analysis and roughness measurements were used to assess their "
-            "structural and functional properties. Biological evaluations demonstrated "
-            "that the films significantly reduced HepG2 liver cancer cell adhesion "
-            "(~ 78% decrease vs. control) and enabled controlled drug release, "
-            "validated through the Korsmeyer-Peppas model (R2 > 0.99). Theoretical"
-            " studies, including in-silico target prediction, molecular docking with"
-            " JAK1 (PDB: 4E4L), and DFT calculations, provided insights into the "
-            "electronic properties and chemical reactivity of these compounds. Notably,"
-            " compound 5b exhibited the best binding energy (-7.59 kcal/mol) within the"
-            " JAK1 pocket, aligning with its observed apoptotic behavior in cell culture."
-            " DFT calculations further revealed that 5b had the lowest calculated energy"
-            " values; -4.89 eV (HOMO) and − 3.22 eV (LUMO), and the energy gap was found to"
-            " be 1.66 eV, supporting its role in JAK1 inhibition and cancer cell adhesion"
-            " reduction. These findings underscore the promise of thiophene derivatives"
-            " in biomedical applications, potentially leading to safer surgical "
-            "procedures and more effective localized drug delivery systems.",
+            "expected_abstract": Path("tests/test-data/PMC12181427_abstract.txt").read_text(encoding="utf-8"),
             "full_text": Path("tests/test-data/PMC12181427.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12181427/figure1.png",

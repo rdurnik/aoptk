@@ -142,17 +142,14 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF(Path("tests/test_pdfs/7835547_corrupted_pdf.pdf"))],
+            pdfs=[PDF(Path("tests/test_pdfs/PMC12416454_corrupted.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
             text_generation=TextGenerationAPI(model="redhatai-scout"),
         )
         .get_publications()[0]
         .full_text
     )
-    expected = (
-        "Since polycyclic aromatic hydrocarbons (PAHs) are known to have epigenetic effects, "
-        "we evaluated the effect of the parent chemical and the ozonated products"
-    )
+    expected = "More than three decades after the first discovery, most of"
     assert expected in actual
 
 
@@ -160,7 +157,7 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF(Path("tests/test_pdfs/7835547_corrupted_pdf.pdf"))],
+            pdfs=[PDF(Path("tests/test_pdfs/PMC12416454_corrupted.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
