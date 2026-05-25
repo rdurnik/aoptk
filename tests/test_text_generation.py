@@ -205,7 +205,7 @@ def test_normalize_chemical(chemical: Chemical, list_of_chemicals: list[Chemical
 @pytest.mark.openai
 def test_extract_text_from_pdf_image():
     """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
-    base64_str = (Path("tests/test-data/test_pdf_base64_image.txt").read_text()).strip()
+    base64_str = (Path("tests/test-data/scan_PMC12416454.txt").read_text()).strip()
     actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_pdf_scan(
         base64_str,
         mime_type="image/jpeg",
