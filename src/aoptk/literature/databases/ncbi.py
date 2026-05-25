@@ -20,8 +20,6 @@ class NCBI(GetID):
     max_concurrency = 2
     max_requests_per_second = 2
     minimal_year_publication = 1940
-    semaphore = asyncio.Semaphore(max_concurrency)
-    limiter = AsyncRequestLimiter(max_requests_per_second)
     datetype = "pdat"
     batch_size = 200
     entrez_retries = 8
@@ -29,6 +27,8 @@ class NCBI(GetID):
 
     def __init__(self, database: Literal["pmc", "pubmed"]):
         self.database = database
+        self.semaphore = asyncio.Semaphore(self.max_concurrency)
+        self.limiter = AsyncRequestLimiter(self.max_requests_per_second)
 
     def get_ids(self, search_term: str) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
