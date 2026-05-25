@@ -1,6 +1,7 @@
 import asyncio
 import calendar
 import datetime
+from typing import Any
 from typing import Literal
 from urllib.error import HTTPError
 from Bio import Entrez
@@ -57,7 +58,7 @@ class NCBI(GetID):
             handle.close()
         return records
 
-    def get_publications_metadata_records(self, ids: list[ID]) -> dict[str, list]:
+    def get_publications_metadata_records(self, ids: list[ID]) -> list[Any]:
         """Retrieve abstract records based on the list of IDs."""
         records = []
         for i in range(0, len(ids), self.batch_size):
