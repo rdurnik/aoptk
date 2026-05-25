@@ -87,10 +87,12 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     assert publication_id == expected_id
 
 
+# TEST THE SECOND PUBLICATION INSTEAD, INPUT A LIST
 @pytest.mark.parametrize(
     "test_data",
     [
         {
+            "publication_ids": [ID("34028753"), ID("41345959")],
             "publication_id": "41345959",
             "publication_date": "2025",
             "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
@@ -98,6 +100,7 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
             "database": "PubMed",
         },
         {
+            "publication_ids": [ID("34028753"), ID("40785269")],
             "publication_id": "40785269",
             "publication_date": "2025",
             "title": "Flexibility-Aided Orientational Self-Sorting and "
@@ -111,7 +114,7 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
 @pytest.mark.xfail(raises=HTTPError)
 def test_get_publication_metadata(test_data: dict):
     """Generate publication metadata for given id."""
-    publication_metadata = PubMed().get_publications_metadata(ids=[test_data["publication_id"]])[0]
+    publication_metadata = PubMed().get_publications_metadata(ids=test_data["publication_ids"])[1]
     assert publication_metadata.id == test_data["publication_id"]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
@@ -222,3 +225,13 @@ def test_generate_abstracts_multiple_abstracts():
     abstracts = PubMed().get_abstracts(ids=ids)
     minimal_number_of_expected_abstracts = 150
     assert len(abstracts) > minimal_number_of_expected_abstracts
+
+
+def test_generate_metadata_multiple_publications():
+    """Generate list of publication metadata for given query."""
+    ids = PubMed(
+        query=Query(search_term="thioacetamide liver fibrosis"),
+    ).get_ids()
+    metadata = PubMed().get_publications_metadata(ids=ids)
+    minimal_number_of_expected_metadata = 1100
+    assert len(metadata) > minimal_number_of_expected_metadata

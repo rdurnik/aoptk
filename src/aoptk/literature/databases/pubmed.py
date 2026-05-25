@@ -73,23 +73,24 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             records (dict): A dictionary containing PubMed article records.
         """
         publications_metadata = []
-        for summary in records.get("PubmedArticle", []):
-            publication_id = ID(summary.get("Id", "Unknown"))
-            pub_date = summary.get("PubDate", None)
-            year_publication = pub_date.split()[0] if pub_date else "Unknown"
-            title = summary.get("Title", None)
-            authors = ", ".join(summary.get("AuthorList", []))
-            search_date = datetime.now(UTC)
-            publications_metadata.append(
-                PublicationMetadata(
-                    id=publication_id,
-                    publication_date=year_publication,
-                    title=title,
-                    authors=authors,
-                    database="PubMed",
-                    search_date=search_date,
-                ),
-            )
+        for record in records:
+            for article in record:
+                publication_id = ID(article.get("Id", "Unknown"))
+                pub_date = article.get("PubDate", None)
+                year_publication = pub_date.split()[0] if pub_date else "Unknown"
+                title = article.get("Title", None)
+                authors = ", ".join(article.get("AuthorList", []))
+                search_date = datetime.now(UTC)
+                publications_metadata.append(
+                    PublicationMetadata(
+                        id=publication_id,
+                        publication_date=year_publication,
+                        title=title,
+                        authors=authors,
+                        database="PubMed",
+                        search_date=search_date,
+                    ),
+                )
         return publications_metadata
 
     def get_ids(self) -> list[ID]:
