@@ -1,17 +1,17 @@
 from __future__ import annotations
 import os
-from itertools import chain
 from datetime import UTC
 from datetime import datetime
+from itertools import chain
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
+from aoptk.literature.databases.ncbi import NCBI
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.query import Query
-from aoptk.literature.databases.ncbi import NCBI
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
@@ -47,12 +47,13 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         """Retrieve Abstracts based on the query."""
         records = NCBI(database="pubmed").get_abstract_records(ids)
         return self._parse_pubmed_abstract_records(records)
-    
+
     def _parse_pubmed_abstract_records(self, records: list[dict]) -> list[Abstract]:
         """Parse PubMed abstract records and return a list of Abstract objects.
-        
+
         Args:
-            records (dict): A dictionary containing PubMed article records."""
+            records (dict): A dictionary containing PubMed article records.
+        """
         abstracts = []
         for article in chain.from_iterable(batch.get("PubmedArticle", []) for batch in records):
             pmid = ID(article["MedlineCitation"]["PMID"])
@@ -69,7 +70,8 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         """Parse PubMed metadata records and return a list of PublicationMetadata objects.
 
         Args:
-            records (dict): A dictionary containing PubMed article records."""
+            records (dict): A dictionary containing PubMed article records.
+        """
         publications_metadata = []
         for summary in records.get("PubmedArticle", []):
             publication_id = ID(summary.get("Id", "Unknown"))

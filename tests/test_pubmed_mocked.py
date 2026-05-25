@@ -58,6 +58,7 @@ def test_get_abstract_not_empty(mock_entrez):
     assert actual is not None
     assert len(actual) > 0
 
+
 def test_get_id_list(mock_entrez):
     """Get publication count returns correct number."""
     expected = ["36835489", "37913737", "37891562", "36838959"]
