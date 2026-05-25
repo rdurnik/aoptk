@@ -73,8 +73,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             records (dict): A dictionary containing PubMed article records.
         """
         publications_metadata = []
-        for record in records:
-            for article in record:
+        for article in chain.from_iterable(records):
                 publication_id = ID(article.get("Id", "Unknown"))
                 pub_date = article.get("PubDate", None)
                 year_publication = pub_date.split()[0] if pub_date else "Unknown"
