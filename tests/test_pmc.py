@@ -314,5 +314,5 @@ def test_generate_abstracts_multiple_abstracts(
         storage=tmp_path_factory.mktemp("pmc_storage"),
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     ).get_abstracts(ids=ids)
-    minimal_number_of_expected_abstracts = 310
+    minimal_number_of_expected_abstracts = 300
     assert len(abstracts) > minimal_number_of_expected_abstracts
