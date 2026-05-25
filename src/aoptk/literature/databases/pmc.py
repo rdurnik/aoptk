@@ -1,6 +1,6 @@
-import asyncio
 import json
 import os
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -11,6 +11,7 @@ from botocore import UNSIGNED
 from botocore.client import Config
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.databases.ncbi import NCBI
+from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
@@ -23,7 +24,7 @@ from aoptk.literature.utils import convert_image_format
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class PMC(GetPublication, GetPDF, GetID):
+class PMC(GetPublication, GetPDF, GetID, GetAbstract):
     """Class to get data from PMC based on a query."""
 
     aws_region = "us-east-1"
@@ -117,9 +118,29 @@ class PMC(GetPublication, GetPDF, GetID):
 
     def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
-        ids = NCBI(self.search_term, database="pmc").get_ids()
-        ids = [ID(f"PMC{pmcid}") for pmcid in ids]
-        return ids
+        ids = NCBI(database="pmc").get_ids(self.search_term)
+        return [ID(f"PMC{pmcid}") for pmcid in ids]
+
+    def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
+        """Retrieve Abstracts based on the list of IDs."""
+        records = NCBI(database="pmc").get_abstract_records(ids)
+        return self._parse_pmc_abstract_records(records)
+
+    def _parse_pmc_abstract_records(self, records: list[Any]) -> list[Abstract]:
+        """Parse PMC abstract handles and return a list of Abstract objects.
+
+        Args:
+            records (list[Any]): A list of PMC Entrez fetch handles.
+        """
+        abstracts: list[Abstract] = []
+        for record in records:
+            root = ET.fromstring(record)
+            for article in root.findall(".//article"):
+                pmc_id = article.findall(".//article-id")
+                if abstract_node := article.find(".//abstract"):
+                    abstract_text = " ".join(" ".join(abstract_node.itertext()).split())
+                abstracts.append(Abstract(text=abstract_text, id=ID(pmc_id)))
+        return abstracts
 
     def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Parse a single PDF and return a Publication object.
