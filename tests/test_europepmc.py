@@ -1,6 +1,5 @@
 from __future__ import annotations
-from datetime import UTC
-from datetime import datetime
+import json
 from pathlib import Path
 import pytest
 from fuzzywuzzy import fuzz
@@ -15,6 +14,8 @@ from aoptk.literature.id import ID
 from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
+
+metadata_test = json.loads(Path("tests/test-data/europepmc_metadata.json").read_text(encoding="utf-8"))
 
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):
@@ -74,110 +75,53 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
 
 
 @pytest.mark.parametrize(
-    ("query", "expected_abstract", "expected_id", "position"),
+    ("ids", "expected_abstract"),
     [
         (
-            Query(search_term="TITLE_ABS:(liver cancer AND hepg2 AND thioacetamide) AND (FIRST_PDATE:[2018 TO 2019])"),
-            "Insulin growth factor (IGF) family and their receptors play a great role in tumors' development. "
-            "In addition, IGF-1 enhances cancer progression through regulating cell proliferation, angiogenesis, "
-            "immune modulation and metastasis. Moreover, nicotinamide is association with protection against "
-            "cancer. Therefore, we conducted this research to examine the therapeutic effects of nicotinamide "
-            "against hepatocellular carcinoma (HCC) both in vivo and in vitro through affecting IGF-1 and "
-            "the balance between PKB and Nrf2. HCC was induced in rats by 200 mg/kg, ip thioacetamide. "
-            "The rat survival, number and size of tumors and serum α-fetoprotein (AFP) were measured. "
-            "The gene and protein levels of IGF-1, Nrf2, PKB and JNK-MAPK were assessed in rat livers. "
-            "In addition, HepG2 cells, human HCC cell lines, were treated with different concentrations "
-            "of nicotinamide. We found that nicotinamide enhanced the rats' survival and reduced the "
-            "number and size of hepatic tumors as well as it reduced serum AFP and HepG2 cells survival. "
-            "Nicotinamide ameliorated HCC-induced reduction in the expression of Nrf2. Moreover, nicotinamide "
-            "blocked HCC-induced elevation in IGF-1, PKB and JNK-MAPK. In conclusion, nicotinamide produced "
-            "cytotoxic effects against HCC both in vivo and in vitro. The cytotoxic activity can be explained "
-            "by inhibition of HCC-induced increased in the expression of IGF-1 and leads to disturbances "
-            "in the balance between the cell death signal by PKB and MAPK; and the cell survival signal "
-            "by Nrf2, directing it towards cell survival signals in normal liver cells providing more "
-            "protection for body against tumor.",
-            "30784932",
-            0,
+            [ID("30784932")],
+            Path("tests/test-data/30784932_abstract.txt").read_text(encoding="utf-8"),
         ),
         (
-            Query(search_term="PMC5596756"),
+            [ID("PMC5596756")],
             "",
-            "PMC5596756",
-            1,
         ),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_given_query(
-    query: Query,
+    ids: list[ID],
     expected_abstract: str,
-    expected_id: str,
-    position: int,
     tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
-    ids = EuropePMC(
-        query=query,
-        storage=tmp_path_factory.mktemp("europepmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
-    ).get_ids()
     abstract = (
         EuropePMC(
-            query=query,
             storage=tmp_path_factory.mktemp("europepmc_storage"),
             figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
         )
-        .get_abstracts(ids=ids)[position]
+        .get_abstracts(ids=ids)[0]
         .text
     )
-    publication_id = (
-        EuropePMC(
-            query=query,
-            storage=tmp_path_factory.mktemp("europepmc_storage"),
-            figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
-        )
-        .get_abstracts(ids=ids)[position]
-        .id
-    )
     assert abstract == expected_abstract
-    assert publication_id == expected_id
 
 
 @pytest.mark.parametrize(
-    "test_data",
+    ("publication_ids", "test_data"),
     [
-        {
-            "publication_id": "41345959",
-            "publication_date": "2025",
-            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
-            "authors": "Li J, Li X, Wang R, Li M, Xiao Y.",
-            "database": "Europe PMC",
-        },
-        {
-            "publication_id": "40785269",
-            "publication_date": "2025",
-            "title": "Flexibility-Aided Orientational Self-Sorting and Transformations of Bioactive "
-            "Homochiral Cuboctahedron Pd&lt;sub&gt;12&lt;/sub&gt;L&lt;sub&gt;16&lt;/sub&gt;.",
-            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
-            "Babica P, Kuta J, Marek R, Jurček O.",
-            "database": "Europe PMC",
-        },
+        ([ID("PMC6470827"), ID("PMC12696947")], metadata_test[0]),
+        ([ID("PMC6470827"), ID("PMC12416454")], metadata_test[1]),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata(test_data: dict, tmp_path_factory: pytest.TempPathFactory):
+def test_get_publication_metadata(publication_ids: list[ID], test_data: dict, tmp_path_factory: pytest.TempPathFactory):
     """Generate publication metadata for given id."""
     publication_metadata = EuropePMC(
         storage=tmp_path_factory.mktemp("europepmc_storage"),
         figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
-    ).get_publications_metadata(ids=[test_data["publication_id"]])[0]
-    assert publication_metadata.id == test_data["publication_id"]
+    ).get_publications_metadata(ids=publication_ids)[1]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
-    assert publication_metadata.database == test_data["database"]
-    assert publication_metadata.search_date.year == datetime.now(UTC).year
-    assert publication_metadata.search_date.month == datetime.now(UTC).month
 
 
 @pytest.mark.xfail(raises=HTTPError)

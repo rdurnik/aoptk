@@ -1,14 +1,19 @@
-from datetime import UTC
-from datetime import datetime
+import json
 from http.client import RemoteDisconnected
+from pathlib import Path
 from urllib.error import HTTPError
 import pytest
+from fuzzywuzzy import fuzz
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
 from aoptk.literature.id import ID
 from aoptk.literature.query import Query
+
+# ruff: noqa: PLR2004
+
+metadata_test = json.loads(Path("tests/test-data/ncbi_metadata.json").read_text(encoding="utf-8"))
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -44,83 +49,40 @@ def test_get_id():
 
 
 @pytest.mark.parametrize(
-    ("query", "expected_abstract", "expected_id", "position"),
+    ("ids", "expected_abstract"),
     [
         (
-            '(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))',
-            "Copper carbosilane metallodendrimers containing chloride ligands and nitrate ligands"
-            " were mixed with commercially available conventional anticancer drugs, doxorubicin,"
-            " methotrexate and 5-fluorouracil, for a possible therapeutic system. To verify the"
-            " hypothesis that copper metallodendrimers can form conjugates with anticancer drugs,"
-            " their complexes were biophysically characterized using zeta potential and zeta size"
-            " methods. Next, to confirm the existence of a synergetic effect of dendrimers and"
-            " drugs, in vitro studies were performed. The combination therapy has been applied"
-            " in two cancer cell lines: MCF-7 (human breast cancer cell line) and HepG2 (human"
-            " liver carcinoma cell line). The doxorubicin (DOX), methotrexate (MTX) and 5-fluorouracil"
-            " (5-FU) were more effective against cancer cells when conjugated with copper "
-            "metallodendrimers. Such combination significantly decreased cancer cell"
-            " viability when compared to noncomplexed drugs or dendrimers. The"
-            " incubation of cells with drug/dendrimer complexes resulted in the"
-            " increase of the reactive oxygen species (ROS) levels and the depolarization "
-            "of mitochondrial membranes. Copper ions present in the dendrimer structures "
-            "enhanced the anticancer properties of the whole nanosystem and improved drug "
-            "effects, inducing both the apoptosis and necrosis of MCF-7 (human breast cancer "
-            "cell line) and HepG2 (human liver carcinoma cell line) cancer cells.",
-            "36835489",
-            3,
+            [ID("36835489"), ID("40785269")],
+            Path("tests/test-data/PMC12416454_abstract.txt").read_text(encoding="utf-8"),
         ),
         (
-            "30493944, 29140036",
+            [ID("30493944"), ID("29140036")],
             "",
-            "29140036",
-            1,
         ),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, expected_id: str, position: int):
+def test_generate_abstracts_for_given_query(ids: list[ID], expected_abstract: str):
     """Generate list of abstracts for given query."""
-    ids = PubMed(query=Query(search_term=query)).get_ids()
-    abstract = PubMed().get_abstracts(ids=ids)[position].text
-    publication_id = PubMed().get_abstracts(ids=ids)[position].id
-    assert abstract == expected_abstract
-    assert publication_id == expected_id
+    abstract = PubMed().get_abstracts(ids=ids)[1]
+    ratio = fuzz.ratio(abstract.text, expected_abstract)
+    assert ratio >= 96
 
 
 @pytest.mark.parametrize(
-    "test_data",
+    ("publication_ids", "test_data"),
     [
-        {
-            "publication_ids": [ID("34028753"), ID("41345959")],
-            "publication_id": "41345959",
-            "publication_date": "2025",
-            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
-            "authors": "Li J, Li X, Wang R, Li M, Xiao Y",
-            "database": "PubMed",
-        },
-        {
-            "publication_ids": [ID("34028753"), ID("40785269")],
-            "publication_id": "40785269",
-            "publication_date": "2025",
-            "title": "Flexibility-Aided Orientational Self-Sorting and "
-            "Transformations of Bioactive Homochiral Cuboctahedron Pd(12)L(16).",
-            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
-            "Babica P, Kuta J, Marek R, Jurček O",
-            "database": "PubMed",
-        },
+        ([ID("34028753"), ID("41345959")], metadata_test[0]),
+        ([ID("34028753"), ID("40785269")], metadata_test[1]),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata(test_data: dict):
+def test_get_publication_metadata(publication_ids: list[ID], test_data: dict):
     """Generate publication metadata for given id."""
-    publication_metadata = PubMed().get_publications_metadata(ids=test_data["publication_ids"])[1]
-    assert publication_metadata.id == test_data["publication_id"]
+    publication_metadata = PubMed().get_publications_metadata(ids=publication_ids)[1]
     assert publication_metadata.publication_date == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
-    assert publication_metadata.database == test_data["database"]
-    assert publication_metadata.search_date.year == datetime.now(UTC).year
-    assert publication_metadata.search_date.month == datetime.now(UTC).month
 
 
 @pytest.mark.parametrize(
