@@ -6,6 +6,7 @@ The toolkit enables users to collect literature from databases such as PubMed Ce
 
 ## Badges
 
+| Badge | Status |
 | :-- | :-- |
 | License | [![github license badge](https://img.shields.io/github/license/rdurnik/aoptk)](https://github.com/rdurnik/aoptk) |
 | Community registries | [![workflow pypi badge](https://img.shields.io/pypi/v/aoptk.svg?colorB=blue)](https://pypi.python.org/project/aoptk/) [![Bioconda](https://anaconda.org/bioconda/aoptk/badges/version.svg)](https://anaconda.org/bioconda/aoptk) |
