@@ -209,3 +209,11 @@ def test_get_id_large_query():
     )
     expected = 10117
     assert actual == pytest.approx(expected, abs=100)
+
+def test_generate_abstracts_multiple_abstracts():
+    """Generate list of abstracts for given query."""
+    ids = PubMed(
+        query=Query(search_term="thioacetamide liver fibrosis cancer")
+    ).get_ids()
+    abstracts = PubMed().get_abstracts(ids=ids)
+    assert len(abstracts) > 150
