@@ -87,7 +87,6 @@ def test_generate_abstracts_for_given_query(query: str, expected_abstract: str, 
     assert publication_id == expected_id
 
 
-# TEST THE SECOND PUBLICATION INSTEAD, INPUT A LIST
 @pytest.mark.parametrize(
     "test_data",
     [
