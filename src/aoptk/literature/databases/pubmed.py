@@ -3,6 +3,7 @@ import os
 from datetime import UTC
 from datetime import datetime
 from itertools import chain
+from typing import Any
 from Bio import Entrez
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.databases.ncbi import NCBI
@@ -66,18 +67,18 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         records = NCBI(database="pubmed").get_publications_metadata_records(ids)
         return self._parse_pubmed_metadata_records(records)
 
-    def _parse_pubmed_metadata_records(self, records: dict[str, list]) -> list[PublicationMetadata]:
+    def _parse_pubmed_metadata_records(self, records: list[list[dict[str, Any]]]) -> list[PublicationMetadata]:
         """Parse PubMed metadata records and return a list of PublicationMetadata objects.
 
         Args:
-            records (dict): A dictionary containing PubMed article records.
+            records (list): A nested list containing PubMed article records.
         """
-        publications_metadata = []
+        publications_metadata: list[PublicationMetadata] = []
         for article in chain.from_iterable(records):
-            publication_id = ID(article.get("Id", "Unknown"))
+            publication_id = ID(str(article.get("Id", "Unknown")))
             pub_date = article.get("PubDate", None)
             year_publication = pub_date.split()[0] if pub_date else "Unknown"
-            title = article.get("Title", None)
+            title = str(article.get("Title", "Unknown"))
             authors = ", ".join(article.get("AuthorList", []))
             search_date = datetime.now(UTC)
             publications_metadata.append(

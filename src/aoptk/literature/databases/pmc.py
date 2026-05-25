@@ -164,11 +164,11 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
         """
         return [ID(str(pmc_id)[3:]) for pmc_id in pmc_ids]
 
-    def _parse_pmc_metadata_records(self, records: dict[str, list]) -> list[PublicationMetadata]:
+    def _parse_pmc_metadata_records(self, records: list[str]) -> list[PublicationMetadata]:
         """Parse PMC metadata records and return a list of PublicationMetadata objects.
 
         Args:
-            records (dict): A dictionary containing PMC article records.
+            records (list): A list of PMC XML summary payloads.
         """
         publications_metadata: list[PublicationMetadata] = []
 
