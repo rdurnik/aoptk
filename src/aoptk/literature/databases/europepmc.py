@@ -1,8 +1,6 @@
 from __future__ import annotations
 import xml.etree.ElementTree as ET
 import zipfile
-from datetime import UTC
-from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
 import pandas as pd
@@ -15,7 +13,10 @@ from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
+from aoptk.literature.id import PMCID
+from aoptk.literature.id import PMID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.publication_metadata import PublicationMetadata
@@ -243,19 +244,24 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         results = json_data.get("resultList", {}).get("result", [])
 
         if results:
-            publication_id = ID(results[0].get("id"))
-            publication_date = results[0].get("pubYear") or "Unknown"
-            title = results[0].get("title")
-            authors = results[0].get("authorString", "")
-            database = "Europe PMC"
-            search_date = datetime.now(UTC)
+            pmcid = results[0].get("pmcid", None)
+            pmid = results[0].get("pmid", None)
+            doi = results[0].get("doi", None)
+            if not publication_id:
+                return None
+            if year := results[0].get("pubYear", None):
+                year = int(year)
+            title = results[0].get("title", None)
+            if authors := results[0].get("authorString", None):
+                authors = [author.strip().rstrip(".") for author in authors.split(",") if author.strip()]
             return PublicationMetadata(
-                id=publication_id,
-                publication_date=publication_date,
+                id=ID(publication_id),
+                pmcid=PMCID(pmcid),
+                pmid=PMID(pmid),
+                doi=DOI(doi),
+                year=year,
                 title=title,
                 authors=authors,
-                database=database,
-                search_date=search_date,
             )
         return None
 
