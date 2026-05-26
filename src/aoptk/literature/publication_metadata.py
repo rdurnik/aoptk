@@ -30,5 +30,5 @@ class PublicationMetadata:
     authors: list[str] | None = None
     journal: str | None = None
 
-    def __str__(self) -> str:
-        return self.title
+    def __str__(self) -> ID:
+        return self.id

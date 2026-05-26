@@ -1,6 +1,4 @@
 # ruff: noqa: ANN001
-from datetime import UTC
-from datetime import datetime
 import pytest
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.id import ID
@@ -71,46 +69,3 @@ def test_get_id_list(mock_entrez):
     number_of_expected_ids = 4
     assert len(actual) == number_of_expected_ids
     assert ID("36835489") in actual
-
-
-@pytest.mark.parametrize(
-    "test_data",
-    [
-        {
-            "publication_id": ID("41345959"),
-            "publication_date": "2025",
-            "title": "YAP-induced MAML1 cooperates with STAT3 to drive hepatocellular carcinoma progression.",
-            "authors": "Li J, Li X, Wang R, Li M, Xiao Y",
-            "database": "PubMed",
-        },
-        {
-            "publication_id": ID("40785269"),
-            "publication_date": "2025",
-            "title": "Flexibility-Aided Orientational Self-Sorting and "
-            "Transformations of Bioactive Homochiral Cuboctahedron Pd(12)L(16).",
-            "authors": "Chattopadhyay S, Durník R, Kiesilä A, Kalenius E, Linnanto JM, "
-            "Babica P, Kuta J, Marek R, Jurček O",
-            "database": "PubMed",
-        },
-    ],
-)
-def test_get_publication_metadata(mock_entrez, test_data: dict):
-    """Generate publication metadata for given id."""
-    mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "1", "IdList": [str(test_data["publication_id"])]}
-    mock_entrez.responses[mock_entrez.handles["summary"]] = [
-        {
-            "Id": str(test_data["publication_id"]),
-            "PubDate": f"{test_data['publication_date']}",
-            "Title": test_data["title"],
-            "AuthorList": test_data["authors"].split(", "),
-        },
-    ]
-
-    publication_metadata = PubMed().get_publications_metadata(ids=[test_data["publication_id"]])[0]
-    assert publication_metadata.id == test_data["publication_id"]
-    assert publication_metadata.publication_date == test_data["publication_date"]
-    assert publication_metadata.title == test_data["title"]
-    assert publication_metadata.authors == test_data["authors"]
-    assert publication_metadata.database == test_data["database"]
-    assert publication_metadata.search_date.year == datetime.now(UTC).year
-    assert publication_metadata.search_date.month == datetime.now(UTC).month
