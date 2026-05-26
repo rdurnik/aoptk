@@ -170,6 +170,8 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
             root = ET.fromstring(record)
             for article in root.findall(".//DocSum"):
                 pmcid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmcid']")
+                if not pmcid:
+                    continue
                 pmid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmid']")
                 doi = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='doi']")
                 if pub_date := article.findtext("./Item[@Name='PubDate']"):
