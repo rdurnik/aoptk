@@ -1,7 +1,5 @@
 from __future__ import annotations
 import os
-from datetime import UTC
-from datetime import datetime
 from itertools import chain
 from typing import Any
 from Bio import Entrez
@@ -10,7 +8,10 @@ from aoptk.literature.databases.ncbi import NCBI
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
+from aoptk.literature.id import PMCID
+from aoptk.literature.id import PMID
 from aoptk.literature.publication_metadata import PublicationMetadata
 from aoptk.literature.query import Query
 
@@ -75,20 +76,24 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
         """
         publications_metadata: list[PublicationMetadata] = []
         for article in chain.from_iterable(records):
-            publication_id = ID(str(article.get("Id", "Unknown")))
-            pub_date = article.get("PubDate", None)
-            year_publication = pub_date.split()[0] if pub_date else "Unknown"
-            title = str(article.get("Title", "Unknown"))
-            authors = ", ".join(article.get("AuthorList", []))
-            search_date = datetime.now(UTC)
+            pmid = article.get("Id", None)
+            if pmid is None:
+                continue
+            if pub_date := article.get("PubDate", None):
+                year = int(pub_date.split()[0])
+            pmcid = article.get("ArticleIds", None).get("pmc", None)
+            doi = article.get("DOI", None)
+            title = article.get("Title", None)
+            authors = article.get("AuthorList", None)
             publications_metadata.append(
                 PublicationMetadata(
-                    id=publication_id,
-                    publication_date=year_publication,
+                    id=ID(pmid),
+                    pmid=PMID(pmid),
+                    pmcid=PMCID(pmcid),
+                    doi=DOI(doi),
+                    year=year,
                     title=title,
                     authors=authors,
-                    database="PubMed",
-                    search_date=search_date,
                 ),
             )
         return publications_metadata
