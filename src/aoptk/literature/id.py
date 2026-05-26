@@ -27,7 +27,7 @@ class PMCID(ID):
         super().__init__(id_str)
 
     def __str__(self) -> str:
-        return f"PMCID: {self.id_str}"
+        return f"{self.id_str}"
 
 
 class PMID(ID):
@@ -37,7 +37,7 @@ class PMID(ID):
         super().__init__(id_str)
 
     def __str__(self) -> str:
-        return f"PMID: {self.id_str}"
+        return f"{self.id_str}"
 
 
 class DOI(ID):
@@ -47,4 +47,4 @@ class DOI(ID):
         super().__init__(id_str)
 
     def __str__(self) -> str:
-        return f"DOI: {self.id_str}"
+        return f"{self.id_str}"

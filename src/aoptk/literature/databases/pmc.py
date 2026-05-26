@@ -1,8 +1,6 @@
 import json
 import os
 import xml.etree.ElementTree as ET
-from datetime import UTC
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -18,7 +16,10 @@ from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
+from aoptk.literature.id import PMCID
+from aoptk.literature.id import PMID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
 from aoptk.literature.publication_metadata import PublicationMetadata
@@ -168,30 +169,24 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
         for record in records:
             root = ET.fromstring(record)
             for article in root.findall(".//DocSum"):
-                pmcid = article.findtext("./Item[@Name='pmcid']")
-                publication_id = ID(pmcid or f"PMC{article.findtext('./Id', 'Unknown')}")
-
-                pub_date = article.findtext("./Item[@Name='PubDate']") or "Unknown"
-                year_publication = pub_date.split()[0] if pub_date != "Unknown" else "Unknown"
-                title = article.findtext("./Item[@Name='Title']") or "Unknown"
-                authors = ", ".join(
-                    author.text
-                    for author in article.findall("./Item[@Name='AuthorList']/Item[@Name='Author']")
-                    if author.text
-                )
-
-                search_date = datetime.now(UTC)
+                pmcid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmcid']")
+                pmid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmid']")
+                doi = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='doi']")
+                if pub_date := article.findtext("./Item[@Name='PubDate']"):
+                    year = int(pub_date.split()[0])
+                title = article.findtext("./Item[@Name='Title']")
+                authors = [author.text for author in article.findall("./Item[@Name='AuthorList']/Item[@Name='Author']")]
                 publications_metadata.append(
                     PublicationMetadata(
-                        id=publication_id,
-                        publication_date=year_publication,
+                        id=ID(pmcid),
+                        pmcid=PMCID(pmcid),
+                        pmid=PMID(pmid),
+                        doi=DOI(doi),
+                        year=year,
                         title=title,
                         authors=authors,
-                        database="PMC",
-                        search_date=search_date,
                     ),
                 )
-
         return publications_metadata
 
     def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
