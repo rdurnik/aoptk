@@ -8,7 +8,10 @@ from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
+from aoptk.literature.id import PMCID
+from aoptk.literature.id import PMID
 from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
@@ -80,9 +83,13 @@ def test_generate_abstracts_for_given_query(ids: list[ID], expected_abstract: st
 def test_get_publication_metadata(publication_ids: list[ID], test_data: dict):
     """Generate publication metadata for given id."""
     publication_metadata = PubMed().get_publications_metadata(ids=publication_ids)[1]
-    assert publication_metadata.publication_date == test_data["publication_date"]
+    assert publication_metadata.year == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
+    assert publication_metadata.id == ID(publication_ids[1])
+    assert publication_metadata.pmcid == PMCID(test_data["pmcid"])
+    assert publication_metadata.pmid == PMID(test_data["pmid"])
+    assert publication_metadata.doi == DOI(test_data["doi"])
 
 
 @pytest.mark.parametrize(
