@@ -79,18 +79,18 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             pmid = article.get("Id", None)
             if pmid is None:
                 continue
+            pmcid = article.get("ArticleIds", {}).get("pmc", None)
+            doi = article.get("DOI", None)
             if pub_date := article.get("PubDate", None):
                 year = int(pub_date.split()[0])
-            pmcid = article.get("ArticleIds", None).get("pmc", None)
-            doi = article.get("DOI", None)
             title = article.get("Title", None)
             authors = article.get("AuthorList", None)
             publications_metadata.append(
                 PublicationMetadata(
                     id=ID(pmid),
-                    pmid=PMID(pmid),
-                    pmcid=PMCID(pmcid),
-                    doi=DOI(doi),
+                    pmid=PMID(pmid) if pmid else None,
+                    pmcid=PMCID(pmcid) if pmcid else None,
+                    doi=DOI(doi) if doi else None,
                     year=year,
                     title=title,
                     authors=authors,

@@ -125,7 +125,7 @@ def test_get_publication_metadata(publication_ids: list[ID], test_data: dict, tm
     assert publication_metadata.year == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
-    assert publication_metadata.id == ID(publication_ids[1])
+    assert publication_metadata.id == publication_ids[1]
     assert publication_metadata.pmcid == PMCID(test_data["pmcid"])
     assert publication_metadata.pmid == PMID(test_data["pmid"])
     assert publication_metadata.doi == DOI(test_data["doi"])

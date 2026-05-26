@@ -247,18 +247,16 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             pmcid = results[0].get("pmcid", None)
             pmid = results[0].get("pmid", None)
             doi = results[0].get("doi", None)
-            if not publication_id:
-                return None
             if year := results[0].get("pubYear", None):
                 year = int(year)
             title = results[0].get("title", None)
             if authors := results[0].get("authorString", None):
                 authors = [author.strip().rstrip(".") for author in authors.split(",") if author.strip()]
             return PublicationMetadata(
-                id=ID(publication_id),
-                pmcid=PMCID(pmcid),
-                pmid=PMID(pmid),
-                doi=DOI(doi),
+                id=publication_id,
+                pmcid=PMCID(pmcid) if pmcid else None,
+                pmid=PMID(pmid) if pmid else None,
+                doi=DOI(doi) if doi else None,
                 year=year,
                 title=title,
                 authors=authors,

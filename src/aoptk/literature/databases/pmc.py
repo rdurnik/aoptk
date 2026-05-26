@@ -169,21 +169,24 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
         for record in records:
             root = ET.fromstring(record)
             for article in root.findall(".//DocSum"):
-                pmcid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmcid']")
-                if not pmcid:
+                if not (pmcid := article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmcid']")):
                     continue
                 pmid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmid']")
                 doi = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='doi']")
                 if pub_date := article.findtext("./Item[@Name='PubDate']"):
                     year = int(pub_date.split()[0])
                 title = article.findtext("./Item[@Name='Title']")
-                authors = [author.text for author in article.findall("./Item[@Name='AuthorList']/Item[@Name='Author']")]
+                authors = [
+                    author.text
+                    for author in article.findall("./Item[@Name='AuthorList']/Item[@Name='Author']")
+                    if author.text
+                ]
                 publications_metadata.append(
                     PublicationMetadata(
                         id=ID(pmcid),
                         pmcid=PMCID(pmcid),
-                        pmid=PMID(pmid),
-                        doi=DOI(doi),
+                        pmid=PMID(pmid) if pmid else None,
+                        doi=DOI(doi) if doi else None,
                         year=year,
                         title=title,
                         authors=authors,
