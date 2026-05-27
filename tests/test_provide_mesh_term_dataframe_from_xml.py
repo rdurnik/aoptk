@@ -6,7 +6,7 @@ from aoptk.normalization.provide_normalization_dataframe import ProvideNormaliza
 @pytest.fixture
 def provider() -> ProvideMeshTermDataframeFromXML:
     """Fixture providing a ProvideMeshTermDataframeFromXML instance."""
-    return ProvideMeshTermDataframeFromXML(database_path="tests/test-data/test_mesh_term_database.xml")
+    return ProvideMeshTermDataframeFromXML(database_path="tests/test_data/test_mesh_term_database.xml")
 
 
 def test_can_create():

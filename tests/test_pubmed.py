@@ -16,7 +16,7 @@ from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
 
-metadata_test = json.loads(Path("tests/test-data/ncbi_metadata.json").read_text(encoding="utf-8"))
+metadata_test = json.loads(Path("tests/test_data/ncbi_metadata.json").read_text(encoding="utf-8"))
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -56,7 +56,7 @@ def test_get_id():
     [
         (
             [ID("36835489"), ID("40785269")],
-            Path("tests/test-data/PMC12416454_abstract.txt").read_text(encoding="utf-8"),
+            Path("tests/test_data/PMC12416454_abstract.txt").read_text(encoding="utf-8"),
         ),
         (
             [ID("30493944"), ID("29140036")],

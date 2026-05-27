@@ -18,7 +18,7 @@ from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
 
-metadata_test = json.loads(Path("tests/test-data/europepmc_metadata.json").read_text(encoding="utf-8"))
+metadata_test = json.loads(Path("tests/test_data/europepmc_metadata.json").read_text(encoding="utf-8"))
 
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):
@@ -82,7 +82,7 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
     [
         (
             [ID("30784932")],
-            Path("tests/test-data/30784932_abstract.txt").read_text(encoding="utf-8"),
+            Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"),
         ),
         (
             [ID("PMC5596756")],
