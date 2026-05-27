@@ -15,14 +15,14 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
 from aoptk.literature.id import PMID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
-from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.metadata import Metadata
 from aoptk.literature.query import Query
 from aoptk.literature.utils import convert_image_format
 from aoptk.literature.utils import remove_pmc_prefix
@@ -30,7 +30,7 @@ from aoptk.literature.utils import remove_pmc_prefix
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
+class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
     """Class to get data from PMC based on a query."""
 
     aws_region = "us-east-1"
@@ -149,7 +149,7 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
                 abstracts.append(Abstract(text=abstract_text, id=ID(pmc_id)))
         return abstracts
 
-    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
+    def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
         """Retrieve Publication metadata.
 
         Args:
@@ -158,13 +158,13 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
         records = NCBI(database="pmc").get_publications_metadata_records(remove_pmc_prefix(ids))
         return self._parse_pmc_metadata_records(records)
 
-    def _parse_pmc_metadata_records(self, records: list[str]) -> list[PublicationMetadata]:
+    def _parse_pmc_metadata_records(self, records: list[str]) -> list[Metadata]:
         """Parse PMC metadata records and return a list of PublicationMetadata objects.
 
         Args:
             records (list): A list of PMC XML summary payloads.
         """
-        publications_metadata: list[PublicationMetadata] = []
+        publications_metadata: list[Metadata] = []
 
         for record in records:
             root = ET.fromstring(record)
@@ -182,7 +182,7 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetPublicationMetadata):
                     if author.text
                 ]
                 publications_metadata.append(
-                    PublicationMetadata(
+                    Metadata(
                         id=ID(pmcid),
                         pmcid=PMCID(pmcid),
                         pmid=PMID(pmid) if pmid else None,

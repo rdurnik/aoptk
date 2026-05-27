@@ -12,20 +12,20 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
 from aoptk.literature.id import PMID
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
-from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.metadata import Metadata
 from aoptk.literature.query import Query
 from aoptk.literature.utils import convert_image_format
 from aoptk.literature.utils import is_europepmc_id
 
 
-class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetadata):
+class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
     """Class to get data from Europe PMC based on a query."""
 
     page_size = 1000
@@ -134,7 +134,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             if publication is not None
         ]
 
-    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
+    def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
         """Retrieve Publication metadata."""
         return [
             publication_metadata
@@ -232,7 +232,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
         response.raise_for_status()
         return response.json()
 
-    def _get_publication_metadata(self, publication_id: ID) -> PublicationMetadata | None:
+    def _get_publication_metadata(self, publication_id: ID) -> Metadata | None:
         """Return abstract from Europe PMC for a given publication ID.
 
         Args:
@@ -252,7 +252,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetPublicationMetada
             title = results[0].get("title", None)
             if authors := results[0].get("authorString", None):
                 authors = [author.strip().rstrip(".") for author in authors.split(",") if author.strip()]
-            return PublicationMetadata(
+            return Metadata(
                 id=publication_id,
                 pmcid=PMCID(pmcid) if pmcid else None,
                 pmid=PMID(pmid) if pmid else None,

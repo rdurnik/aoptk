@@ -7,7 +7,7 @@ from aoptk.literature.id import PMID
 
 
 @dataclass
-class PublicationMetadata:
+class Metadata:
     """Data structure representing a publication.
 
     Attributes:
