@@ -8,7 +8,7 @@ from aoptk.literature.utils import remove_pmc_prefix
 
 def test_convert_image_format(tmp_path: Path):
     """Test converting images to a specified format."""
-    shutil.copytree(Path("tests/test_figures"), tmp_path, dirs_exist_ok=True)
+    shutil.copytree(Path("tests/test_data/test_figures"), tmp_path, dirs_exist_ok=True)
     actual = convert_image_format(list(tmp_path.iterdir()), target_format="png")
     expected = [tmp_path / "gjic.png", tmp_path / "liver_fibrosis.png"]
     total_size = sum(f.stat().st_size for f in tmp_path.iterdir())
