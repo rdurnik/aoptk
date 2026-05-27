@@ -219,7 +219,7 @@ def test_extract_text_from_pdf_image():
     [
         (
             "Gap junction intracellular communication was studied in this study.",
-            ["tests/test_figures/gjic.jpeg"],
+            ["tests/test_data/test_figures/gjic.jpeg"],
             ["dibutyl phthalate"],
         ),
     ],
@@ -249,7 +249,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
 def test_convert_image_to_text():
     """Test that convert_image_to_text method converts an image to text."""
     actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image(
-        "tests/test_figures/gjic.jpeg",
+        "tests/test_data/test_figures/gjic.jpeg",
         text="These images are about gap junction intercellular communication.",
     )
     assert "gjic" in actual.lower()

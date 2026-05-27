@@ -65,7 +65,7 @@ def test_extract_id(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting publication ID from user-provided PDF."""
     actual = (
         PymupdfParser(
-            [PDF(Path("tests/test_pdfs/test_pdf.pdf"))],
+            [PDF(Path("tests/test_data/test_pdfs/test_pdf.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
@@ -142,7 +142,7 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF(Path("tests/test_pdfs/PMC12416454_corrupted.pdf"))],
+            pdfs=[PDF(Path("tests/test_data/test_pdfs/PMC12416454_corrupted.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
             text_generation=TextGenerationAPI(model="redhatai-scout"),
         )
@@ -157,7 +157,7 @@ def test_extract_full_text_from_corrupted_pdf_no_llm(tmp_path_factory: pytest.Te
     """Test extracting full text from a corrupted PDF."""
     actual = (
         PymupdfParser(
-            pdfs=[PDF(Path("tests/test_pdfs/PMC12416454_corrupted.pdf"))],
+            pdfs=[PDF(Path("tests/test_data/test_pdfs/PMC12416454_corrupted.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
         )
         .get_publications()[0]
