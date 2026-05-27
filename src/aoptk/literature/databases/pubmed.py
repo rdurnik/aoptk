@@ -7,18 +7,18 @@ from aoptk.literature.abstract import Abstract
 from aoptk.literature.databases.ncbi import NCBI
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
 from aoptk.literature.id import PMID
-from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.metadata import Metadata
 from aoptk.literature.query import Query
 
 Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class PubMed(GetAbstract, GetID, GetPublicationMetadata):
+class PubMed(GetAbstract, GetID, GetMetadata):
     """Class to get data from PubMed based on a query."""
 
     max_retries = 5
@@ -63,18 +63,18 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             abstracts.append(Abstract(text=abstract_text, id=pmid))
         return abstracts
 
-    def get_publications_metadata(self, ids: list[ID]) -> list[PublicationMetadata]:
+    def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
         """Retrieve Publication metadata."""
         records = NCBI(database="pubmed").get_publications_metadata_records(ids)
         return self._parse_pubmed_metadata_records(records)
 
-    def _parse_pubmed_metadata_records(self, records: list[list[dict[str, Any]]]) -> list[PublicationMetadata]:
+    def _parse_pubmed_metadata_records(self, records: list[list[dict[str, Any]]]) -> list[Metadata]:
         """Parse PubMed metadata records and return a list of PublicationMetadata objects.
 
         Args:
             records (list): A nested list containing PubMed article records.
         """
-        publications_metadata: list[PublicationMetadata] = []
+        publications_metadata: list[Metadata] = []
         for article in chain.from_iterable(records):
             pmid = article.get("Id", None)
             if pmid is None:
@@ -86,7 +86,7 @@ class PubMed(GetAbstract, GetID, GetPublicationMetadata):
             title = article.get("Title", None)
             authors = article.get("AuthorList", None)
             publications_metadata.append(
-                PublicationMetadata(
+                Metadata(
                     id=ID(pmid),
                     pmid=PMID(pmid) if pmid else None,
                     pmcid=PMCID(pmcid) if pmcid else None,

@@ -9,7 +9,7 @@ from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
@@ -36,7 +36,7 @@ def test_implements_interface():
     assert issubclass(EuropePMC, GetPDF)
     assert issubclass(EuropePMC, GetAbstract)
     assert issubclass(EuropePMC, GetID)
-    assert issubclass(EuropePMC, GetPublicationMetadata)
+    assert issubclass(EuropePMC, GetMetadata)
 
 
 @pytest.mark.parametrize(

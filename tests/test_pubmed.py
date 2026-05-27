@@ -7,7 +7,7 @@ from fuzzywuzzy import fuzz
 from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
@@ -30,7 +30,7 @@ def test_implements_interface():
     """PubMed implements GetAbstract interface."""
     assert issubclass(PubMed, GetAbstract)
     assert issubclass(PubMed, GetID)
-    assert issubclass(PubMed, GetPublicationMetadata)
+    assert issubclass(PubMed, GetMetadata)
 
 
 @pytest.mark.xfail(raises=HTTPError)

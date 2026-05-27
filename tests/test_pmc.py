@@ -9,7 +9,7 @@ from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
@@ -35,7 +35,7 @@ def test_implements_interface():
     assert issubclass(PMC, GetPublication)
     assert issubclass(PMC, GetPDF)
     assert issubclass(PMC, GetAbstract)
-    assert issubclass(PMC, GetPublicationMetadata)
+    assert issubclass(PMC, GetMetadata)
 
 
 def test_get_publication_data_not_empty(tmp_path_factory: pytest.TempPathFactory):
