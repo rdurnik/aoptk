@@ -21,7 +21,7 @@ class ID:
 
 
 class PMCID(ID):
-    """PubMed Central ID."""
+    """PubMed Central or Europe PMC ID."""
 
     def __init__(self, id_str: str):
         super().__init__(id_str)
