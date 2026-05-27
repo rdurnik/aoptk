@@ -11,8 +11,8 @@ from aoptk.literature.id import ID
     params=[
         {
             "id": ID("PMC12416454"),
-            "expected_abstract": Path("tests/test-data/PMC12416454_abstract.txt").read_text(encoding="utf-8"),
-            "full_text": Path("tests/test-data/PMC12416454.txt").read_text(encoding="utf-8"),
+            "expected_abstract": Path("tests/test_data/PMC12416454_abstract.txt").read_text(encoding="utf-8"),
+            "full_text": Path("tests/test_data/PMC12416454.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12416454/figure1.png",
                 "tests/figure_storage/PMC12416454/figure2.png",
@@ -53,8 +53,8 @@ from aoptk.literature.id import ID
         },
         {
             "id": ID("PMC12231352"),
-            "expected_abstract": Path("tests/test-data/PMC12231352_abstract.txt").read_text(encoding="utf-8"),
-            "full_text": Path("tests/test-data/PMC12231352.txt").read_text(encoding="utf-8"),
+            "expected_abstract": Path("tests/test_data/PMC12231352_abstract.txt").read_text(encoding="utf-8"),
+            "full_text": Path("tests/test_data/PMC12231352.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12231352/figure1.png",
                 "tests/figure_storage/PMC12231352/figure2.png",
@@ -82,8 +82,8 @@ from aoptk.literature.id import ID
         },
         {
             "id": ID("PMC12181427"),
-            "expected_abstract": Path("tests/test-data/PMC12181427_abstract.txt").read_text(encoding="utf-8"),
-            "full_text": Path("tests/test-data/PMC12181427.txt").read_text(encoding="utf-8"),
+            "expected_abstract": Path("tests/test_data/PMC12181427_abstract.txt").read_text(encoding="utf-8"),
+            "full_text": Path("tests/test_data/PMC12181427.txt").read_text(encoding="utf-8"),
             "figures": [
                 "tests/figure_storage/PMC12181427/figure1.png",
                 "tests/figure_storage/PMC12181427/figure10.png",
