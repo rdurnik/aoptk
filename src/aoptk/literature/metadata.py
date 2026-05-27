@@ -44,10 +44,10 @@ class Metadata:
 
     def __hash__(self) -> int:
         """Hash based on the identifier used by __eq__ for use in sets/dicts."""
-        if self.doi is not None:
+        if self.doi:
             return hash(self.doi)
-        if self.pmid is not None:
+        if self.pmid:
             return hash(self.pmid)
-        if self.pmcid is not None:
+        if self.pmcid:
             return hash(self.pmcid)
         return hash(self.id)
