@@ -7,9 +7,9 @@ from fuzzywuzzy import fuzz
 from requests import HTTPError
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.get_abstract import GetAbstract
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
-from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
