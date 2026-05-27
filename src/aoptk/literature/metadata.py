@@ -18,7 +18,6 @@ class Metadata:
         year (str | None): Year of publication.
         title (str | None): Title of the publication.
         authors (list[str] | None): Authors of the publication.
-        journal (str | None): Journal in which the publication was published.
     """
 
     id: ID
@@ -28,7 +27,27 @@ class Metadata:
     year: int | None = None
     title: str | None = None
     authors: list[str] | None = None
-    journal: str | None = None
 
     def __str__(self) -> ID:
         return self.id
+
+    def __eq__(self, other: object) -> bool:
+        """Compare Metadata by their identifiers."""
+        if not isinstance(other, Metadata):
+            return False
+        for attr in ("id", "doi", "pmid", "pmcid"):
+            a = getattr(self, attr)
+            b = getattr(other, attr)
+            if a is not None and b is not None and a == b:
+                return True
+        return False
+
+    def __hash__(self) -> int:
+        """Hash based on the identifier used by __eq__ for use in sets/dicts."""
+        if self.doi is not None:
+            return hash(self.doi)
+        if self.pmid is not None:
+            return hash(self.pmid)
+        if self.pmcid is not None:
+            return hash(self.pmcid)
+        return hash(self.id)
