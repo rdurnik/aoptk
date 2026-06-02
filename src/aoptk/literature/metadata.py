@@ -33,13 +33,20 @@ class Metadata:
 
     def __eq__(self, other: object) -> bool:
         """Compare Metadata by their identifiers."""
-        if not isinstance(other, Metadata):
+        attributes_to_check = ("id", "doi", "pmid", "pmcid")
+        if isinstance(other, Metadata):
+            for attr in attributes_to_check:
+                a = getattr(self, attr)
+                b = getattr(other, attr)
+                if a is not None and b is not None and a == b:
+                    return True
             return False
-        for attr in ("id", "doi", "pmid", "pmcid"):
-            a = getattr(self, attr)
-            b = getattr(other, attr)
-            if a is not None and b is not None and a == b:
-                return True
+
+        if isinstance(other, ID):
+            for attr in attributes_to_check:
+                a = getattr(self, attr)
+                if a is not None and a == other:
+                    return True
         return False
 
     def __hash__(self) -> int:
