@@ -1,4 +1,6 @@
 from __future__ import annotations
+import os
+from urllib.error import HTTPError
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
@@ -61,14 +63,14 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
 
         self._session = requests.Session()
         self._session.headers.update(self.headers)
-        retry_strategy = Retry(
+        self.retry_strategy = Retry(
             total=10,
             backoff_factor=3,
             status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["GET", "POST"],
         )
-        adapter = HTTPAdapter(max_retries=retry_strategy)
-        self._session.mount("https://", adapter)
+        self.adapter = HTTPAdapter(max_retries=self.retry_strategy)
+        self._session.mount("https://", self.adapter)
 
     def build_search_term(self, query: Query) -> str:
         """Convert Query to Europe PMC search syntax."""
@@ -84,6 +86,19 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         if query.licensing:
             search_term += self._get_license_filter(query.licensing)
         return search_term
+    
+    def update_retry_strategy(self, strategy: Retry):
+        """Update the retry strategy - allows customizing retry behaviour.
+
+        This function updates the adapter and the session to ensure the new
+        retry strategy is used for future requests.
+
+        Args:
+            strategy (Retry): Strategy to use.
+        """
+        self.retry_strategy = strategy
+        self.adapter = HTTPAdapter(max_retries=self.retry_strategy)
+        self._session.mount("https://", self.adapter)
 
     def _get_license_filter(self, licensing: str) -> str:
         """Get the license filter string for a given licensing type.
@@ -108,7 +123,19 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
 
     def get_pdfs(self, ids: list[ID]) -> list[PDF]:
         """Retrieve PDFs."""
-        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
+        pdfs = []
+        pmc_ids = filter(is_europepmc_id, ids)
+        for publication_id in pmc_ids:
+            try:
+                print(f"Obtaining {publication_id} ...")
+                pdf = self._get_pdf(publication_id)
+                pdfs.append(pdf)
+                print("Done!", os.linesep)
+            except:
+                print("Failed!", os.linesep)
+                continue
+        return pdfs
+        # return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts."""
@@ -160,7 +187,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
 
         return id_list
 
-    def _get_pdf(self, publication_id: ID) -> PDF | None:
+    def _get_pdf(self, publication_id: ID) -> PDF:
         """Retrieve the PDF for a given publication ID.
 
         Args:
@@ -169,15 +196,13 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         Returns:
             PDF | None: The PDF object if successful, None otherwise.
         """
-        if is_europepmc_id(publication_id):
-            response = self._session.get(
-                f"https://europepmc.org/api/getPdf?pmcid={publication_id}",
-                stream=True,
-                timeout=self.timeout,
-            )
-            response.raise_for_status()
-            return self._write_pdf(publication_id, response)
-        return None
+        response = self._session.get(
+            f"https://europepmc.org/api/getPdf?pmcid={publication_id}",
+            stream=True,
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+        return self._write_pdf(publication_id, response)
 
     def _write_pdf(self, publication_id: ID, response: requests.Response) -> PDF:
         """Write the PDF content to a file and return a PDF object.
