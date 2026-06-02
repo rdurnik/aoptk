@@ -85,7 +85,8 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
             [ID("30784932")],
             [
                 Abstract(
-                    text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"), id=ID("30784932"),
+                    text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"),
+                    id=ID("30784932"),
                 ),
             ],
         ),
@@ -97,7 +98,8 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
             [ID("PMC5596756"), ID("30784932")],
             [
                 Abstract(
-                    text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"), id=ID("30784932"),
+                    text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"),
+                    id=ID("30784932"),
                 ),
             ],
         ),
