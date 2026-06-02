@@ -334,3 +334,32 @@ def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
     )
     actual_ids = sut.get_ids()
     assert len(actual_ids) == 0
+
+
+@pytest.mark.parametrize(
+    ("ids", "expected_paths", "expected_number_of_pdfs"),
+    [
+        (
+            [ID("PMC12416454"), ID("PMC8421218")],
+            [
+                Path("tests/test_data/PMC12416454.pdf"),
+                Path("tests/test_data/PMC8421218.pdf"),
+            ],
+            2,
+        ),
+    ],
+)
+@pytest.mark.xfail(raises=HTTPError)
+def test_pdf_file_exists(
+    tmp_path_factory: pytest.TempPathFactory, ids: list[ID], expected_paths: list[Path], expected_number_of_pdfs: int,
+):
+    """Test that an open access PMC PDF can be retrieved and saved."""
+    storage_dir = tmp_path_factory.mktemp("pmc_storage")
+    figure_storage_dir = tmp_path_factory.mktemp("pmc_storage_figures")
+    EuropePMC(storage=storage_dir, figure_storage=figure_storage_dir).get_pdfs(ids=ids)
+    assert len(list(storage_dir.glob("*.pdf"))) == expected_number_of_pdfs
+    for expected in expected_paths:
+        filepath = storage_dir / expected.name
+        assert filepath.exists()
+        assert filepath.is_file()
+        assert filepath.stat().st_size > 0
