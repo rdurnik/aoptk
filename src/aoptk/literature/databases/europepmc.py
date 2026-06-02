@@ -42,7 +42,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         "Sec-Fetch-Site": "none",
         "Cache-Control": "max-age=0",
     }
-    image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff")
+    image_extensions = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif")
     unified_image_format = "png"
 
     def __init__(
