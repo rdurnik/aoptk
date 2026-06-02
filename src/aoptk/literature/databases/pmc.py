@@ -42,7 +42,7 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
     bucket = "pmc-oa-opendata"
     paginator = s3.get_paginator("list_objects_v2")
 
-    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
+    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif")
     unified_image_format = "png"
 
     def __init__(
