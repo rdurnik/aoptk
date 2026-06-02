@@ -173,8 +173,7 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
                     continue
                 pmid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmid']")
                 doi = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='doi']")
-                if pub_date := article.findtext("./Item[@Name='PubDate']"):
-                    year = int(pub_date.split()[0])
+                year = int(pub_date.split()[0]) if (pub_date := article.findtext("./Item[@Name='PubDate']")) else None
                 title = article.findtext("./Item[@Name='Title']")
                 authors = [
                     author.text
