@@ -55,6 +55,8 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
             query = Query(search_term="queryblank")
         self.search_term = self.build_search_term(query)
 
+        self._ncbi = NCBI(database="pmc")
+
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
 
@@ -124,12 +126,12 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
 
     def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
-        ids = NCBI(database="pmc").get_ids(self.search_term)
+        ids = self._ncbi.get_ids(self.search_term)
         return [ID(f"PMC{pmcid}") for pmcid in ids]
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the list of IDs."""
-        records = NCBI(database="pmc").get_abstract_records(ids)
+        records = self._ncbi.get_abstract_records(ids)
         return self._parse_pmc_abstract_records(records)
 
     def _parse_pmc_abstract_records(self, records: list[Any]) -> list[Abstract]:
@@ -155,7 +157,7 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
         Args:
             ids (list[ID]): A list of publication IDs for which to retrieve metadata.
         """
-        records = NCBI(database="pmc").get_publications_metadata_records(remove_pmc_prefix(ids))
+        records = self._ncbi.get_publications_metadata_records(remove_pmc_prefix(ids))
         return self._parse_pmc_metadata_records(records)
 
     def _parse_pmc_metadata_records(self, records: list[str]) -> list[Metadata]:
