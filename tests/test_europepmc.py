@@ -351,7 +351,10 @@ def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
 )
 @pytest.mark.xfail(raises=HTTPError)
 def test_pdf_file_exists(
-    tmp_path_factory: pytest.TempPathFactory, ids: list[ID], expected_paths: list[Path], expected_number_of_pdfs: int,
+    tmp_path_factory: pytest.TempPathFactory,
+    ids: list[ID],
+    expected_paths: list[Path],
+    expected_number_of_pdfs: int,
 ):
     """Test that an open access PMC PDF can be retrieved and saved."""
     storage_dir = tmp_path_factory.mktemp("pmc_storage")
