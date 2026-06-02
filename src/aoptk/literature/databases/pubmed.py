@@ -76,25 +76,23 @@ class PubMed(GetAbstract, GetID, GetMetadata):
         """
         publications_metadata: list[Metadata] = []
         for article in chain.from_iterable(records):
-            pmid = article.get("Id", None)
-            if pmid is None:
-                continue
-            pmcid = article.get("ArticleIds", {}).get("pmc", None)
-            doi = article.get("DOI", None)
-            year = int(pub_date.split()[0]) if (pub_date := article.get("PubDate", None)) else None
-            title = article.get("Title", None)
-            authors = article.get("AuthorList", None)
-            publications_metadata.append(
-                Metadata(
-                    id=ID(pmid),
-                    pmid=PMID(pmid) if pmid else None,
-                    pmcid=PMCID(pmcid) if pmcid else None,
-                    doi=DOI(doi) if doi else None,
-                    year=year,
-                    title=title,
-                    authors=authors,
-                ),
-            )
+            if publication_id := article.get("Id", None):
+                pmcid = article.get("ArticleIds", {}).get("pmc", None)
+                doi = article.get("DOI", None)
+                year = int(pub_date.split()[0]) if (pub_date := article.get("PubDate", None)) else None
+                title = article.get("Title", None)
+                authors = article.get("AuthorList", None)
+                publications_metadata.append(
+                    Metadata(
+                        id=ID(publication_id),
+                        pmid=PMID(publication_id),
+                        pmcid=PMCID(pmcid) if pmcid else None,
+                        doi=DOI(doi) if doi else None,
+                        year=year,
+                        title=title,
+                        authors=authors,
+                    ),
+                )
         return publications_metadata
 
     def get_ids(self) -> list[ID]:
