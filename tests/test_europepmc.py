@@ -14,6 +14,7 @@ from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
 from aoptk.literature.id import PMID
+from aoptk.literature.publication import Abstract
 from aoptk.literature.query import Query
 
 # ruff: noqa: PLR2004
@@ -78,34 +79,42 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
 
 
 @pytest.mark.parametrize(
-    ("ids", "expected_abstract"),
+    ("ids", "expected_abstracts"),
     [
         (
             [ID("30784932")],
-            Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"),
+            [
+                Abstract(
+                    text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"), id=ID("30784932"),
+                ),
+            ],
         ),
         (
             [ID("PMC5596756")],
-            "",
+            [],
+        ),
+        (
+            [ID("PMC5596756"), ID("30784932")],
+            [
+                Abstract(
+                    text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"), id=ID("30784932"),
+                ),
+            ],
         ),
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_given_query(
     ids: list[ID],
-    expected_abstract: str,
+    expected_abstracts: list[Abstract],
     tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
-    abstract = (
-        EuropePMC(
-            storage=tmp_path_factory.mktemp("europepmc_storage"),
-            figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
-        )
-        .get_abstracts(ids=ids)[0]
-        .text
-    )
-    assert abstract == expected_abstract
+    abstracts = EuropePMC(
+        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
+    ).get_abstracts(ids=ids)
+    assert abstracts == expected_abstracts
 
 
 @pytest.mark.parametrize(

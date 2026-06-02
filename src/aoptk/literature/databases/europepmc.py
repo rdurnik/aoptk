@@ -191,7 +191,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
             f.writelines(response.iter_content(chunk_size=8192))
         return PDF(filepath)
 
-    def _get_abstract(self, publication_id: ID) -> Abstract:
+    def _get_abstract(self, publication_id: ID) -> Abstract | None:
         """Return abstract from Europe PMC for a given publication ID.
 
         Args:
@@ -205,9 +205,9 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         json_data = self._call_api(cursor_mark, "core", publication_id)
         results = json_data.get("resultList", {}).get("result", [])
 
-        if results:
-            return Abstract(text=results[0].get("abstractText", ""), id=publication_id)
-        return Abstract(text="", id=publication_id)
+        if text := results[0].get("abstractText", None):
+            return Abstract(text=text, id=publication_id)
+        return None
 
     def _call_api(self, cursor_mark: str, result_type: str, query: str | ID) -> dict:
         """Call the EuropePMC web api to query the search.
