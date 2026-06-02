@@ -171,7 +171,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         """
         if is_europepmc_id(publication_id):
             response = self._session.get(
-                f"https://europepmc.org/backend/ptpmcrender.fcgi?accid={publication_id}&blobtype=pdf",
+                f"https://europepmc.org/api/getPdf?pmcid={publication_id}",
                 stream=True,
                 timeout=self.timeout,
             )
