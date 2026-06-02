@@ -71,3 +71,11 @@ venv.bak/
 
 # application directories
 docs/application/
+
+# examples
+
+examples/abstracts
+examples/figures
+examples/publications
+examples/pdfs
+examples/ids.txt
