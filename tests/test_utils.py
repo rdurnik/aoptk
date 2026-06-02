@@ -20,6 +20,9 @@ from aoptk.literature.utils import remove_pmc_prefix
             [Path("tests/test_data/test_figures/liver_fibrosis.png"), Path("tests/test_data/test_figures/gjic.png")],
             550232,
         ),
+        ([Path("tests/test_data/test_figures/gjic.jpg")], [Path("tests/test_data/test_figures/gjic.png")], 139459),
+        ([Path("tests/test_data/test_figures/gjic.bmp")], [Path("tests/test_data/test_figures/gjic.png")], 139459),
+        ([Path("tests/test_data/test_figures/gjic.tif")], [Path("tests/test_data/test_figures/gjic.png")], 154261),
     ],
 )
 def test_convert_image_format(tmp_path: Path, image_paths: list[Path], expected_paths: list[Path], expected_size: int):
