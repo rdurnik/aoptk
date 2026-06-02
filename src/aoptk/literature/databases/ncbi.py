@@ -1,6 +1,7 @@
 import asyncio
 import calendar
 import datetime
+from collections.abc import Callable
 from typing import Any
 from typing import Literal
 from urllib.error import HTTPError
@@ -42,28 +43,18 @@ class NCBI(GetID):
         Args:
             ids (list[ID]): A list of publication IDs for which to retrieve abstracts.
         """
-        records = []
-        for i in range(0, len(ids), self.batch_size):
-            batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.efetch(
-                db=self.database,
-                id=",".join(map(str, batch_ids)),
-                rettype="xml",
-            )
-            if self.database == "pubmed":
-                records_batch = Entrez.read(handle)
-            elif self.database == "pmc":
-                records_batch = handle.read()
-            records.append(records_batch)
-            handle.close()
-        return records
+        return self._batch_requests(ids=ids, func=Entrez.efetch)
 
     def get_publications_metadata_records(self, ids: list[ID]) -> list[Any]:
         """Retrieve abstract records based on the list of IDs."""
+        return self._batch_requests(ids=ids, func=Entrez.esummary)
+
+    def _batch_requests(self, ids: list[ID], func: Callable[..., Any]) -> list[Any]:
+        """Helper function to batch requests to NCBI."""
         records = []
         for i in range(0, len(ids), self.batch_size):
             batch_ids = ids[i : i + self.batch_size]
-            handle = Entrez.esummary(db=self.database, id=",".join(map(str, batch_ids)))
+            handle = func(db=self.database, id=",".join(map(str, batch_ids)))
             if self.database == "pubmed":
                 records_batch = Entrez.read(handle)
             elif self.database == "pmc":
