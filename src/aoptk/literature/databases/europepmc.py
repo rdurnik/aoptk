@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import ClassVar
 import pandas as pd
 import requests
-from requests.adapters import HTTPAdapter
+from requests.adapters import HTTPAdapter, MaxRetryError
 from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
@@ -131,7 +131,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
                 pdf = self._get_pdf(publication_id)
                 pdfs.append(pdf)
                 print("Done!", os.linesep)
-            except:
+            except (HTTPError, MaxRetryError):
                 print("Failed!", os.linesep)
                 continue
         return pdfs
