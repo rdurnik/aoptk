@@ -46,7 +46,7 @@ class NCBI(GetID):
         return self._batch_requests(ids=ids, func=Entrez.efetch)
 
     def get_publications_metadata_records(self, ids: list[ID]) -> list[Any]:
-        """Retrieve abstract records based on the list of IDs."""
+        """Retrieve publication metadata records based on the list of IDs."""
         return self._batch_requests(ids=ids, func=Entrez.esummary)
 
     def _batch_requests(self, ids: list[ID], func: Callable[..., Any]) -> list[Any]:
@@ -84,6 +84,11 @@ class NCBI(GetID):
         mindate: str | None = None,
         maxdate: str | None = None,
     ) -> tuple[int, list[str]]:
+        """Helper function to retrieve the count of publications and their IDs.
+
+        Retrieves IDs and total count based on the given search term and an
+        optional date range.
+        """
         handle = Entrez.esearch(
             db=self.database,
             term=search_term,
@@ -104,6 +109,7 @@ class NCBI(GetID):
         mindate: str | None = None,
         maxdate: str | None = None,
     ) -> tuple[int, list[str]]:
+        """Asynchronously retrieve the count of publications and their IDs based on the search term and date range."""
         async for attempt in AsyncRetrying(
             retry=retry_if_exception_type(HTTPError),
             wait=wait_random_exponential(multiplier=0.5, max=30),
@@ -123,6 +129,7 @@ class NCBI(GetID):
         raise RuntimeError(msg)
 
     async def _collect_ids_for_year(self, search_term: str, year: int) -> list[str]:
+        """Collect publication IDs for a specific year, splitting by months and days if the count exceeds the limit."""
         year_count, year_ids = await self._async_get_publication_count_and_ids(
             search_term=search_term,
             mindate=f"{year}/01/01",
@@ -134,6 +141,11 @@ class NCBI(GetID):
         return await self._collect_ids_split_by_months_days(search_term=search_term, year=year)
 
     async def _collect_ids_split_by_months_days(self, search_term: str, year: int) -> list[str]:
+        """Collect publication IDs for a specific year.
+
+        Split the search into months and days to avoid exceeding the result
+        limit.
+        """
         year_month_days_ids = []
         for month in range(1, 13):
             days_in_month = calendar.monthrange(year, month)[1]
