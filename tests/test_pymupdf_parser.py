@@ -199,3 +199,9 @@ def test_figure_extraction_disabled(publication_no_images: dict):
         for filename in filenames
     )
     assert total_size == 0
+
+
+def test_validate_pdf():
+    pdfs = map(PDF, Path("tests/test_data/test_pdfs").iterdir())
+    actual = PymupdfParser(pdfs).pdfs
+    assert len(actual) == 2

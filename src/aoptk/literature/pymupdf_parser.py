@@ -17,6 +17,11 @@ if TYPE_CHECKING:
     from aoptk.literature.pdf import PDF
     from aoptk.text_generation_api import TextGenerationAPI
 
+def _validate_pdf(pdf: PDF) -> bool:
+    with pymupdf.open(pdf.path) as doc:
+        if doc.is_dirty or doc.page_count == 0:
+            return False
+    return True
 
 class PymupdfParser(PDFParser):
     """Parse PDFs using PyMuPDF."""
@@ -30,11 +35,11 @@ class PymupdfParser(PDFParser):
         text_generation: TextGenerationAPI | None = None,
     ):
         self.figure_storage = figure_storage
-        self.pdfs = pdfs
+        self.pdfs = list(filter(_validate_pdf, pdfs))
         self.pattern_figure_descriptions = r"(?ms)(?<=\n)\s*Figure\s+\d+\.?\s*(.*?)(?=\n)"
         self.pattern_any_character = r"(.*)"
         self.text_generation = text_generation
-
+     
     def get_publications(self, download_figures_enabled: bool = True) -> list[Publication]:
         """Get a list of publications.
 
@@ -85,6 +90,9 @@ class PymupdfParser(PDFParser):
     def _extract_abstract(self, pdf: PDF, publication_id: ID) -> Abstract:
         """Extract the abstract from the text."""
         with pymupdf.open(pdf.path) as doc:
+            if doc.page_count == 0:
+                raise ValueError(f"{pdf} has 0 pages!")
+            
             page = doc[0]
             if text_blocks := self._extract_text_blocks_without_irrelevant_border_text(
                 pages=((0, page),),

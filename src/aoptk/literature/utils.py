@@ -42,12 +42,17 @@ def convert_image_format(images_to_convert_path: list[Path], target_format: str 
             converted_images.append(image_path)
         else:
             converted_image_path = image_path.with_suffix(f".{target_format}")
-            with Image.open(image_path) as img:
-                img.save(converted_image_path)
+            convert_to_png(image_path, converted_image_path)
             converted_images.append(converted_image_path)
-            image_path.unlink()
 
     return sorted(converted_images)
+
+def convert_to_png(inpath: Path, outpath: Path):
+    with Image.open(inpath) as img:
+        if img.mode not in ["RGB", "RGBA"]:
+            img = img.convert("RGB")
+        img.save(outpath)
+    inpath.unlink()
 
 
 def _image_in_this_format_already_exists(target_format: str, image_path: Path) -> bool:
