@@ -21,9 +21,6 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 class PubMed(GetAbstract, GetID, GetMetadata):
     """Class to get data from PubMed based on a query."""
 
-    max_retries = 5
-    batch_size = 200
-
     def __init__(self, query: Query | None = None):
         if not query:
             query = Query(search_term="queryblank")
