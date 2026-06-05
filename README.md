@@ -36,6 +36,10 @@ uv pip install .
 
 See our [Read the Docs](https://aoptk.readthedocs.io/en/latest/).
 
+## Funding
+
+This software was developed with support from the European Union’s Horizon 2020 research and innovation programme under grant agreement No. 857560 (CETOCOEN Excellence) and from MEYS under grant SALVAGE (CZ.02.01.01/00/22_008/0004644). The content reflects only the author’s view, and the European Commission is not responsible for any use that may be made of the information it contains. Authors also thank the RECETOX Research Infrastructure (No LM2023069) financed by the Ministry of Education, Youth and Sports for supportive background.
+
 ## Contributing
 
 If you want to contribute to the development of aoptk,
