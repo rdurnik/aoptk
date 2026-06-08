@@ -32,6 +32,12 @@ uv sync --frozen
 uv pip install .
 ```
 
+### Dev Container (developer environment)
+
+This repo includes a lightweight VS Code Dev Container in the `.devcontainer/` folder. Rebuild it via VS Code: "Dev Containers: Rebuild Container".
+
+To configure API access, copy `.env.example` to `.env` and fill in the required values before rebuilding the container.
+
 ## Documentation
 
 See our [Read the Docs](https://aoptk.readthedocs.io/en/latest/).
