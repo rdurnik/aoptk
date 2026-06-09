@@ -19,8 +19,6 @@
     }
   },
 
-  "envFile": "${localWorkspaceFolder}/.env",
-
   "containerEnv": {
     "PYTHONPATH": "/workspaces/aoptk/src"
   },
