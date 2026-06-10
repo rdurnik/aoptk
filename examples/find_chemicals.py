@@ -1,0 +1,74 @@
+import os
+import pandas as pd
+from aoptk.chemical import Chemical
+from aoptk.effect import Effect
+from aoptk.relationships.relationship import Relationship
+from aoptk.relationships.relationship_type import Causative
+from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.text_generation_api import LLMFailureError
+from aoptk.text_generation_api import TextGenerationAPI
+
+litellm_api_key = os.environ.get("LITELLM_API_KEY")
+
+
+def write_relationships(publication_id: str, relationships: list[Relationship]) -> None:
+    with open(f"relationships/{publication_id}.tsv", "w") as f_out:
+        f_out.write("id\tchemical\teffect\trelationship\n")
+        f_out.writelines(
+            f"{publication_id}\t{relationship.chemical}\t{relationship.effect}\t{relationship.relationship_type}\n"
+            for relationship in relationships
+        )
+
+
+def write_chemicals(publication_id: str, chemicals: list[Chemical]) -> None:
+    df = pd.DataFrame([chem.to_dict() for chem in chemicals])
+    df.to_csv(f"chemicals/{publication_id}.tsv", sep="\t", index=False)
+
+
+publications = [os.path.join("publications", input_file) for input_file in os.listdir("publications")][:3]
+effects = [Effect("liver fibrosis"), Effect("liver cell death")]
+relationship_types = [Causative(), Inhibitive()]
+
+completed = []
+retry = []
+failed = []
+is_retry = False
+
+while publications or retry:
+    if publications:
+        publication = publications.pop()
+        is_retry = False
+    elif retry:
+        publication = retry.pop()
+        is_retry = True
+
+    with open(publication) as f_in:
+        text = f_in.read()
+
+    publication_id = os.path.splitext(os.path.basename(publication))[0]
+
+    if not os.path.exists(f"chemicals/{publication_id}.tsv"):
+        try:
+            chemicals = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key).find_chemicals(text)
+            write_chemicals(publication_id, chemicals)
+        except LLMFailureError:
+            if is_retry:
+                failed.append(publication)
+            else:
+                retry.append(publication)
+            continue
+
+    try:
+        relationships = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key).find_relationships_in_text(
+            text=text,
+            chemicals=chemicals,
+            effects=effects,
+            relationship_types=relationship_types,
+        )
+        write_relationships(publication_id, relationships)
+    except LLMFailureError:
+        if is_retry:
+            failed.append(publication)
+        else:
+            retry.append(publication)
+        continue
