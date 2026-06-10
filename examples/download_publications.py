@@ -1,24 +1,22 @@
 import os
 from Bio import Entrez
 from aoptk.literature.databases.pmc import PMC
-from aoptk.literature.databases.europepmc import EuropePMC
-from aoptk.literature.databases.pubmed import PubMed
 from aoptk.literature.id import ID
 
-with open("ids.txt", "r") as f:
-    raw_ids = [line.strip() for line in f.readlines()]
+with open("ids.txt") as f:
+    raw_ids = [line.strip() for line in f]
     ids = [ID(id) for id in raw_ids]
 
 Entrez.email = os.environ.get("EMAIL") or None
 Entrez.api_key = os.environ.get("NCBI_API_KEY") or None
 
 
-#if $literature.database == "pmc":
-database = PMC(storage = "./publications", figure_storage="./figures")
+# if $literature.database == "pmc":
+database = PMC(storage="./publications", figure_storage="./figures")
 
 
 publications = database.get_publications(ids=ids, download_figures_enabled=False)
 for publication in publications:
     if publication is not None and publication.full_text is not None:
-        with open(f"{publication.id}.txt", "w") as f:
+        with open(f"./publications/{publication.id}.txt", "w") as f:
             f.write(publication.full_text)
