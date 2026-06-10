@@ -105,7 +105,7 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
         ),
     ],
 )
-@pytest.mark.xfail(raises=HTTPError)
+# @pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_given_query(
     ids: list[ID],
     expected_abstracts: list[Abstract],
@@ -142,7 +142,7 @@ def test_get_publication_metadata(publication_ids: list[ID], test_data: dict, tm
     assert publication_metadata.doi == DOI(test_data["doi"])
 
 
-@pytest.mark.xfail(raises=HTTPError)
+# @pytest.mark.xfail(raises=HTTPError)
 def test_extract_abstract_xml(
     provide_publications: dict,
     provide_temp_storage: Path,
@@ -160,13 +160,13 @@ def test_extract_abstract_xml(
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_full_text(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
+def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting full text from XMLs."""
-    actual = (
-        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications(ids=[provide_publications["id"]])[0]
-        .full_text
+    sut = EuropePMC(
+        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
     )
+    actual = sut.get_publications(sut.get_ids())[0].full_text
+
     expected = provide_publications["full_text"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
@@ -179,38 +179,38 @@ def test_extract_figure_descriptions(
     provide_temp_storage_figures: Path,
 ):
     """Test extracting figure descriptions from XMLs."""
-    actual = "".join(
-        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications(ids=[provide_publications["id"]])[0]
-        .figure_descriptions,
+    sut = EuropePMC(
+        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
     )
+    actual = "".join(sut.get_publications(sut.get_ids())[0].figure_descriptions)
+
     expected = "".join(provide_publications["figure_descriptions"])
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
 
 
-@pytest.mark.xfail(raises=HTTPError)
-def test_extract_figures(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
+# @pytest.mark.xfail(raises=HTTPError)
+def test_extract_figures(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting figures from XMLs."""
     if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
-    actual = (
-        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications(ids=[provide_publications["id"]])[0]
-        .figures
+
+    sut = EuropePMC(
+        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
     )
+    actual = sut.get_publications(sut.get_ids())[0].figures
+
     expected_paths = provide_publications["figures"]
     assert len(actual) == len(expected_paths)
 
 
-@pytest.mark.xfail(raises=HTTPError)
-def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
+# @pytest.mark.xfail(raises=HTTPError)
+def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting tables from XMLs."""
-    actual = (
-        EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
-        .get_publications(ids=[provide_publications["id"]])[0]
-        .tables
+    sut = EuropePMC(
+        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
     )
+    actual = sut.get_publications(sut.get_ids())[0].tables
     expected = provide_publications["tables"]
     assert len(actual) == expected
 
