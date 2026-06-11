@@ -40,7 +40,7 @@ license = {file = "LICENSE"}
 name = "aoptk"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
-version = "0.4.3"
+version = "0.5.0"
 
 [project.optional-dependencies]
 dev = [
@@ -137,7 +137,7 @@ force-single-line = true
 no-lines-before = ["future","standard-library","third-party","first-party","local-folder"]
 
 [tool.bumpversion]
-current_version = "0.4.3"
+current_version = "0.5.0"
 
 [tool.setuptools.package-data]
 aoptk = ["prompts/*.txt"]
