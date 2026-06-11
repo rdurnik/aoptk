@@ -2,7 +2,9 @@ from __future__ import annotations
 import os
 from itertools import chain
 from typing import Any
+from urllib.error import HTTPError
 from Bio import Entrez
+from requests.adapters import MaxRetryError
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.databases.ncbi import NCBI
 from aoptk.literature.get_abstract import GetAbstract
@@ -46,8 +48,13 @@ class PubMed(GetAbstract, GetID, GetMetadata):
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
-        records = self._ncbi.get_abstract_records(ids)
-        return self._parse_pubmed_abstract_records(records)
+        abstracts = []
+        try:
+            records = self._ncbi.get_abstract_records(ids)
+            abstracts = self._parse_pubmed_abstract_records(records)
+        except (HTTPError, MaxRetryError):
+            pass
+        return abstracts
 
     def _parse_pubmed_abstract_records(self, records: list[dict]) -> list[Abstract]:
         """Parse PubMed abstract records and return a list of Abstract objects.
@@ -64,8 +71,13 @@ class PubMed(GetAbstract, GetID, GetMetadata):
 
     def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
         """Retrieve Publication metadata."""
-        records = self._ncbi.get_publications_metadata_records(ids)
-        return self._parse_pubmed_metadata_records(records)
+        metadata = []
+        try:
+            records = self._ncbi.get_publications_metadata_records(ids)
+            metadata = self._parse_pubmed_metadata_records(records)
+        except (HTTPError, MaxRetryError):
+            pass
+        return metadata
 
     def _parse_pubmed_metadata_records(self, records: list[list[dict[str, Any]]]) -> list[Metadata]:
         """Parse PubMed metadata records and return a list of PublicationMetadata objects.

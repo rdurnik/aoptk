@@ -3,12 +3,14 @@ import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 import boto3
 import pandas as pd
 from Bio import Entrez
 from botocore import UNSIGNED
 from botocore.client import Config
+from requests.adapters import MaxRetryError
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.databases.ncbi import NCBI
 from aoptk.literature.get_abstract import GetAbstract
@@ -105,7 +107,14 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
         Returns:
             list[PDF]: A list of PDF objects.
         """
-        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
+        pdfs = []
+        for publication_id in ids:
+            try:
+                pdf = self._get_pdf(publication_id)
+                pdfs.append(pdf)
+            except (HTTPError, MaxRetryError):
+                continue
+        return pdfs
 
     def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
         """Get a list of publications.
@@ -118,11 +127,14 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
         Returns:
             list[Publication]: A list of Publication objects.
         """
-        return [
-            pub
-            for pub in (self._get_publication(publication_id, download_figures_enabled) for publication_id in ids)
-            if pub is not None
-        ]
+        publications = []
+        for publication_id in ids:
+            try:
+                if publication := self._get_publication(publication_id, download_figures_enabled):
+                    publications.append(publication)
+            except (HTTPError, MaxRetryError):
+                continue
+        return publications
 
     def get_ids(self) -> list[ID]:
         """Retrieve a list of publication IDs based on the search term."""
@@ -131,8 +143,13 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the list of IDs."""
-        records = self._ncbi.get_abstract_records(ids)
-        return self._parse_pmc_abstract_records(records)
+        abstracts = []
+        try:
+            records = self._ncbi.get_abstract_records(ids)
+            abstracts = self._parse_pmc_abstract_records(records)
+        except (HTTPError, MaxRetryError):
+            pass
+        return abstracts
 
     def _parse_pmc_abstract_records(self, records: list[Any]) -> list[Abstract]:
         """Parse PMC abstract handles and return a list of Abstract objects.
@@ -157,8 +174,13 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
         Args:
             ids (list[ID]): A list of publication IDs for which to retrieve metadata.
         """
-        records = self._ncbi.get_publications_metadata_records(remove_pmc_prefix(ids))
-        return self._parse_pmc_metadata_records(records)
+        metadata = []
+        try:
+            records = self._ncbi.get_publications_metadata_records(remove_pmc_prefix(ids))
+            metadata = self._parse_pmc_metadata_records(records)
+        except (HTTPError, MaxRetryError):
+            pass
+        return metadata
 
     def _parse_pmc_metadata_records(self, records: list[str]) -> list[Metadata]:
         """Parse PMC metadata records and return a list of PublicationMetadata objects.
