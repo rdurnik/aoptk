@@ -31,7 +31,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
     """Class to get data from Europe PMC based on a query."""
 
     page_size = 1000
-    timeout = 10
+    timeout = 30
     headers: ClassVar = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -66,7 +66,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         self.retry_strategy = Retry(
             total=10,
             backoff_factor=3,
-            status_forcelist=[429, 500, 502, 503, 504],
+            status_forcelist=[429, 408, 500, 502, 503, 504],
             allowed_methods=["GET", "POST"],
         )
         self.adapter = HTTPAdapter(max_retries=self.retry_strategy)
@@ -135,11 +135,14 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts."""
-        return [
-            abstract
-            for abstract in (self._get_abstract(publication_id) for publication_id in ids)
-            if abstract is not None
-        ]
+        abstracts = []
+        for publication_id in ids:
+            try:
+                if abstract := self._get_abstract(publication_id):
+                    abstracts.append(abstract)
+            except (HTTPError, MaxRetryError):
+                continue
+        return abstracts
 
     def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
         """Retrieve Publications.
@@ -149,21 +152,25 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
             download_figures_enabled (bool): Whether to download figures and
             include their paths in the Publication objects.
         """
-        return [
-            publication
-            for publication in (
-                self._get_publication(publication_id, download_figures_enabled) for publication_id in ids
-            )
-            if publication is not None
-        ]
+        publications = []
+        for publication_id in ids:
+            try:
+                if publication := self._get_publication(publication_id, download_figures_enabled):
+                    publications.append(publication)
+            except (HTTPError, MaxRetryError):
+                continue
+        return publications
 
     def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
         """Retrieve Publication metadata."""
-        return [
-            publication_metadata
-            for publication_metadata in (self._get_publication_metadata(publication_id) for publication_id in ids)
-            if publication_metadata is not None
-        ]
+        metadata = []
+        for publication_id in ids:
+            try:
+                if publication := self._get_publication_metadata(publication_id):
+                    metadata.append(publication)
+            except (HTTPError, MaxRetryError):
+                continue
+        return metadata
 
     def get_ids(self) -> list[ID]:
         """Get a list of publication IDs from EuropePMC based on the search term."""
