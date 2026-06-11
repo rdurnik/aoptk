@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from Bio import Entrez
-from aoptk.literature.databases.pubmed import PubMed
+from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.id import ID
 
 with Path("ids.txt").open("r") as f:
@@ -13,6 +13,6 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY") or None
 
 
 # if $literature.database == "pmc":
-database = PubMed(storage="./abstracts")
+database = PMC(storage="./abstracts", figure_storage="./figures")
 
 abstracts = database.get_abstracts(ids=ids)
