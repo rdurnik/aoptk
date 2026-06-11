@@ -14,6 +14,7 @@ litellm_api_key = os.getenv("LITELLM_API_KEY")
 
 def write_relationships(publication_id: str, relationships: list[Relationship]) -> None:
     """Writes the relationships to a TSV file."""
+    Path("relationships").mkdir(exist_ok=True)
     with Path.open(f"relationships/{publication_id}.tsv", "w") as f_out:
         f_out.write("id\tchemical\teffect\trelationship\n")
         f_out.writelines(
@@ -24,11 +25,12 @@ def write_relationships(publication_id: str, relationships: list[Relationship]) 
 
 def write_chemicals(publication_id: str, chemicals: list[Chemical]) -> None:
     """Writes the chemicals to a TSV file."""
+    Path("chemicals").mkdir(exist_ok=True)
     df = pd.DataFrame([chem.to_dict() for chem in chemicals])
     df.to_csv(f"chemicals/{publication_id}.tsv", sep="\t", index=False)
 
 
-publications = [Path("publications") / input_file for input_file in Path("publications").iterdir()][:3]
+publications = [input_file for input_file in Path("publications").iterdir()][:3]
 effects = [Effect("liver fibrosis"), Effect("liver cell death")]
 relationship_types = [Causative(), Inhibitive()]
 
@@ -62,9 +64,10 @@ while publications or retry:
             continue
 
     try:
+        chemicals = pd.read_csv(f"chemicals/{publication_id}.tsv", sep="\t")["name"].tolist()
         relationships = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key).find_relationships_in_text(
             text=text,
-            chemicals=chemicals,
+            chemicals=[Chemical(name=name) for name in chemicals],
             effects=effects,
             relationship_types=relationship_types,
         )

@@ -15,6 +15,7 @@ if litellm_config_file:
 else:
     text_generation = None
 
+Path("parsed").mkdir(exist_ok=True)
 pdfs = [PDF(pdf_path) for pdf_path in Path("pdfs").iterdir() if pdf_path.is_file()]
 publications = PymupdfParser(pdfs, figure_storage="./figures", text_generation=text_generation).get_publications(
     download_figures_enabled=True,
