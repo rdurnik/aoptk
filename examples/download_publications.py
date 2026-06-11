@@ -4,7 +4,7 @@ from Bio import Entrez
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.id import ID
 
-with Path.open("ids.txt") as f:
+with Path("ids.txt").open("r") as f:
     raw_ids = [line.strip() for line in f]
     ids = [ID(publication_id) for publication_id in raw_ids]
 

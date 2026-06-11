@@ -8,7 +8,7 @@ from aoptk.text_generation_api import TextGenerationAPI
 litellm_config_file = os.environ.get("LITELLM_CONFIG_FILE")
 
 if litellm_config_file:
-    with Path.open(litellm_config_file) as f:
+    with Path(litellm_config_file).open() as f:
         config = yaml.safe_load(f)
     litellm_api_key = os.environ.get("LITELLM_API_KEY")
     text_generation = TextGenerationAPI(model="qwen3.5", api_key=litellm_api_key)
@@ -21,5 +21,5 @@ publications = PymupdfParser(pdfs, figure_storage="./figures", text_generation=t
     download_figures_enabled=True,
 )
 for pub in publications:
-    with Path.open(f"parsed/{pub.id}.txt", "w") as f:
+    with Path(Path("parsed") / f"{pub.id}.txt").open("w") as f:
         f.write(pub.full_text)

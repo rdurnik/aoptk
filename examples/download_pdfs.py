@@ -4,7 +4,7 @@ from Bio import Entrez
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.id import ID
 
-with Path.open("ids.txt") as f:
+with Path("ids.txt").open("r") as f:
     ids = [ID(line.strip()) for line in f]
 
 Entrez.email = os.environ.get("EMAIL") or None

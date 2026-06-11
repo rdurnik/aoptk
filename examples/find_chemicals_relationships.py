@@ -15,7 +15,7 @@ litellm_api_key = os.getenv("LITELLM_API_KEY")
 def write_relationships(publication_id: str, relationships: list[Relationship]) -> None:
     """Writes the relationships to a TSV file."""
     Path("relationships").mkdir(exist_ok=True)
-    with Path.open(f"relationships/{publication_id}.tsv", "w") as f_out:
+    with Path(f"relationships/{publication_id}.tsv").open("w") as f_out:
         f_out.write("id\tchemical\teffect\trelationship\n")
         f_out.writelines(
             f"{publication_id}\t{relationship.chemical}\t{relationship.effect}\t{relationship.relationship_type}\n"
