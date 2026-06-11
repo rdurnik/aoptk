@@ -202,6 +202,7 @@ def test_figure_extraction_disabled(publication_no_images: dict):
 
 
 def test_validate_pdf():
+    """Test that PymupdfParser can validate PDFs."""
     pdfs = map(PDF, Path("tests/test_data/test_pdfs").iterdir())
     actual = PymupdfParser(pdfs).pdfs
     assert len(actual) == 2

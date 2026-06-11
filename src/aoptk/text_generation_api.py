@@ -87,7 +87,7 @@ class TextGenerationAPI(
             text (str): The input text.
             chemicals (list[Chemical]): List of chemical entities.
             effects (list[Effect]): List of effect entities.
-            relationship_type (RelationshipType): The relationship type to classify.
+            relationship_types (list[RelationshipType]): The relationship types to classify.
         """
         relationships = []
         for chemical, effect, relationship_type in product(chemicals, effects, relationship_types):
@@ -243,7 +243,7 @@ class TextGenerationAPI(
 
         Args:
             table_df (pd.DataFrame): Pandas DataFrame.
-            relationship_type (RelationshipType): The relationship type to classify.
+            relationship_types (list[RelationshipType]): The relationship types to classify.
             effects (list[Effect]): List of effect entities.
         """
         relationships = []
@@ -360,7 +360,7 @@ class TextGenerationAPI(
         Args:
             text (str): The input text.
             image_paths (list[str]): List of paths to images.
-            relationship_type (RelationshipType): The relationship type to classify.
+            relationship_types (list[RelationshipType]): The relationship types to classify.
             effects (list[Effect]): List of effect entities.
         """
         relationships = []

@@ -49,6 +49,12 @@ def convert_image_format(images_to_convert_path: list[Path], target_format: str 
 
 
 def convert_to_png(inpath: Path, outpath: Path) -> None:
+    """Convert an image to PNG format.
+
+    Args:
+        inpath: The path of the input image.
+        outpath: The path where the converted image will be saved.
+    """
     with Image.open(inpath) as img:
         img.convert("RGB").save(outpath) if img.mode not in ["RGB", "RGBA"] else img.save(outpath)
     inpath.unlink()
