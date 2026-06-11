@@ -20,9 +20,9 @@ metadata_test = json.loads(Path("tests/test_data/ncbi_metadata.json").read_text(
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_can_create():
+def test_can_create(tmp_path_factory: pytest.TempPathFactory):
     """Can create PubMed instance."""
-    actual = PubMed()
+    actual = PubMed(storage=tmp_path_factory.mktemp("pubmed_storage"))
     assert actual is not None
 
 
@@ -34,16 +34,17 @@ def test_implements_interface():
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_abstract_not_empty():
+def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
     """Get abstracts returns non-empty list."""
-    actual = PubMed().get_abstracts(ids=[])
+    actual = PubMed(storage=tmp_path_factory.mktemp("pubmed_storage")).get_abstracts(ids=[])
     assert actual is not None
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_id():
+def test_get_id(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_id returns correct IDs."""
     actual = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed_storage"),
         query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
     ).get_ids()
     number_of_expected_ids = 4
@@ -65,11 +66,17 @@ def test_get_id():
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_generate_abstracts_for_given_query(ids: list[ID], expected_abstract: str):
+def test_generate_abstracts_for_given_query(
+    ids: list[ID],
+    expected_abstract: str,
+    tmp_path_factory: pytest.TempPathFactory,
+):
     """Generate list of abstracts for given query."""
-    abstract = PubMed().get_abstracts(ids=ids)[1]
+    storage_path = tmp_path_factory.mktemp("pmc_storage")
+    abstract = PubMed(storage=storage_path).get_abstracts(ids=ids)[1]
     ratio = fuzz.ratio(abstract.text, expected_abstract)
     assert ratio >= 75
+    assert (storage_path / f"{ids[1]}.txt").exists()
 
 
 @pytest.mark.parametrize(
@@ -80,9 +87,11 @@ def test_generate_abstracts_for_given_query(ids: list[ID], expected_abstract: st
     ],
 )
 @pytest.mark.xfail(raises=HTTPError)
-def test_get_publication_metadata(publication_ids: list[ID], test_data: dict):
+def test_get_publication_metadata(publication_ids: list[ID], test_data: dict, tmp_path_factory: pytest.TempPathFactory):
     """Generate publication metadata for given id."""
-    publication_metadata = PubMed().get_publications_metadata(ids=publication_ids)[1]
+    publication_metadata = PubMed(storage=tmp_path_factory.mktemp("pubmed_storage")).get_publications_metadata(
+        ids=publication_ids,
+    )[1]
     assert publication_metadata.year == test_data["publication_date"]
     assert publication_metadata.title == test_data["title"]
     assert publication_metadata.authors == test_data["authors"]
@@ -131,9 +140,11 @@ def test_query_filtering(
     query: Query,
     ids_to_return: list[str],
     ids_not_to_return: list[str],
+    tmp_path_factory: pytest.TempPathFactory,
 ):
     """Test that the query filters results correctly."""
     sut = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed_storage"),
         query=query,
     )
     actual_ids = sut.get_ids()
@@ -144,9 +155,10 @@ def test_query_filtering(
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_preprint_filtering():
+def test_preprint_filtering(tmp_path_factory: pytest.TempPathFactory):
     """Test that the preprint filter works correctly."""
     sut = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed_storage"),
         query=Query(
             search_term="liver cancer",
             only_preprint=True,
@@ -158,9 +170,10 @@ def test_preprint_filtering():
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_exclude_only_preprint():
+def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
     """Test that the preprint filter works correctly."""
     sut = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed_storage"),
         query=Query(
             search_term="liver cancer",
             only_preprint=True,
@@ -172,10 +185,11 @@ def test_exclude_only_preprint():
 
 
 @pytest.mark.xfail(raises=(HTTPError, RemoteDisconnected))
-def test_get_id_large_query():
+def test_get_id_large_query(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_id() method returns a list of publication IDs."""
     actual = len(
         PubMed(
+            storage=tmp_path_factory.mktemp("pubmed_storage"),
             query=Query(
                 search_term="fibrosis 2019/01/15:2019/07/30[dp]",
             ),
@@ -185,21 +199,23 @@ def test_get_id_large_query():
     assert actual == pytest.approx(expected, abs=100)
 
 
-def test_generate_abstracts_multiple_abstracts():
+def test_generate_abstracts_multiple_abstracts(tmp_path_factory: pytest.TempPathFactory):
     """Generate list of abstracts for given query."""
     ids = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed_storage"),
         query=Query(search_term="thioacetamide liver fibrosis cancer"),
     ).get_ids()
-    abstracts = PubMed().get_abstracts(ids=ids)
+    abstracts = PubMed(storage=tmp_path_factory.mktemp("pubmed_storage")).get_abstracts(ids=ids)
     minimal_number_of_expected_abstracts = 150
     assert len(abstracts) > minimal_number_of_expected_abstracts
 
 
-def test_generate_metadata_multiple_publications():
+def test_generate_metadata_multiple_publications(tmp_path_factory: pytest.TempPathFactory):
     """Generate list of publication metadata for given query."""
     ids = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed_storage"),
         query=Query(search_term="thioacetamide liver fibrosis"),
     ).get_ids()
-    metadata = PubMed().get_publications_metadata(ids=ids)
+    metadata = PubMed(storage=tmp_path_factory.mktemp("pubmed_storage")).get_publications_metadata(ids=ids)
     minimal_number_of_expected_metadata = 1100
     assert len(metadata) > minimal_number_of_expected_metadata

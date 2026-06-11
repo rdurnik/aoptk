@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 from itertools import chain
+from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError
 from Bio import Entrez
@@ -23,7 +24,8 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 class PubMed(GetAbstract, GetID, GetMetadata):
     """Class to get data from PubMed based on a query."""
 
-    def __init__(self, query: Query | None = None):
+    def __init__(self, storage: Path, query: Query | None = None):
+        self.storage = storage
         if not query:
             query = Query(search_term="queryblank")
         self.search_term = self.build_search_term(query)
@@ -52,6 +54,9 @@ class PubMed(GetAbstract, GetID, GetMetadata):
         try:
             records = self._ncbi.get_abstract_records(ids)
             abstracts = self._parse_pubmed_abstract_records(records)
+            for abstract in abstracts:
+                with (Path(self.storage) / f"{abstract.id}.txt").open("w") as f:
+                    f.write(abstract.text)
         except (HTTPError, MaxRetryError):
             pass
         return abstracts

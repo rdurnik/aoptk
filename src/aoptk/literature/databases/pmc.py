@@ -132,6 +132,8 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
             try:
                 if publication := self._get_publication(publication_id, download_figures_enabled):
                     publications.append(publication)
+                    with (Path(self.storage) / f"{publication.id}.txt").open("w") as f:
+                        f.write(publication.full_text)
             except (HTTPError, MaxRetryError):
                 continue
         return publications
@@ -147,6 +149,9 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
         try:
             records = self._ncbi.get_abstract_records(ids)
             abstracts = self._parse_pmc_abstract_records(records)
+            for abstract in abstracts:
+                with (Path(self.storage) / f"{abstract.id}.txt").open("w") as f:
+                    f.write(abstract.text)
         except (HTTPError, MaxRetryError):
             pass
         return abstracts
