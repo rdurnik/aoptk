@@ -163,9 +163,9 @@ def test_extract_abstract_xml(
 def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting full text from XMLs."""
     sut = EuropePMC(
-        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
+        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
     )
-    actual = sut.get_publications(sut.get_ids())[0].full_text
+    actual = sut.get_publications(ids=[provide_publications["id"]])[0].full_text
 
     expected = provide_publications["full_text"]
     ratio = fuzz.ratio(actual, expected)
@@ -180,9 +180,9 @@ def test_extract_figure_descriptions(
 ):
     """Test extracting figure descriptions from XMLs."""
     sut = EuropePMC(
-        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
+        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
     )
-    actual = "".join(sut.get_publications(sut.get_ids())[0].figure_descriptions)
+    actual = "".join(sut.get_publications(ids=[provide_publications["id"]])[0].figure_descriptions)
 
     expected = "".join(provide_publications["figure_descriptions"])
     ratio = fuzz.ratio(actual, expected)
@@ -196,9 +196,9 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
         pytest.skip("Extra image is extracted (graphical abstract?).")
 
     sut = EuropePMC(
-        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
+        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
     )
-    actual = sut.get_publications(sut.get_ids())[0].figures
+    actual = sut.get_publications(ids=[provide_publications["id"]])[0].figures
 
     expected_paths = provide_publications["figures"]
     assert len(actual) == len(expected_paths)
@@ -208,9 +208,9 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
 def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
     """Test extracting tables from XMLs."""
     sut = EuropePMC(
-        provide_publications["id"], storage=provide_temp_storage, figure_storage=provide_temp_storage_figures,
+        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
     )
-    actual = sut.get_publications(sut.get_ids())[0].tables
+    actual = sut.get_publications(ids=[provide_publications["id"]])[0].tables
     expected = provide_publications["tables"]
     assert len(actual) == expected
 
@@ -219,7 +219,7 @@ def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFacto
     """Test that get_publications() method returns an empty list when given wrong IDs."""
     sut = EuropePMC(
         storage=tmp_path_factory.mktemp("pmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")
     )
 
     actual = sut.get_publications([ID("invalid_id")])
