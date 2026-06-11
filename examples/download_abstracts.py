@@ -19,5 +19,5 @@ Path.mkdir("./abstracts", parents=True)
 
 abstracts = database.get_abstracts(ids=ids)
 for abstract in abstracts:
-    with open(f"./abstracts/{abstract.id}.txt", "w") as f:
+    with Path.open(f"./abstracts/{abstract.id}.txt", "w") as f:
         f.write(abstract.text)
