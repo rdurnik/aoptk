@@ -132,7 +132,6 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
             except (HTTPError, MaxRetryError):
                 continue
         return pdfs
-        # return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
 
     def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts."""
