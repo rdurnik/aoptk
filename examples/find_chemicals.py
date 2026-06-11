@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import pandas as pd
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
@@ -8,11 +9,12 @@ from aoptk.relationships.relationship_type import Inhibitive
 from aoptk.text_generation_api import LLMFailureError
 from aoptk.text_generation_api import TextGenerationAPI
 
-litellm_api_key = os.environ.get("LITELLM_API_KEY")
+litellm_api_key = os.getenv("LITELLM_API_KEY")
 
 
 def write_relationships(publication_id: str, relationships: list[Relationship]) -> None:
-    with open(f"relationships/{publication_id}.tsv", "w") as f_out:
+    """Writes the relationships to a TSV file."""
+    with Path.open(f"relationships/{publication_id}.tsv", "w") as f_out:
         f_out.write("id\tchemical\teffect\trelationship\n")
         f_out.writelines(
             f"{publication_id}\t{relationship.chemical}\t{relationship.effect}\t{relationship.relationship_type}\n"
@@ -21,11 +23,12 @@ def write_relationships(publication_id: str, relationships: list[Relationship]) 
 
 
 def write_chemicals(publication_id: str, chemicals: list[Chemical]) -> None:
+    """Writes the chemicals to a TSV file."""
     df = pd.DataFrame([chem.to_dict() for chem in chemicals])
     df.to_csv(f"chemicals/{publication_id}.tsv", sep="\t", index=False)
 
 
-publications = [os.path.join("publications", input_file) for input_file in os.listdir("publications")][:3]
+publications = [Path("publications") / input_file for input_file in Path("publications").iterdir()][:3]
 effects = [Effect("liver fibrosis"), Effect("liver cell death")]
 relationship_types = [Causative(), Inhibitive()]
 
@@ -42,12 +45,12 @@ while publications or retry:
         publication = retry.pop()
         is_retry = True
 
-    with open(publication) as f_in:
+    with Path.open(publication) as f_in:
         text = f_in.read()
 
-    publication_id = os.path.splitext(os.path.basename(publication))[0]
+    publication_id = Path(publication).stem
 
-    if not os.path.exists(f"chemicals/{publication_id}.tsv"):
+    if not Path(f"chemicals/{publication_id}.tsv").exists():
         try:
             chemicals = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key).find_chemicals(text)
             write_chemicals(publication_id, chemicals)
