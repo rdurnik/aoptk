@@ -210,7 +210,8 @@ def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, 
 def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications() method returns an empty list when given wrong IDs."""
     sut = EuropePMC(
-        storage=tmp_path_factory.mktemp("pmc_storage"), figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
+        storage=tmp_path_factory.mktemp("pmc_storage"),
+        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     )
 
     actual = sut.get_publications([ID("invalid_id")])
