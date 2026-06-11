@@ -79,7 +79,7 @@ class TextGenerationAPI(
         text: str,
         chemicals: list[Chemical],
         effects: list[Effect],
-        relationship_type: RelationshipType,
+        relationship_types: list[RelationshipType],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects.
 
@@ -90,7 +90,7 @@ class TextGenerationAPI(
             relationship_type (RelationshipType): The relationship type to classify.
         """
         relationships = []
-        for chemical, effect in product(chemicals, effects):
+        for chemical, effect, relationship_type in product(chemicals, effects, relationship_types):
             if (response := self._relationship_prompt(text, chemical, effect, relationship_type)) and (
                 relationship := self._select_relationship_type(response, relationship_type)
             ):
@@ -237,7 +237,7 @@ class TextGenerationAPI(
         self,
         table_df: pd.DataFrame,
         effects: list[Effect],
-        relationship_type: RelationshipType,
+        relationship_types: list[RelationshipType],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in a table.
 
@@ -247,7 +247,7 @@ class TextGenerationAPI(
             effects (list[Effect]): List of effect entities.
         """
         relationships = []
-        for effect in effects:
+        for effect, relationship_type in product(effects, relationship_types):
             relationships.extend(
                 self._classify_relationships_in_table(
                     table_df,
@@ -352,7 +352,7 @@ class TextGenerationAPI(
         self,
         text: str,
         image_paths: list[str],
-        relationship_type: RelationshipType,
+        relationship_types: list[RelationshipType],
         effects: list[Effect],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given text and images combined.
@@ -364,7 +364,7 @@ class TextGenerationAPI(
             effects (list[Effect]): List of effect entities.
         """
         relationships = []
-        for effect in effects:
+        for effect, relationship_type in product(effects, relationship_types):
             relationships.extend(
                 self._classify_relationships_in_text_and_images(text, image_paths, effect, relationship_type),
             )
