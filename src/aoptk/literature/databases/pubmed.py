@@ -55,7 +55,7 @@ class PubMed(GetAbstract, GetID, GetMetadata):
             records = self._ncbi.get_abstract_records(ids)
             abstracts = self._parse_pubmed_abstract_records(records)
             for abstract in abstracts:
-                with (Path(self.storage) / f"{abstract.id}.txt").open("w") as f:
+                with (Path(self.storage) / f"{abstract.id}.txt").open("w", encoding="utf-8") as f:
                     f.write(abstract.text)
         except (HTTPError, MaxRetryError):
             pass

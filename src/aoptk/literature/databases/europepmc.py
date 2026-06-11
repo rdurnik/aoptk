@@ -140,7 +140,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
             try:
                 if abstract := self._get_abstract(publication_id):
                     abstracts.append(abstract)
-                    with (Path(self.storage) / f"{abstract.id}.txt").open("w") as f:
+                    with (Path(self.storage) / f"{abstract.id}.txt").open("w", encoding="utf-8") as f:
                         f.write(abstract.text)
             except (HTTPError, MaxRetryError):
                 continue
@@ -159,7 +159,7 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
             try:
                 if publication := self._get_publication(publication_id, download_figures_enabled):
                     publications.append(publication)
-                    with (Path(self.storage) / f"{publication.id}.txt").open("w") as f:
+                    with (Path(self.storage) / f"{publication.id}.txt").open("w", encoding="utf-8") as f:
                         f.write(publication.full_text)
             except (HTTPError, MaxRetryError):
                 continue
