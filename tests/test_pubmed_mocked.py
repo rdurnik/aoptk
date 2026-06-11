@@ -53,7 +53,8 @@ def test_get_abstract_not_empty(mock_entrez, tmp_path_factory: pytest.TempPathFa
     }
 
     actual = PubMed(
-        storage=tmp_path_factory.mktemp("pubmed"), query=Query(search_term="hepg2 thioacetamide"),
+        storage=tmp_path_factory.mktemp("pubmed"),
+        query=Query(search_term="hepg2 thioacetamide"),
     ).get_abstracts(ids=[ID("12345"), ID("67890")])
     assert actual is not None
     assert len(actual) > 0
