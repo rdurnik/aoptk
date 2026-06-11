@@ -25,14 +25,14 @@ def mock_entrez(mocker):
     return ent
 
 
-def test_can_create(mock_entrez):
+def test_can_create(mock_entrez, tmp_path_factory: pytest.TempPathFactory):
     """Can create PubMed instance."""
     mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "5", "IdList": ["1", "2", "3", "4", "5"]}
-    actual = PubMed(query=Query(search_term="hepg2 thioacetamide"))
+    actual = PubMed(storage=tmp_path_factory.mktemp("pubmed"), query=Query(search_term="hepg2 thioacetamide"))
     assert actual is not None
 
 
-def test_get_abstract_not_empty(mock_entrez):
+def test_get_abstract_not_empty(mock_entrez, tmp_path_factory: pytest.TempPathFactory):
     """Get abstracts returns non-empty list."""
     mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "2", "IdList": ["12345", "67890"]}
     mock_entrez.responses[mock_entrez.handles["fetch"]] = {
@@ -52,17 +52,20 @@ def test_get_abstract_not_empty(mock_entrez):
         ],
     }
 
-    actual = PubMed(query=Query(search_term="hepg2 thioacetamide")).get_abstracts(ids=[ID("12345"), ID("67890")])
+    actual = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed"), query=Query(search_term="hepg2 thioacetamide"),
+    ).get_abstracts(ids=[ID("12345"), ID("67890")])
     assert actual is not None
     assert len(actual) > 0
 
 
-def test_get_id_list(mock_entrez):
+def test_get_id_list(mock_entrez, tmp_path_factory: pytest.TempPathFactory):
     """Get publication count returns correct number."""
     expected = ["36835489", "37913737", "37891562", "36838959"]
     mock_entrez.responses[mock_entrez.handles["search"]] = {"Count": "4", "IdList": expected}
 
     pubmed_instance = PubMed(
+        storage=tmp_path_factory.mktemp("pubmed"),
         query=Query(search_term='(hepg2 methotrexate) AND (("2023"[Date - Entry] : "2023"[Date - Entry]))'),
     )
     actual = pubmed_instance.get_ids()
