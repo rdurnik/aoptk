@@ -30,7 +30,7 @@ def write_chemicals(publication_id: str, chemicals: list[Chemical]) -> None:
     df.to_csv(f"chemicals/{publication_id}.tsv", sep="\t", index=False)
 
 
-publications = [input_file for input_file in Path("publications").iterdir()][:3]
+publications = list(Path("publications").iterdir())[:3]
 effects = [Effect("liver fibrosis"), Effect("liver cell death")]
 relationship_types = [Causative(), Inhibitive()]
 
