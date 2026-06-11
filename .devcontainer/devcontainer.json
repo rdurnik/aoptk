@@ -1,0 +1,27 @@
+{
+  "name": "aoptk-dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+
+  "remoteUser": "vscode",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ]
+    }
+  },
+
+  "containerEnv": {
+    "PYTHONPATH": "/workspaces/aoptk/src"
+  },
+
+  "postCreateCommand": "uv sync --frozen --extra dev"
+}
