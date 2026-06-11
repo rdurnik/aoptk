@@ -55,7 +55,7 @@ def test_find_chemical_not_empty():
 @pytest.mark.openai
 def test_find_relationships_not_empty():
     """Test that find_relationships method returns a non-empty result."""
-    actual = TextGenerationAPI().find_relationships_in_text("", relationship_type=None, chemicals=[], effects=[])
+    actual = TextGenerationAPI().find_relationships_in_text(text="", relationship_types=[], chemicals=[], effects=[])
     assert actual is not None
 
 
@@ -85,11 +85,11 @@ def test_find_chemical(text: str, expected: list[str]):
 
 @pytest.mark.openai
 @pytest.mark.parametrize(
-    ("text", "relationship_type", "chemicals", "effects", "expected_relationships"),
+    ("text", "relationship_types", "chemicals", "effects", "expected_relationships"),
     [
         (
             "Cancer is caused by thioacetamide, not by acetaminophen.",
-            Causative(),
+            [Causative()],
             [Chemical(name="acetaminophen"), Chemical(name="thioacetamide")],
             [Effect(name="cancer")],
             [
@@ -109,16 +109,16 @@ def test_find_chemical(text: str, expected: list[str]):
         ),
         (
             "Just some random text with no effect and no chemical in here.",
-            Causative(),
+            [Causative()],
             [],
             [],
             [],
         ),
         (
             "Thioacetamide was studied. Acetaminophen caused liver fibrosis.",
-            Causative(),
+            [Causative(), Inhibitive()],
             [Chemical(name="thioacetamide"), Chemical(name="acetaminophen")],
-            [Effect(name="liver fibrosis")],
+            [Effect(name="liver fibrosis"), Effect(name="cancer")],
             [
                 Relationship(
                     relationship_type=Causative().positive,
@@ -132,7 +132,7 @@ def test_find_chemical(text: str, expected: list[str]):
 )
 def test_find_relationships(
     text: str,
-    relationship_type: RelationshipType,
+    relationship_types: list[RelationshipType],
     chemicals: list[Chemical],
     effects: list[Effect],
     expected_relationships: list[Relationship],
@@ -140,7 +140,7 @@ def test_find_relationships(
     """Test find_relationships method with multiple chemicals and effects."""
     actual = TextGenerationAPI().find_relationships_in_text(
         text=text,
-        relationship_type=relationship_type,
+        relationship_types=relationship_types,
         chemicals=chemicals,
         effects=effects,
     )
@@ -173,7 +173,7 @@ def test_relationship_table(phthalate_table_data: dict):
     """Test find_relationships_in_table method with a table."""
     actual = TextGenerationAPI().find_relationships_in_table(
         table_df=pd.DataFrame(phthalate_table_data),
-        relationship_type=Inhibitive(),
+        relationship_types=[Inhibitive()],
         effects=[Effect(name="gap junction intercellular communication")],
     )
     assert any(
@@ -229,7 +229,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
     actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").find_relationships_in_text_and_images(
         text=text,
         image_paths=images,
-        relationship_type=Inhibitive(),
+        relationship_types=[Inhibitive()],
         effects=[Effect(name="gap junction intercellular communication")],
     )
 
