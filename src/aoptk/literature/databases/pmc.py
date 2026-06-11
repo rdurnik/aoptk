@@ -110,8 +110,8 @@ class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
         pdfs = []
         for publication_id in ids:
             try:
-                pdf = self._get_pdf(publication_id)
-                pdfs.append(pdf)
+                if pdf := self._get_pdf(publication_id):
+                    pdfs.append(pdf)
             except (HTTPError, MaxRetryError):
                 continue
         return pdfs
