@@ -3,7 +3,6 @@ from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 import pandas as pd
-
 from aoptk.relationships.relationship_type import RelationshipType
 
 if TYPE_CHECKING:
