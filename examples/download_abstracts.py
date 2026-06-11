@@ -13,11 +13,8 @@ Entrez.api_key = os.environ.get("NCBI_API_KEY") or None
 
 
 # if $literature.database == "pmc":
-database = PubMed()
+database = PubMed(storage="./abstracts")
 
 Path.mkdir("./abstracts", parents=True)
 
 abstracts = database.get_abstracts(ids=ids)
-for abstract in abstracts:
-    with Path.open(f"./abstracts/{abstract.id}.txt", "w") as f:
-        f.write(abstract.text)

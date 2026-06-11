@@ -17,7 +17,3 @@ database = PMC(storage="./publications", figure_storage="./figures")
 
 
 publications = database.get_publications(ids=ids, download_figures_enabled=False)
-for publication in publications:
-    if publication is not None and publication.full_text is not None:
-        with Path.open(f"./publications/{publication.id}.txt", "w") as f:
-            f.write(publication.full_text)
