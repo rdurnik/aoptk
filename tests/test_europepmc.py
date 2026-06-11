@@ -160,11 +160,9 @@ def test_extract_abstract_xml(
 
 
 @pytest.mark.xfail(raises=HTTPError)
-def test_extract_full_text(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_extract_full_text(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test extracting full text from XMLs."""
-    sut = EuropePMC(
-        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
-    )
+    sut = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     actual = sut.get_publications(ids=[provide_publications["id"]])[0].full_text
 
     expected = provide_publications["full_text"]
@@ -179,9 +177,7 @@ def test_extract_figure_descriptions(
     provide_temp_storage_figures: Path,
 ):
     """Test extracting figure descriptions from XMLs."""
-    sut = EuropePMC(
-        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
-    )
+    sut = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     actual = "".join(sut.get_publications(ids=[provide_publications["id"]])[0].figure_descriptions)
 
     expected = "".join(provide_publications["figure_descriptions"])
@@ -190,14 +186,12 @@ def test_extract_figure_descriptions(
 
 
 # @pytest.mark.xfail(raises=HTTPError)
-def test_extract_figures(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_extract_figures(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test extracting figures from XMLs."""
     if provide_publications["id"] == "PMC12416454":
         pytest.skip("Extra image is extracted (graphical abstract?).")
 
-    sut = EuropePMC(
-        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
-    )
+    sut = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     actual = sut.get_publications(ids=[provide_publications["id"]])[0].figures
 
     expected_paths = provide_publications["figures"]
@@ -205,11 +199,9 @@ def test_extract_figures(provide_publications: dict, provide_temp_storage: dict,
 
 
 # @pytest.mark.xfail(raises=HTTPError)
-def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, provide_temp_storage_figures: dict):
+def test_extract_tables(provide_publications: dict, provide_temp_storage: Path, provide_temp_storage_figures: Path):
     """Test extracting tables from XMLs."""
-    sut = EuropePMC(
-        storage=provide_temp_storage, figure_storage=provide_temp_storage_figures
-    )
+    sut = EuropePMC(storage=provide_temp_storage, figure_storage=provide_temp_storage_figures)
     actual = sut.get_publications(ids=[provide_publications["id"]])[0].tables
     expected = provide_publications["tables"]
     assert len(actual) == expected
@@ -218,8 +210,7 @@ def test_extract_tables(provide_publications: dict, provide_temp_storage: dict, 
 def test_get_publications_wrong_ids_empty(tmp_path_factory: pytest.TempPathFactory):
     """Test that get_publications() method returns an empty list when given wrong IDs."""
     sut = EuropePMC(
-        storage=tmp_path_factory.mktemp("pmc_storage"),
-        figure_storage=tmp_path_factory.mktemp("pmc_storage_figures")
+        storage=tmp_path_factory.mktemp("pmc_storage"), figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     )
 
     actual = sut.get_publications([ID("invalid_id")])
