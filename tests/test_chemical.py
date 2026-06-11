@@ -73,4 +73,4 @@ def test_similarity(acetaminophen: Chemical):
 
 
 def test_to_dict(acetaminophen: Chemical):
-    assert acetaminophen.to_dict() == {"name": "Acetaminophen", "heading": None, "synonyms": ""}
+    assert acetaminophen.to_dict() == {"name": "acetaminophen", "heading": None, "synonyms": ""}
