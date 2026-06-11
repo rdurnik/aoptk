@@ -70,3 +70,7 @@ def test_similarity(acetaminophen: Chemical):
 
     acetaminophen.synonyms.add("Paracetamol")
     assert acetaminophen.similar(paracetamol)
+
+
+def test_to_dict(acetaminophen: Chemical):
+    assert acetaminophen.to_dict() == {"name": "Acetaminophen", "heading": None, "synonyms": ""}

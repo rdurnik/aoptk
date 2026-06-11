@@ -1,13 +1,13 @@
 from __future__ import annotations
-import os
-from urllib.error import HTTPError
 import xml.etree.ElementTree as ET
 import zipfile
 from pathlib import Path
 from typing import ClassVar
+from urllib.error import HTTPError
 import pandas as pd
 import requests
-from requests.adapters import HTTPAdapter, MaxRetryError
+from requests.adapters import HTTPAdapter
+from requests.adapters import MaxRetryError
 from urllib3.util.retry import Retry
 from aoptk.literature.abstract import Abstract
 from aoptk.literature.get_abstract import GetAbstract
@@ -86,8 +86,8 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         if query.licensing:
             search_term += self._get_license_filter(query.licensing)
         return search_term
-    
-    def update_retry_strategy(self, strategy: Retry):
+
+    def update_retry_strategy(self, strategy: Retry) -> None:
         """Update the retry strategy - allows customizing retry behaviour.
 
         This function updates the adapter and the session to ensure the new
@@ -127,12 +127,9 @@ class EuropePMC(GetAbstract, GetPDF, GetID, GetPublication, GetMetadata):
         pmc_ids = filter(is_europepmc_id, ids)
         for publication_id in pmc_ids:
             try:
-                print(f"Obtaining {publication_id} ...")
                 pdf = self._get_pdf(publication_id)
                 pdfs.append(pdf)
-                print("Done!", os.linesep)
             except (HTTPError, MaxRetryError):
-                print("Failed!", os.linesep)
                 continue
         return pdfs
         # return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in ids) if pdf is not None]
