@@ -69,7 +69,7 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: Pat
         .full_text
     )
     expected = provide_publications["full_text"]
-    assert actual.full_text == expected
+    assert actual == expected
 
 
 @pytest.mark.xfail(raises=HTTPError)
