@@ -1,32 +1,39 @@
-import asyncio
-import calendar
-import datetime
 import json
 import os
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 import boto3
+import pandas as pd
 from Bio import Entrez
 from botocore import UNSIGNED
 from botocore.client import Config
-from tenacity import AsyncRetrying
-from tenacity import retry_if_exception_type
-from tenacity import stop_after_attempt
-from tenacity import wait_random_exponential
+from requests.adapters import MaxRetryError
+from aoptk.literature.abstract import Abstract
+from aoptk.literature.databases.ncbi import NCBI
+from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
+from aoptk.literature.get_metadata import GetMetadata
 from aoptk.literature.get_pdf import GetPDF
 from aoptk.literature.get_publication import GetPublication
+from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
+from aoptk.literature.id import PMCID
+from aoptk.literature.id import PMID
+from aoptk.literature.metadata import Metadata
 from aoptk.literature.pdf import PDF
 from aoptk.literature.publication import Publication
-from aoptk.literature.utils import AsyncRequestLimiter
+from aoptk.literature.query import Query
+from aoptk.literature.utils import convert_image_format
+from aoptk.literature.utils import remove_pmc_prefix
 
-Entrez.api_key = os.environ.get("NCBI_API_KEY")
+Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class PMC(GetPublication, GetPDF, GetID):
-    """Class for retrieving and parsing open access PMC publications."""
+class PMC(GetPublication, GetPDF, GetID, GetAbstract, GetMetadata):
+    """Class to get data from PMC based on a query."""
 
     aws_region = "us-east-1"
     s3 = boto3.client(
@@ -37,23 +44,20 @@ class PMC(GetPublication, GetPDF, GetID):
     bucket = "pmc-oa-opendata"
     paginator = s3.get_paginator("list_objects_v2")
 
-    max_pmc_results = 9998
-    max_concurrency = 2
-    max_requests_per_second = 2.0
-    minimal_year_publication = 1800
-    semaphore = asyncio.Semaphore(max_concurrency)
-    limiter = AsyncRequestLimiter(max_requests_per_second)
-    retries = 5
-    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
+    image_extensions = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".tif")
+    unified_image_format = "png"
 
     def __init__(
         self,
-        query: str,
-        storage: str,
-        figure_storage: str,
+        storage: Path,
+        figure_storage: Path,
+        query: Query | None = None,
     ):
-        self._query = query
-        self.id_list = asyncio.run(self.get_ids())
+        if not query:
+            query = Query(search_term="queryblank")
+        self.search_term = self.build_search_term(query)
+
+        self._ncbi = NCBI(database="pmc")
 
         self.storage = storage
         Path(self.storage).mkdir(parents=True, exist_ok=True)
@@ -61,51 +65,180 @@ class PMC(GetPublication, GetPDF, GetID):
         self.figure_storage = figure_storage
         Path(self.figure_storage).mkdir(parents=True, exist_ok=True)
 
-    def get_pdfs(self) -> list[PDF]:
-        """Retrieve PDFs based on the query.
+    def build_search_term(self, query: Query) -> str:
+        """Convert Query to PMC search syntax."""
+        search_term = query.search_term
+        if query.full_text_subset:
+            search_term += " open access[filter]"
+        if query.only_preprint:
+            search_term += " ahead of print[filter]"
+        if query.exclude_preprint:
+            search_term += " NOT ahead of print[filter]"
+        if query.date:
+            search_term += f" {query.date[0]}/{query.date[1]}/{query.date[2]}[dp]"
+        if query.licensing:
+            search_term += self._get_license_filter(query.licensing)
+        return search_term
+
+    def _get_license_filter(self, licensing: str) -> str:
+        """Get the license filter string for a given licensing type.
+
+        Args:
+            licensing (str): The licensing type.
 
         Returns:
-            list[PDF]: A list of PDF objects corresponding to the publications matching the query.
+            str: The license filter string for PMC search.
         """
-        return [pdf for pdf in (self._get_pdf(publication_id) for publication_id in self.id_list) if pdf is not None]
+        license_map = {
+            "open-access": ' "open access"[filter]',
+            "CC0": ' "cc0 license"[filter]',
+            "CC-BY": ' "cc by license"[filter]',
+            "CC-BY-SA": ' "cc by-nc-sa license"[filter]',
+            "CC-BY-ND": ' "cc by-nd license"[filter]',
+            "CC-BY-NC": ' "cc by-nc license"[filter]',
+            "CC-BY-NC-ND": ' "cc by-nc-nd license"[filter]',
+            "CC-BY-NC-SA": ' "cc by-nc-sa license"[filter]',
+        }
+        return license_map.get(licensing, "")
 
-    def get_publications(self) -> list[Publication]:
+    def get_pdfs(self, ids: list[ID]) -> list[PDF]:
+        """Retrieve PDFs.
+
+        Returns:
+            list[PDF]: A list of PDF objects.
+        """
+        pdfs = []
+        for publication_id in ids:
+            try:
+                if pdf := self._get_pdf(publication_id):
+                    pdfs.append(pdf)
+            except (HTTPError, MaxRetryError):
+                continue
+        return pdfs
+
+    def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
         """Get a list of publications.
+
+        Args:
+            ids (list[ID]): A list of publication IDs to retrieve.
+            download_figures_enabled (bool): Whether to download figures
+            and include their paths in the Publication objects.
 
         Returns:
             list[Publication]: A list of Publication objects.
         """
-        return [
-            pub for pub in (self._get_publication(publication_id) for publication_id in self.id_list) if pub is not None
-        ]
+        publications = []
+        for publication_id in ids:
+            try:
+                if publication := self._get_publication(publication_id, download_figures_enabled):
+                    publications.append(publication)
+                    with (Path(self.storage) / f"{publication.id}.txt").open("w", encoding="utf-8") as f:
+                        f.write(publication.full_text)
+            except (HTTPError, MaxRetryError):
+                continue
+        return publications
 
-    async def get_ids(self) -> list[ID]:
-        """Retrieve a list of publication IDs based on the query."""
-        count, ids = await self._async_get_publication_count_and_ids()
-        if count <= self.max_pmc_results:
-            return [f"PMC{pmcid}" for pmcid in ids]
+    def get_ids(self) -> list[ID]:
+        """Retrieve a list of publication IDs based on the search term."""
+        ids = self._ncbi.get_ids(self.search_term)
+        return [ID(f"PMC{pmcid}") for pmcid in ids]
 
-        tasks = [
-            self._collect_ids_for_year(year)
-            for year in range(self.minimal_year_publication, datetime.datetime.now(datetime.UTC).year + 1)
-        ]
-        yearly_results = await asyncio.gather(*tasks)
+    def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
+        """Retrieve Abstracts based on the list of IDs."""
+        abstracts = []
+        try:
+            records = self._ncbi.get_abstract_records(ids)
+            abstracts = self._parse_pmc_abstract_records(records)
+            for abstract in abstracts:
+                with (Path(self.storage) / f"{abstract.id}.txt").open("w", encoding="utf-8") as f:
+                    f.write(abstract.text)
+        except (HTTPError, MaxRetryError):
+            pass
+        return abstracts
 
-        ids = [f"PMC{pmcid}" for year_ids in yearly_results for pmcid in year_ids]
-        return list(set(ids))
+    def _parse_pmc_abstract_records(self, records: list[Any]) -> list[Abstract]:
+        """Parse PMC abstract handles and return a list of Abstract objects.
 
-    def _get_publication(self, publication_id: str) -> Publication:
+        Args:
+            records (list[Any]): A list of PMC Entrez fetch handles.
+        """
+        abstracts: list[Abstract] = []
+        for record in records:
+            root = ET.fromstring(record)
+            for article in root.findall(".//article"):
+                pmc_id = article.findtext(".//article-id")
+                if not pmc_id or (abstract_node := article.find(".//abstract")) is None:
+                    continue
+                abstract_text = " ".join(" ".join(abstract_node.itertext()).split())
+                abstracts.append(Abstract(text=abstract_text, id=ID(pmc_id)))
+        return abstracts
+
+    def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
+        """Retrieve Publication metadata.
+
+        Args:
+            ids (list[ID]): A list of publication IDs for which to retrieve metadata.
+        """
+        metadata = []
+        try:
+            records = self._ncbi.get_publications_metadata_records(remove_pmc_prefix(ids))
+            metadata = self._parse_pmc_metadata_records(records)
+        except (HTTPError, MaxRetryError):
+            pass
+        return metadata
+
+    def _parse_pmc_metadata_records(self, records: list[str]) -> list[Metadata]:
+        """Parse PMC metadata records and return a list of PublicationMetadata objects.
+
+        Args:
+            records (list): A list of PMC XML summary payloads.
+        """
+        publications_metadata: list[Metadata] = []
+
+        for record in records:
+            root = ET.fromstring(record)
+            for article in root.findall(".//DocSum"):
+                if not (pmcid := article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmcid']")):
+                    continue
+                pmid = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='pmid']")
+                doi = article.findtext("./Item[@Name='ArticleIds']/Item[@Name='doi']")
+                year = int(pub_date.split()[0]) if (pub_date := article.findtext("./Item[@Name='PubDate']")) else None
+                title = article.findtext("./Item[@Name='Title']")
+                authors = [
+                    author.text
+                    for author in article.findall("./Item[@Name='AuthorList']/Item[@Name='Author']")
+                    if author.text
+                ]
+                publications_metadata.append(
+                    Metadata(
+                        id=ID(pmcid),
+                        pmcid=PMCID(pmcid),
+                        pmid=PMID(pmid) if pmid else None,
+                        doi=DOI(doi) if doi else None,
+                        year=year,
+                        title=title,
+                        authors=authors,
+                    ),
+                )
+        return publications_metadata
+
+    def _get_publication(self, publication_id: ID, download_figures_enabled: bool = True) -> Publication | None:
         """Parse a single PDF and return a Publication object.
 
         Args:
             publication_id (str): The publication ID to retrieve and parse.
+            download_figures_enabled (bool): Whether to download figures
+            and include their paths in the Publication object.
         """
-        publication_id = ID(publication_id)
-        abstract = ""
+        abstract = Abstract(id=publication_id, text="")
+
         full_text = self._get_full_text(publication_id)
-        figures = self._get_figures(publication_id)
-        figure_descriptions = []
-        tables = []
+        if full_text is None:
+            return None
+
+        figures = self._get_figures(publication_id) if download_figures_enabled else []
+        figure_descriptions: list[str] = []
+        tables: list[pd.DataFrame] = []
         return Publication(
             id=publication_id,
             abstract=abstract,
@@ -115,7 +248,7 @@ class PMC(GetPublication, GetPDF, GetID):
             tables=tables,
         )
 
-    def _get_full_text(self, publication_id: str) -> str | None:
+    def _get_full_text(self, publication_id: ID) -> str | None:
         """Retrieve the full text for a given publication ID.
 
         Args:
@@ -128,7 +261,7 @@ class PMC(GetPublication, GetPDF, GetID):
             return txt
         return None
 
-    def _get_file(self, publication_id: str, file_format: str) -> PDF | str | None:
+    def _get_file(self, publication_id: ID, file_format: str) -> Path | None:
         """Retrieve the file for a given publication ID and format.
 
         Args:
@@ -136,22 +269,21 @@ class PMC(GetPublication, GetPDF, GetID):
             file_format (str): The format of the file to retrieve (pdf, xml, json, or txt).
             Formats txt, xml, pdf contain full-text, while json contains metadata.
         """
-        for page in self.paginator.paginate(
-            Bucket=self.bucket,
-            Prefix=f"{publication_id}.1/{publication_id}.1.{file_format}",
-        ):
-            for obj in page.get("Contents", []):
-                key = obj["Key"]
+        prefix = f"{publication_id}.1/{publication_id}.1.{file_format}"
+        response = self.s3.list_objects_v2(Bucket=self.bucket, Prefix=prefix, MaxKeys=1)
+        if contents := response.get("Contents", []):
+            if key := contents[0]["Key"]:
                 filepath = Path(self.storage) / f"{publication_id}.{file_format}"
                 self.s3.download_file(self.bucket, key, str(filepath))
                 return filepath
+            return None
         return None
 
-    def _get_figures(self, publication_id: str) -> list[str]:
+    def _get_figures(self, publication_id: ID) -> list[Path]:
         """Retrieve the figure files for a given publication ID.
 
         Args:
-            publication_id (str): The publication ID to retrieve the figure files for.
+            publication_id (ID): The publication ID to retrieve the figure files for.
         """
         if metadata := self._get_json(publication_id):
             supplementary_files = metadata.get("media_urls", [])
@@ -159,11 +291,11 @@ class PMC(GetPublication, GetPDF, GetID):
 
         return []
 
-    def _extract_figures_from_supplements(self, publication_id: str, supplementary_files: list[str]) -> list[str]:
+    def _extract_figures_from_supplements(self, publication_id: ID, supplementary_files: list[str]) -> list[Path]:
         """Extract figure files from the supplementary files.
 
         Args:
-            publication_id (str): The publication ID to retrieve the figure files for.
+            publication_id (ID): The publication ID to retrieve the figure files for.
             supplementary_files (list[str]): A list of supplementary file URLs to extract figures from.
         """
         figures_paths = []
@@ -181,9 +313,9 @@ class PMC(GetPublication, GetPDF, GetID):
                 image_path.parent.mkdir(parents=True, exist_ok=True)
                 self.s3.download_file(self.bucket, key, str(image_path))
                 figures_paths.append(str(image_path))
-        return figures_paths
+        return convert_image_format([Path(path) for path in figures_paths], self.unified_image_format)
 
-    def _get_json(self, publication_id: str) -> str | None:
+    def _get_json(self, publication_id: ID) -> dict[str, Any] | None:
         """Retrieve the json for a given publication ID.
 
         Args:
@@ -195,7 +327,7 @@ class PMC(GetPublication, GetPDF, GetID):
             return metadata
         return None
 
-    def _get_pdf(self, publication_id: str) -> PDF | None:
+    def _get_pdf(self, publication_id: ID) -> PDF | None:
         """Retrieve the PDF for a given publication ID.
 
         Args:
@@ -204,73 +336,3 @@ class PMC(GetPublication, GetPDF, GetID):
         if pdf_path := self._get_file(publication_id, "pdf"):
             return PDF(pdf_path)
         return None
-
-    def _get_publication_count_and_ids(
-        self,
-        mindate: str | None = None,
-        maxdate: str | None = None,
-    ) -> tuple[int, list[str]]:
-        handle = Entrez.esearch(
-            db="pmc",
-            term=self._query,
-            retmax=self.max_pmc_results,
-            mindate=mindate,
-            maxdate=maxdate,
-            datetype="pdat",
-        )
-        record = Entrez.read(handle)
-        handle.close()
-        count = int(record.get("Count", 0))
-        ids = record.get("IdList", [])
-        return count, ids
-
-    async def _async_get_publication_count_and_ids(
-        self,
-        mindate: str | None = None,
-        maxdate: str | None = None,
-    ) -> tuple[int, list[str]] | None:
-        async for attempt in AsyncRetrying(
-            retry=retry_if_exception_type(HTTPError),
-            wait=wait_random_exponential(multiplier=0.5, max=30),
-            stop=stop_after_attempt(self.retries),
-            reraise=True,
-        ):
-            with attempt:
-                async with self.semaphore:
-                    await self.limiter.wait_turn()
-                    return await asyncio.to_thread(
-                        self._get_publication_count_and_ids,
-                        mindate,
-                        maxdate,
-                    )
-        return None
-
-    async def _collect_ids_for_year(self, year: int) -> list[str]:
-        year_count, year_ids = await self._async_get_publication_count_and_ids(
-            mindate=f"{year}/01/01",
-            maxdate=f"{year}/12/31",
-        )
-        if year_count <= self.max_pmc_results:
-            return year_ids
-
-        return await self._collect_ids_split_by_months_days(year)
-
-    async def _collect_ids_split_by_months_days(self, year: int) -> list[str]:
-        year_month_days_ids = []
-        for month in range(1, 13):
-            days_in_month = calendar.monthrange(year, month)[1]
-            month_count, month_ids = await self._async_get_publication_count_and_ids(
-                mindate=f"{year}/{month:02d}/01",
-                maxdate=f"{year}/{month:02d}/{days_in_month:02d}",
-            )
-            if month_count <= self.max_pmc_results:
-                year_month_days_ids.extend(month_ids)
-                continue
-
-            for day in range(1, days_in_month + 1):
-                _day_count, day_ids = await self._async_get_publication_count_and_ids(
-                    mindate=f"{year}/{month:02d}/{day:02d}",
-                    maxdate=f"{year}/{month:02d}/{day:02d}",
-                )
-                year_month_days_ids.extend(day_ids)
-        return year_month_days_ids

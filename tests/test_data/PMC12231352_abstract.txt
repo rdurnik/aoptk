@@ -1,0 +1,14 @@
+Background:
+The role of nucleotide-binding oligomerization domain-like receptors containing pyrin domain 3 (NLRP3) inflammasome and pyroptosis in the inflammatory microenvironment of metabolic-associated fatty liver disease (MASLD) has been posited as crucial. Bletilla striata polysaccharides (BSPs), extracted from the tubers of Bletilla striata (Thunb.) Rchb.f., exhibit significant anti-inflammatory properties. However, their potential protective effects on MASLD and their role in regulating pyroptosis remain unclear.
+
+Objectives:
+This study investigates the efficacy of BSP-1, a purified metabolite isolated from crude BSPs, on MASLD by evaluating its ability to modulate the NLRP3/caspase-1/GSDMD signaling pathway.
+
+Methods:
+To simulate MASLD in vivo and in vitro, high-fat diet (HFD)-induced rat models and free fatty acid (FFA)-stimulated HepG2 cells were used. Serum indicators and histopathological staining were employed to assess liver injury and lipid deposition. Additionally, enzyme-linked immunosorbent assay (ELISA), immunohistochemistry (IHC), immunofluorescence, real-time quantitative polymerase chain reaction (RT-qPCR), and western blotting (WB) analysis were conducted to examine the NLRP3/caspase-1/GSDMD pathway and related cytokine levels.
+
+Results:
+BSP-1 significantly ameliorates alanine aminotransferase (ALT), aspartate aminotransferase (AST), total cholesterol (TC), and triglyceride (TG) levels in both rat serum and HepG2 cells. Furthermore, BSP-1 reduces inflammatory factors interleukin (IL)-1β and IL-18, while improving pathological changes in rat liver tissue. Mechanistically, BSP-1 regulates the expression of pyroptosis-related proteins and mRNAs in the NLRP3/caspase-1/GSDMD pathway, thereby protecting against MASLD.
+
+Discussion:
+BSP-1 may represent a promising therapeutic agent for MASLD treatment by inhibiting the NLRP3/caspase-1/GSDMD signaling pathway.

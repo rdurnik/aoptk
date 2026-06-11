@@ -1,5 +1,8 @@
 import asyncio
 import time
+from pathlib import Path
+from PIL import Image
+from aoptk.literature.id import ID
 
 
 class AsyncRequestLimiter:
@@ -20,6 +23,57 @@ class AsyncRequestLimiter:
             self._next_allowed = now + self.min_interval
 
 
-def is_europepmc_id(publication_id: str) -> bool:
+def is_europepmc_id(publication_id: ID) -> bool:
     """Check if the given publication ID is a EuropePMC ID."""
-    return bool(publication_id.startswith("PMC"))
+    return bool(str(publication_id).startswith("PMC"))
+
+
+def convert_image_format(images_to_convert_path: list[Path], target_format: str = "png") -> list[Path]:
+    """Convert every image in a list to the specified format.
+
+    Args:
+        images_to_convert_path: The images to convert.
+        target_format: The desired image format (e.g., 'png', 'jpg').
+    """
+    converted_images: list[Path] = []
+
+    for image_path in images_to_convert_path:
+        if _image_in_this_format_already_exists(target_format, image_path):
+            converted_images.append(image_path)
+        else:
+            converted_image_path = image_path.with_suffix(f".{target_format}")
+            convert_to_png(image_path, converted_image_path)
+            converted_images.append(converted_image_path)
+
+    return sorted(converted_images)
+
+
+def convert_to_png(inpath: Path, outpath: Path) -> None:
+    """Convert an image to PNG format.
+
+    Args:
+        inpath: The path of the input image.
+        outpath: The path where the converted image will be saved.
+    """
+    with Image.open(inpath) as img:
+        img.convert("RGB").save(outpath) if img.mode not in ["RGB", "RGBA"] else img.save(outpath)
+    inpath.unlink()
+
+
+def _image_in_this_format_already_exists(target_format: str, image_path: Path) -> bool:
+    """Check if the image is already in the target format.
+
+    Args:
+        target_format: The desired image format (e.g., 'png', 'jpg').
+        image_path: The path of the image to check.
+    """
+    return image_path.suffix.lower() == f".{target_format}"
+
+
+def remove_pmc_prefix(ids: list[ID]) -> list[ID]:
+    """Remove the 'PMC' prefix from ID.
+
+    Args:
+        ids (list[ID]): A list of IDs to remove the prefix from.
+    """
+    return [ID(str(publication_id)[3:]) for publication_id in ids]

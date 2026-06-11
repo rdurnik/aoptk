@@ -19,13 +19,15 @@ class ProvideMeshTermDataframeFromXML(ProvideNormalizationDataframe):
             heading_element = record.find(".//DescriptorName/String", name_space)
             if heading_element is None:
                 continue
-            heading = heading_element.text.strip().lower()
+            if heading_text := heading_element.text:
+                heading = heading_text.strip().lower()
 
             terms = []
             for term in record.findall(".//TermList/Term/String", name_space):
-                term_element = term.text.strip().lower()
-                if term_element and term_element != heading:
-                    terms.append(term_element)
+                if term_text := term.text:
+                    term_element = term_text.strip().lower()
+                    if term_element and term_element != heading:
+                        terms.append(term_element)
             rows.append([heading, terms])
 
         return pd.DataFrame(rows, columns=["heading", "mesh_terms"])

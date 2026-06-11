@@ -11,10 +11,10 @@ class Publication:
 
     id: ID
     abstract: Abstract
-    full_text: str | list[str]
+    full_text: str
     tables: list[pd.DataFrame]
     figures: list
-    figure_descriptions: list
+    figure_descriptions: list | str
 
     def __str__(self) -> str:
-        return self.abstract
+        return self.full_text

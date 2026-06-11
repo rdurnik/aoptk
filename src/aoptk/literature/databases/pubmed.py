@@ -1,108 +1,116 @@
 from __future__ import annotations
 import os
-from datetime import UTC
-from datetime import datetime
+from itertools import chain
+from pathlib import Path
+from typing import Any
+from urllib.error import HTTPError
 from Bio import Entrez
+from requests.adapters import MaxRetryError
 from aoptk.literature.abstract import Abstract
+from aoptk.literature.databases.ncbi import NCBI
 from aoptk.literature.get_abstract import GetAbstract
 from aoptk.literature.get_id import GetID
-from aoptk.literature.get_publication_metadata import GetPublicationMetadata
+from aoptk.literature.get_metadata import GetMetadata
+from aoptk.literature.id import DOI
 from aoptk.literature.id import ID
-from aoptk.literature.publication_metadata import PublicationMetadata
+from aoptk.literature.id import PMCID
+from aoptk.literature.id import PMID
+from aoptk.literature.metadata import Metadata
+from aoptk.literature.query import Query
 
-Entrez.api_key = os.environ.get("NCBI_API_KEY")
-
-
-class QueryTooLargeError(Exception):
-    """Exception raised when query returns more than maximum_results."""
-
-    def __init__(self, count: int, maximum: int):
-        self.count = count
-        self.maximum = maximum
-        super().__init__(f"Query returned {count} results. Maximum allowed is {maximum - 1}.")
+Entrez.api_key = os.environ.get("NCBI_API_KEY")  # type: ignore[assignment]
 
 
-class PubMed(GetAbstract, GetID, GetPublicationMetadata):
+class PubMed(GetAbstract, GetID, GetMetadata):
     """Class to get data from PubMed based on a query."""
 
-    maximum_results = 10000
-    batch_size = 200
-    max_retries = 5
+    def __init__(self, storage: Path, query: Query | None = None):
+        self.storage = storage
+        if not query:
+            query = Query(search_term="queryblank")
+        self.search_term = self.build_search_term(query)
 
-    def __init__(self, query: str):
-        self._query = query
-        self.id_list = self.get_ids()
-        self.publication_count = self.get_publication_count()
-        if self.get_publication_count() >= self.maximum_results:
-            raise QueryTooLargeError(self.publication_count, self.maximum_results)
+        self._ncbi = NCBI(database="pubmed")
 
-    def get_abstracts(self) -> list[Abstract]:
+    def build_search_term(self, query: Query) -> str:
+        """Convert Query to PubMed search syntax."""
+        search_term = query.search_term
+        if query.full_text_subset:
+            search_term += " full text[sb]"
+        if query.only_preprint:
+            search_term += " preprint[pt]"
+        if query.exclude_preprint:
+            search_term += " NOT preprint[pt]"
+        if query.date:
+            search_term += f" {query.date[0]}/{query.date[1]}/{query.date[2]} [dp]"
+        if query.licensing:
+            msg = "Licensing filter is not available in PubMed."
+            raise NotImplementedError(msg)
+        return search_term
+
+    def get_abstracts(self, ids: list[ID]) -> list[Abstract]:
         """Retrieve Abstracts based on the query."""
         abstracts = []
-        for i in range(0, len(self.id_list), self.batch_size):
-            batch_ids = self.id_list[i : i + self.batch_size]
-            handle = Entrez.efetch(db="pubmed", id=",".join(batch_ids), rettype="xml", max_retry=self.max_retries)
-            records = Entrez.read(handle)
-            handle.close()
-            for article in records.get("PubmedArticle", []):
-                pmid = str(article["MedlineCitation"]["PMID"])
-                abstract_obj = article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", [])
-                abstract_text = "".join(abstract_obj) if abstract_obj else ""
-                abstracts.append(Abstract(text=abstract_text, id=ID(pmid)))
+        try:
+            records = self._ncbi.get_abstract_records(ids)
+            abstracts = self._parse_pubmed_abstract_records(records)
+            for abstract in abstracts:
+                with (Path(self.storage) / f"{abstract.id}.txt").open("w", encoding="utf-8") as f:
+                    f.write(abstract.text)
+        except (HTTPError, MaxRetryError):
+            pass
         return abstracts
 
-    def get_publications_metadata(self) -> list[PublicationMetadata]:
-        """Retrieve Publication metadata based on the query."""
-        return [
-            publication_metadata
-            for publication_metadata in (
-                self._get_publication_metadata(publication_id) for publication_id in self.id_list
-            )
-            if publication_metadata is not None
-        ]
+    def _parse_pubmed_abstract_records(self, records: list[dict]) -> list[Abstract]:
+        """Parse PubMed abstract records and return a list of Abstract objects.
 
-    def get_publication_count(self) -> int:
-        """Return the number of publications matching the query in PubMed."""
-        handle = Entrez.esearch(db="pubmed", term=self._query, retmax=0)
-        record = Entrez.read(handle)
-        handle.close()
-        return int(record.get("Count", 0))
+        Args:
+            records (dict): A dictionary containing PubMed article records.
+        """
+        abstracts = []
+        for article in chain.from_iterable(batch.get("PubmedArticle", []) for batch in records):
+            pmid = ID(article["MedlineCitation"]["PMID"])
+            abstract_text = "".join(article["MedlineCitation"]["Article"].get("Abstract", {}).get("AbstractText", ""))
+            abstracts.append(Abstract(text=abstract_text, id=pmid))
+        return abstracts
+
+    def get_publications_metadata(self, ids: list[ID]) -> list[Metadata]:
+        """Retrieve Publication metadata."""
+        metadata = []
+        try:
+            records = self._ncbi.get_publications_metadata_records(ids)
+            metadata = self._parse_pubmed_metadata_records(records)
+        except (HTTPError, MaxRetryError):
+            pass
+        return metadata
+
+    def _parse_pubmed_metadata_records(self, records: list[list[dict[str, Any]]]) -> list[Metadata]:
+        """Parse PubMed metadata records and return a list of PublicationMetadata objects.
+
+        Args:
+            records (list): A nested list containing PubMed article records.
+        """
+        publications_metadata: list[Metadata] = []
+        for article in chain.from_iterable(records):
+            if publication_id := article.get("Id", None):
+                pmcid = article.get("ArticleIds", {}).get("pmc", None)
+                doi = article.get("DOI", None)
+                year = int(pub_date.split()[0]) if (pub_date := article.get("PubDate", None)) else None
+                title = article.get("Title", None)
+                authors = article.get("AuthorList", None)
+                publications_metadata.append(
+                    Metadata(
+                        id=ID(publication_id),
+                        pmid=PMID(publication_id),
+                        pmcid=PMCID(pmcid) if pmcid else None,
+                        doi=DOI(doi) if doi else None,
+                        year=year,
+                        title=title,
+                        authors=authors,
+                    ),
+                )
+        return publications_metadata
 
     def get_ids(self) -> list[ID]:
         """Get a list of PubMed IDs from PubMed based on the query."""
-        handle = Entrez.esearch(db="pubmed", term=self._query, retmax=self.maximum_results)
-        record = Entrez.read(handle)
-        handle.close()
-        return record.get("IdList", [])
-
-    def _get_abstract(self, pmid: str) -> Abstract:
-        """Get the abstract for a given PubMed ID."""
-        handle = Entrez.efetch(db="pubmed", id=pmid, rettype="xml", max_retry=self.max_retries)
-        record = Entrez.read(handle)
-        handle.close()
-        abstract_text = ""
-        if abstract_obj := record["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"]:
-            abstract_text = "".join(abstract_obj)
-            return Abstract(text=abstract_text, id=ID(pmid))
-        return Abstract(text="", id=ID(pmid))
-
-    def _get_publication_metadata(self, pmid: str) -> PublicationMetadata:
-        """Get the publication metadata for a given PubMed ID."""
-        handle = Entrez.esummary(db="pubmed", id=pmid, max_retry=self.max_retries)
-        summary_records = Entrez.read(handle)
-        handle.close()
-        for summary in summary_records:
-            publication_id = pmid
-            pub_date = summary.get("PubDate", None)
-            year_publication = pub_date.split()[0] if pub_date else "Unknown"
-            title = summary.get("Title", None)
-            authors = ", ".join(summary.get("AuthorList", []))
-            search_date = datetime.now(UTC)
-        return PublicationMetadata(
-            id=ID(publication_id),
-            publication_date=year_publication,
-            title=title,
-            authors=authors,
-            database="PubMed",
-            search_date=search_date,
-        )
+        return self._ncbi.get_ids(search_term=self.search_term)

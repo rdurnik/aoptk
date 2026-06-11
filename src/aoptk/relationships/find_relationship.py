@@ -3,6 +3,7 @@ from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 import pandas as pd
+from aoptk.relationships.relationship_type import RelationshipType
 
 if TYPE_CHECKING:
     from aoptk.chemical import Chemical
@@ -19,6 +20,7 @@ class FindRelationship(ABC):
         text: str,
         chemicals: list[Chemical],
         effects: list[Effect],
+        relationship_types: list[RelationshipType],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given text."""
 
@@ -27,6 +29,7 @@ class FindRelationship(ABC):
         self,
         table_df: pd.DataFrame,
         effects: list[Effect],
+        relationship_types: list[RelationshipType],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given table data."""
 
@@ -36,5 +39,6 @@ class FindRelationship(ABC):
         text: str,
         image_paths: list[str],
         effects: list[Effect],
+        relationship_types: list[RelationshipType],
     ) -> list[Relationship]:
         """Find relationships between chemicals and effects in the given text and images combined."""

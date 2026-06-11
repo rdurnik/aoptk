@@ -130,3 +130,7 @@ class Chemical:
         which is required for correct behaviour in sets and dict keys.
         """
         return hash(self.name)
+
+    def to_dict(self) -> dict:
+        """Convert the chemical to a dictionary."""
+        return {"name": self._name, "heading": self._heading, "synonyms": ";".join(self._synonyms)}
