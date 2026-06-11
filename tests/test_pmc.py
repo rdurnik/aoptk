@@ -70,6 +70,7 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: Pat
     )
     expected = provide_publications["full_text"]
     assert actual == expected
+    assert (provide_temp_storage / f"{provide_publications['id']}.txt").exists()
 
 
 @pytest.mark.xfail(raises=HTTPError)
@@ -238,12 +239,14 @@ def test_generate_abstracts_for_specific_publications(
     tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
+    storage_path = tmp_path_factory.mktemp("pmc_storage")
     abstract = PMC(
-        storage=tmp_path_factory.mktemp("pmc_storage"),
+        storage=storage_path,
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
     ).get_abstracts(ids=ids)[1]
     ratio = fuzz.ratio(abstract.text, expected_abstracts)
     assert ratio >= 75
+    assert (storage_path / f"{ids[1]}.txt").exists()
 
 
 def test_generate_abstracts_multiple_abstracts(

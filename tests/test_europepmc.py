@@ -95,7 +95,7 @@ def test_get_abstract_not_empty(tmp_path_factory: pytest.TempPathFactory):
             [],
         ),
         (
-            [ID("PMC5596756"), ID("30784932")],
+            [ID("30784932"), ID("PMC5596756")],
             [
                 Abstract(
                     text=Path("tests/test_data/30784932_abstract.txt").read_text(encoding="utf-8"),
@@ -112,11 +112,14 @@ def test_generate_abstracts_for_given_query(
     tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
+    storage_path = tmp_path_factory.mktemp("europepmc_storage")
     abstracts = EuropePMC(
-        storage=tmp_path_factory.mktemp("europepmc_storage"),
+        storage=storage_path,
         figure_storage=tmp_path_factory.mktemp("europepmc_storage_figures"),
     ).get_abstracts(ids=ids)
     assert abstracts == expected_abstracts
+    if abstracts:
+        assert (storage_path / f"{ids[0]}.txt").exists()
 
 
 @pytest.mark.parametrize(
@@ -168,6 +171,7 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: Pat
     expected = provide_publications["full_text"]
     ratio = fuzz.ratio(actual, expected)
     assert ratio >= 50
+    assert (provide_temp_storage / f"{provide_publications['id']}.txt").exists()
 
 
 @pytest.mark.xfail(raises=HTTPError)
