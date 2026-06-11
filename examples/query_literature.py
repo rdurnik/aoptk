@@ -26,6 +26,5 @@ Entrez.api_key = api_key
 
 ids = EuropePMC(storage="./", figure_storage="./figures", query=query).get_ids()
 
-
-with Path.open("ids.txt", "w") as f:
+with Path("ids.txt").open("w") as f:
     f.writelines(f"{pub_id}{os.linesep}" for pub_id in ids)
