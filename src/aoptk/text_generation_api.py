@@ -60,6 +60,7 @@ class TextGenerationAPI(
     categorize_text_prompt_template: str = "categorize_text_prompt.txt"
 
     specification_relationship_text_prompt: str = ""
+    specification_categorization_prompt: str = ""
 
     def __init__(
         self,
