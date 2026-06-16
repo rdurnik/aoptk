@@ -57,6 +57,7 @@ class TextGenerationAPI(
     convert_pdf_scan_prompt_template: str = "convert_pdf_scan_prompt.txt"
     convert_image_prompt_template: str = "convert_image_prompt.txt"
     find_relevant_publications_prompt_template: str = "find_relevant_publications_prompt.txt"
+    categorize_text_prompt_template: str = "categorize_text_prompt.txt"
 
     specification_relationship_text_prompt: str = ""
 
@@ -464,4 +465,22 @@ class TextGenerationAPI(
                 return True
             if response == "no":
                 return False
+        return None
+
+    def categorize_text(self, text: str, categories: list[str]) -> str | None:
+        """Categorize the given text into one of the specified categories.
+
+        Args:
+            text (str): The text to categorize.
+            categories (list[str]): The list of available categories.
+
+        Returns:
+            str | None: The categorized label or None if no match is found.
+        """
+        if response := self._prompt(
+            self._render_prompt(self.categorize_text_prompt_template, text=text, categories=", ".join(categories)),
+        ).lower():
+            if response == "none":
+                return None
+            return response
         return None
