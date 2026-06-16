@@ -5,7 +5,7 @@ Categorize the provided text into exactly one category from the following list:
 {{ specification_categorization_prompt }}
 
 Output requirements:
-1. Return only one category.
+1. Return exactly one category name, matching it exactly as written.
 2. Do not include explanations, labels, punctuation, or additional text.
 3. If there is no fitting category, return exactly:
 "none"
