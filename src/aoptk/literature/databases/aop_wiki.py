@@ -46,6 +46,8 @@ WHERE {
             aop_id = result.get("AOP", {}).get("value")
             title = result.get("AOPTitle", {}).get("value", "")
             abstract = result.get("abstract", {}).get("value", "")
+            if abstract == "":
+                continue
             text = f"{title}\n\n{abstract}".strip()
             abstracts.append(Abstract(id=ID(aop_id), text=text))
 
