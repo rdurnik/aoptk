@@ -1,0 +1,3 @@
+The text describes an Adverse Outcome Pathway (AOP). Classify the AOP according to its target organ / system.
+
+Category other includes AOPs not associated with a specific organ system, including changes in body weight, decreased survival, and other nonspecific toxicity.
