@@ -3,6 +3,7 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
+import random
 from typing import Literal
 import pandas as pd
 from dotenv import load_dotenv
@@ -48,6 +49,8 @@ class TextGenerationAPI(
     top_p: float = 1
     load_dotenv()
     client: OpenAI
+    max_retries: int = 5
+    timeout: int = random.randint(10, 100)
     prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
     chemical_prompt_template: str = "chemical_prompt.txt"
     relationship_text_prompt_template: str = "relationship_text_prompt.txt"
@@ -72,6 +75,8 @@ class TextGenerationAPI(
         self.client = OpenAI(
             base_url=self.url,
             api_key=self.api_key,
+            max_retries=self.max_retries,
+            timeout=self.timeout,
         )
 
     def find_relationships_in_text(
