@@ -1,4 +1,5 @@
 from __future__ import annotations
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import pandas as pd
 import pytest
@@ -277,3 +278,18 @@ def test_find_relevant_publications(question: str, text: str, expected: bool):
     """Test that find_relevant_publications method finds relevant publications."""
     actual = TextGenerationAPI().find_relevant_publications(question=question, text=text)
     assert actual == expected
+
+
+@pytest.mark.openai
+def test_retry_strategy_works():
+    """Test that the retry strategy works."""
+    problematic_text = Path("tests/test_data/PMC11780512.txt").read_text()
+    num_threads = 10
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        results = list(
+            executor.map(
+                lambda _: TextGenerationAPI().find_chemicals(text=problematic_text),
+                range(1, num_threads + 1),
+            ),
+        )
+    assert len(results) == num_threads
