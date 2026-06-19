@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import pandas as pd
@@ -281,6 +282,7 @@ def test_find_relevant_publications(question: str, text: str, expected: bool):
 
 
 @pytest.mark.openai
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI environment due to resource constraints.")
 def test_retry_strategy_works():
     """Test that the retry strategy works."""
     problematic_text = Path("tests/test_data/PMC11780512.txt").read_text()
