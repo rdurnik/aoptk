@@ -48,7 +48,7 @@ class TextGenerationAPI(
     top_p: float = 1
     load_dotenv()
     client: OpenAI
-    max_retries: int = 5
+    max_retries: int = 10
     timeout: int = 120
     prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
     chemical_prompt_template: str = "chemical_prompt.txt"
