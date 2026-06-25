@@ -295,3 +295,38 @@ def test_retry_strategy_works():
             ),
         )
     assert len(results) == num_threads
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (
+            Path("tests/test_data/invalid_chemical_response.txt").read_text(encoding="utf-8"),
+            True,
+        ),
+        (
+            """I need to extract chemicals from text...
+
+            thioacetamide
+            methotrexate""",
+            True,
+        ),
+        (
+            """- thioacetamide
+            - methotrexate""",
+            True,
+        ),
+        (
+            "thioacetamide ; methotrexate ; acetaminophen",
+            False,
+        ),
+        (
+            "thioacetamide",
+            False,
+        ),
+    ],
+)
+def test_invalid_chemical_response(text: str, expected: bool):
+    """Test that the find_chemicals method handles invalid chemical responses gracefully."""
+    actual = TextGenerationAPI().is_invalid_chemical_response(text)
+    assert actual == expected

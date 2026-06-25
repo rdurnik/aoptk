@@ -1,6 +1,7 @@
 from __future__ import annotations
 import base64
 import os
+import typing
 from itertools import product
 from pathlib import Path
 from typing import Literal
@@ -61,6 +62,8 @@ class TextGenerationAPI(
     find_relevant_publications_prompt_template: str = "find_relevant_publications_prompt.txt"
 
     specification_relationship_text_prompt: str = ""
+
+    invalid_chemical_response_patterns: typing.ClassVar[list[str]] = ["\n-", "\n*", "\n1.", "\n"]
 
     def __init__(
         self,
@@ -175,10 +178,23 @@ class TextGenerationAPI(
             text (str): The input text to search for chemicals.
         """
         if response := self._prompt(self._render_prompt(self.chemical_prompt_template, text=text)).lower():
+            if self.is_invalid_chemical_response(response):
+                return []
             if response == "none":
                 return []
             return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
         return []
+
+    def is_invalid_chemical_response(
+        self,
+        response: str,
+    ) -> bool:
+        r"""Check if the response from the model is invalid for chemical extraction.
+
+        Args:
+            response (str): The response from the model.
+        """
+        return bool(any(pattern in response.lower() for pattern in self.invalid_chemical_response_patterns))
 
     def _encode_image(self, image_path: str) -> tuple[str, str]:
         """Encode the image at the given path to a base64 string and return MIME type.
