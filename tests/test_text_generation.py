@@ -208,7 +208,7 @@ def test_normalize_chemical(chemical: Chemical, list_of_chemicals: list[Chemical
 def test_extract_text_from_pdf_image():
     """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
     base64_str = (Path("tests/test_data/scan_base64_image_PMC12416454.txt").read_text()).strip()
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_pdf_scan(
+    actual = TextGenerationAPI(model="qwen3.5-122b").convert_pdf_scan(
         base64_str,
         mime_type="image/jpeg",
     )
@@ -228,7 +228,7 @@ def test_extract_text_from_pdf_image():
 )
 def test_find_relationships_in_text_and_images(text: str, images: list[str], expected_chemicals: list[str]):
     """Test that find_relationships_in_text_and_images method finds relationships in text and images."""
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").find_relationships_in_text_and_images(
+    actual = TextGenerationAPI(model="qwen3.5-122b").find_relationships_in_text_and_images(
         text=text,
         image_paths=images,
         relationship_types=[Inhibitive()],
@@ -250,7 +250,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
 @pytest.mark.openai
 def test_convert_image_to_text():
     """Test that convert_image_to_text method converts an image to text."""
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image(
+    actual = TextGenerationAPI(model="qwen3.5-122b").convert_image(
         "tests/test_data/test_figures/gjic.jpeg",
         text="These images are about gap junction intercellular communication.",
     )
