@@ -298,10 +298,11 @@ def test_retry_strategy_works():
 
 
 @pytest.mark.parametrize(
-    ("text", "expected"),
+    ("text", "invalid_response_patterns", "expected"),
     [
         (
             Path("tests/test_data/invalid_chemical_response.txt").read_text(encoding="utf-8"),
+            TextGenerationAPI.invalid_chemical_response_patterns,
             True,
         ),
         (
@@ -309,51 +310,71 @@ def test_retry_strategy_works():
 
             thioacetamide
             methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             True,
         ),
         (
             """- thioacetamide
             - methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             True,
         ),
         (
             "thioacetamide ; methotrexate ; acetaminophen",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             False,
         ),
         (
             "thioacetamide",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             False,
         ),
         (
             "PCB 123",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             False,
         ),
         (
             "PCB-123",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             False,
         ),
         (
             "PCB-123 ; thioacetamide ; 3-(4,5-dimethylthiazol-2-yl)-2,5-diphenyltetrazolium bromide",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             False,
         ),
         (
             """1. thioacetamide
             2. methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             True,
         ),
         (
             """* thioacetamide
             * methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
             True,
         ),
         (
             """** thioacetamide
             ** methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            "thioacetamide",
+            TextGenerationAPI.invalid_normalization_response_patterns,
+            False,
+        ),
+        (
+            "thioacetamide ; methotrexate ; acetaminophen",
+            TextGenerationAPI.invalid_normalization_response_patterns,
             True,
         ),
     ],
 )
-def test_invalid_chemical_response(text: str, expected: bool):
+def test_invalid_response(text: str, invalid_response_patterns: list[str], expected: bool):
     """Test that the find_chemicals method handles invalid chemical responses gracefully."""
-    actual = TextGenerationAPI().is_invalid_chemical_response(text)
+    actual = TextGenerationAPI().is_invalid_response(text, invalid_response_patterns)
     assert actual == expected
