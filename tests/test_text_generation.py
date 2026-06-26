@@ -324,6 +324,33 @@ def test_retry_strategy_works():
             "thioacetamide",
             False,
         ),
+        (
+            "PCB 123",
+            False,
+        ),
+        (
+            "PCB-123",
+            False,
+        ),
+        (
+            "PCB-123 ; thioacetamide ; 3-(4,5-dimethylthiazol-2-yl)-2,5-diphenyltetrazolium bromide",
+            False,
+        ),
+        (
+            """1. thioacetamide
+            2. methotrexate""",
+            True,
+        ),
+        (
+            """* thioacetamide
+            * methotrexate""",
+            True,
+        ),
+        (
+            """** thioacetamide
+            ** methotrexate""",
+            True,
+        ),
     ],
 )
 def test_invalid_chemical_response(text: str, expected: bool):
