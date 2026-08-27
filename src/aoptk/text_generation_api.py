@@ -49,7 +49,7 @@ class TextGenerationAPI(
     top_p: float = 1
     load_dotenv()
     client: OpenAI
-    max_retries: int = 10
+    max_retries: int = 3
     timeout: int = 120
     prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
     chemical_prompt_template: str = "chemical_prompt.txt"
@@ -179,9 +179,7 @@ class TextGenerationAPI(
             text (str): The input text to search for chemicals.
         """
         if response := self._prompt(self._render_prompt(self.chemical_prompt_template, text=text)).lower():
-            if self.is_invalid_response(response, self.invalid_chemical_response_patterns):
-                return []
-            if response == "none":
+            if self.is_invalid_response(response, self.invalid_chemical_response_patterns) or response == "none":
                 return []
             return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
         return []
@@ -336,9 +334,7 @@ class TextGenerationAPI(
         )
 
         if response := self._prompt(content).lower():
-            if self.is_invalid_response(response, self.invalid_normalization_response_patterns):
-                return chemical
-            if response == "none":
+            if self.is_invalid_response(response, self.invalid_normalization_response_patterns) or response == "none":
                 return chemical
             return Chemical(name=response)
         return chemical
