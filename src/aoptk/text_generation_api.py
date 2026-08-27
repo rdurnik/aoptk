@@ -3,6 +3,7 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
+from typing import Literal
 import pandas as pd
 from dotenv import load_dotenv
 from jinja2 import Template
@@ -73,7 +74,7 @@ class TextGenerationAPI(
 ):
     """Text generation API using OpenAI."""
 
-    role: str = "user"
+    role: Literal["user"] = "user"
     temperature: float = 0
     top_p: float = 1
     load_dotenv()
