@@ -3,7 +3,6 @@ import base64
 import os
 from itertools import product
 from pathlib import Path
-from typing import Literal
 import pandas as pd
 from dotenv import load_dotenv
 from jinja2 import Template
@@ -19,11 +18,28 @@ from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
-from aoptk.relationships.relationship_type import Causative
-from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.relationships.relationship_type import Activation
+from aoptk.relationships.relationship_type import Alleviation
+from aoptk.relationships.relationship_type import Causation
+from aoptk.relationships.relationship_type import Induction
+from aoptk.relationships.relationship_type import Inhibition
+from aoptk.relationships.relationship_type import Mitigation
+from aoptk.relationships.relationship_type import Prevention
+from aoptk.relationships.relationship_type import Promotion
+from aoptk.relationships.relationship_type import Regulation
 from aoptk.relationships.relationship_type import RelationshipType
 
-topics = {Inhibitive(), Causative()}
+topics = {
+    Inhibition(),
+    Causation(),
+    Activation(),
+    Promotion(),
+    Prevention(),
+    Induction(),
+    Alleviation(),
+    Mitigation(),
+    Regulation(),
+}
 
 
 class LLMFailureError(Exception):
@@ -43,7 +59,7 @@ class TextGenerationAPI(
 ):
     """Text generation API using OpenAI."""
 
-    role: Literal["user"] = "user"
+    role: str = "user"
     temperature: float = 0
     top_p: float = 1
     load_dotenv()
