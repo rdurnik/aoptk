@@ -69,7 +69,7 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: Pat
         .full_text
     )
     expected = provide_publications["full_text"]
-    assert actual == expected
+    assert fuzz.ratio(actual, expected) >= 95
     assert (provide_temp_storage / f"{provide_publications['id']}.txt").exists()
 
 

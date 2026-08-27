@@ -20,11 +20,42 @@ from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
-from aoptk.relationships.relationship_type import Causative
-from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.relationships.relationship_type import Activation
+from aoptk.relationships.relationship_type import Alleviation
+from aoptk.relationships.relationship_type import Causation
+from aoptk.relationships.relationship_type import Induction
+from aoptk.relationships.relationship_type import Inhibition
+from aoptk.relationships.relationship_type import Mitigation
+from aoptk.relationships.relationship_type import Prevention
+from aoptk.relationships.relationship_type import Promotion
+from aoptk.relationships.relationship_type import Regulation
 from aoptk.relationships.relationship_type import RelationshipType
 
-topics = {Inhibitive(), Causative()}
+topics = {
+    Inhibition(),
+    Causation(),
+    Activation(),
+    Promotion(),
+    Prevention(),
+    Induction(),
+    Alleviation(),
+    Mitigation(),
+    Regulation(),
+}
+
+
+def other_topics_labels(relationship_type: RelationshipType) -> str:
+    """Render the labels of all topics except the given one, in stable alphabetical order.
+
+    Sorting is required for reproducibility: set iteration order depends on hashing and
+    varies between processes, which would make rendered prompts (and thus LLM behavior)
+    nondeterministic across runs.
+
+    Args:
+        relationship_type (RelationshipType): The relationship type to exclude.
+    """
+    remaining = {topic for topic in topics if topic != relationship_type}
+    return ", ".join(sorted(topic.positive for topic in remaining))
 
 
 class LLMFailureError(Exception):
@@ -122,14 +153,13 @@ class TextGenerationAPI(
             effect (Effect): The effect entity.
             relationship_type (RelationshipType): The relationship type to classify.
         """
-        other_topics = topics.difference({relationship_type})
         content = self._render_prompt(
             self.relationship_text_prompt_template,
             text=text,
             chem=chemical.name,
             effect=effect.name,
             rel_type=relationship_type,
-            other_topics=", ".join([topic.positive for topic in other_topics]),
+            other_topics=other_topics_labels(relationship_type),
             specification_relationship_text_prompt=self.specification_relationship_text_prompt,
         )
 
@@ -402,8 +432,6 @@ class TextGenerationAPI(
             effect (Effect): The effect entity.
             relationship_type (RelationshipType): The relationship type to classify.
         """
-        other_topics = topics.difference({relationship_type})
-
         encoded_images = [self._encode_image(image_path) for image_path in image_paths]
 
         relationships = []
@@ -416,7 +444,7 @@ class TextGenerationAPI(
                     text=text,
                     effect=effect.name,
                     rel_type=relationship_type,
-                    other_topics=", ".join([topic.positive for topic in other_topics]),
+                    other_topics=other_topics_labels(relationship_type),
                 ),
             },
         ]

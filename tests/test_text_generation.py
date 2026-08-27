@@ -14,8 +14,8 @@ from aoptk.literature.find_relevant_publication import FindRelevantPublication
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.relationships.find_relationship import FindRelationship
 from aoptk.relationships.relationship import Relationship
-from aoptk.relationships.relationship_type import Causative
-from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.relationships.relationship_type import Causation
+from aoptk.relationships.relationship_type import Inhibition
 from aoptk.relationships.relationship_type import RelationshipType
 from aoptk.text_generation_api import TextGenerationAPI
 
@@ -91,18 +91,18 @@ def test_find_chemical(text: str, expected: list[str]):
     [
         (
             "Cancer is caused by thioacetamide, not by acetaminophen.",
-            [Causative()],
+            [Causation()],
             [Chemical(name="acetaminophen"), Chemical(name="thioacetamide")],
             [Effect(name="cancer")],
             [
                 Relationship(
-                    relationship_type=Causative().negative,
+                    relationship_type=Causation().negative,
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="cancer"),
                     context="Cancer is caused by thioacetamide, not by acetaminophen.",
                 ),
                 Relationship(
-                    relationship_type=Causative().positive,
+                    relationship_type=Causation().positive,
                     chemical=Chemical(name="thioacetamide"),
                     effect=Effect(name="cancer"),
                     context="Cancer is caused by thioacetamide, not by acetaminophen.",
@@ -111,19 +111,19 @@ def test_find_chemical(text: str, expected: list[str]):
         ),
         (
             "Just some random text with no effect and no chemical in here.",
-            [Causative()],
+            [Causation()],
             [],
             [],
             [],
         ),
         (
             "Thioacetamide was studied. Acetaminophen caused liver fibrosis.",
-            [Causative(), Inhibitive()],
+            [Causation(), Inhibition()],
             [Chemical(name="thioacetamide"), Chemical(name="acetaminophen")],
             [Effect(name="liver fibrosis"), Effect(name="cancer")],
             [
                 Relationship(
-                    relationship_type=Causative().positive,
+                    relationship_type=Causation().positive,
                     chemical=Chemical(name="acetaminophen"),
                     effect=Effect(name="liver fibrosis"),
                     context="Thioacetamide was studied. Acetaminophen caused liver fibrosis.",
@@ -175,13 +175,13 @@ def test_relationship_table(phthalate_table_data: dict):
     """Test find_relationships_in_table method with a table."""
     actual = TextGenerationAPI().find_relationships_in_table(
         table_df=pd.DataFrame(phthalate_table_data),
-        relationship_types=[Inhibitive()],
+        relationship_types=[Inhibition()],
         effects=[Effect(name="gap junction intercellular communication")],
     )
     assert any(
         r.chemical.name == "dipropyl phthalate"
         and r.effect.name == "gap junction intercellular communication"
-        and r.relationship_type == Inhibitive().positive
+        and r.relationship_type == Inhibition().positive
         and r.context == "table"
         for r in actual
     )
@@ -231,7 +231,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
     actual = TextGenerationAPI(model="qwen3.5-122b").find_relationships_in_text_and_images(
         text=text,
         image_paths=images,
-        relationship_types=[Inhibitive()],
+        relationship_types=[Inhibition()],
         effects=[Effect(name="gap junction intercellular communication")],
     )
 
@@ -242,7 +242,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
             assert any(
                 r.chemical.name == expected_chemical
                 and r.effect.name == "gap junction intercellular communication"
-                and r.relationship_type == Inhibitive().positive
+                and r.relationship_type == Inhibition().positive
                 for r in actual
             )
 
