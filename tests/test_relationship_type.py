@@ -10,6 +10,7 @@ from aoptk.relationships.relationship_type import Prevention
 from aoptk.relationships.relationship_type import Promotion
 from aoptk.relationships.relationship_type import Regulation
 from aoptk.relationships.relationship_type import RelationshipType
+from aoptk.text_generation_api import other_topics_labels
 from aoptk.text_generation_api import topics
 
 
@@ -95,14 +96,22 @@ def test_topics_contains_all_relationship_types():
 
 
 def test_other_topics_excludes_only_current_type():
-    """topics.difference({current}) removes exactly the current type, even for a fresh instance."""
+    """other_topics_labels drops exactly the current type and keeps all others, even for a fresh instance."""
     for rel_type in all_relationship_types():
-        other_topics = topics.difference({rel_type})
-        assert len(other_topics) == len(topics) - 1
-        assert rel_type not in other_topics
-        positives = {topic.positive for topic in other_topics}
+        labels = other_topics_labels(rel_type).split(", ")
+        assert len(labels) == len(topics) - 1
+        assert rel_type.positive not in labels
         expected = {topic.positive for topic in all_relationship_types()} - {rel_type.positive}
-        assert positives == expected
+        assert set(labels) == expected
+
+
+def test_other_topics_order_is_stable():
+    """Labels are rendered in alphabetical order so prompts are identical across processes."""
+    for rel_type in all_relationship_types():
+        labels = other_topics_labels(rel_type)
+        assert labels == ", ".join(sorted(labels.split(", ")))
+        # independent calls with equivalent instances produce identical output
+        assert labels == other_topics_labels(type(rel_type)())
 
 
 def test_definitions_delineate_overlapping_concepts():
