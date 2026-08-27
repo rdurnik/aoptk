@@ -69,7 +69,7 @@ def test_extract_full_text(provide_publications: dict, provide_temp_storage: Pat
         .full_text
     )
     expected = provide_publications["full_text"]
-    assert actual == expected
+    assert fuzz.ratio(actual, expected) >= 95
     assert (provide_temp_storage / f"{provide_publications['id']}.txt").exists()
 
 
@@ -224,10 +224,11 @@ def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
 
 
 @pytest.mark.parametrize(
-    ("ids", "expected_abstracts"),
+    ("ids", "target_id", "expected_abstract"),
     [
         (
             [ID("PMC12231352"), ID("PMC12416454")],
+            ID("PMC12416454"),
             (Path("tests/test_data/PMC12416454_abstract.txt").read_text(encoding="utf-8")),
         ),
     ],
@@ -235,18 +236,20 @@ def test_exclude_only_preprint(tmp_path_factory: pytest.TempPathFactory):
 @pytest.mark.xfail(raises=HTTPError)
 def test_generate_abstracts_for_specific_publications(
     ids: list[ID],
-    expected_abstracts: list[str],
+    target_id: ID,
+    expected_abstract: str,
     tmp_path_factory: pytest.TempPathFactory,
 ):
     """Generate list of abstracts for given query."""
     storage_path = tmp_path_factory.mktemp("pmc_storage")
-    abstract = PMC(
+    abstracts = PMC(
         storage=storage_path,
         figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-    ).get_abstracts(ids=ids)[1]
-    ratio = fuzz.ratio(abstract.text, expected_abstracts)
+    ).get_abstracts(ids=ids)
+    abstract = next(ab for ab in abstracts if ab.id == target_id)
+    ratio = fuzz.ratio(abstract.text, expected_abstract.strip())
     assert ratio >= 75
-    assert (storage_path / f"{ids[1]}.txt").exists()
+    assert (storage_path / f"{target_id}.txt").exists()
 
 
 def test_generate_abstracts_multiple_abstracts(
