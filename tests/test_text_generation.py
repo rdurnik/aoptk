@@ -1,4 +1,6 @@
 from __future__ import annotations
+import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import pandas as pd
 import pytest
@@ -206,7 +208,7 @@ def test_normalize_chemical(chemical: Chemical, list_of_chemicals: list[Chemical
 def test_extract_text_from_pdf_image():
     """Test that extract_text_from_pdf_image method extracts text from a PDF image."""
     base64_str = (Path("tests/test_data/scan_base64_image_PMC12416454.txt").read_text()).strip()
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_pdf_scan(
+    actual = TextGenerationAPI(model="qwen3.5-122b").convert_pdf_scan(
         base64_str,
         mime_type="image/jpeg",
     )
@@ -226,7 +228,7 @@ def test_extract_text_from_pdf_image():
 )
 def test_find_relationships_in_text_and_images(text: str, images: list[str], expected_chemicals: list[str]):
     """Test that find_relationships_in_text_and_images method finds relationships in text and images."""
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").find_relationships_in_text_and_images(
+    actual = TextGenerationAPI(model="qwen3.5-122b").find_relationships_in_text_and_images(
         text=text,
         image_paths=images,
         relationship_types=[Inhibition()],
@@ -248,7 +250,7 @@ def test_find_relationships_in_text_and_images(text: str, images: list[str], exp
 @pytest.mark.openai
 def test_convert_image_to_text():
     """Test that convert_image_to_text method converts an image to text."""
-    actual = TextGenerationAPI(model="llama-4-scout-17b-16e-instruct").convert_image(
+    actual = TextGenerationAPI(model="qwen3.5-122b").convert_image(
         "tests/test_data/test_figures/gjic.jpeg",
         text="These images are about gap junction intercellular communication.",
     )
@@ -276,4 +278,103 @@ def test_convert_image_to_text():
 def test_find_relevant_publications(question: str, text: str, expected: bool):
     """Test that find_relevant_publications method finds relevant publications."""
     actual = TextGenerationAPI().find_relevant_publications(question=question, text=text)
+    assert actual == expected
+
+
+@pytest.mark.openai
+@pytest.mark.skipif(os.getenv("CI") == "true", reason="Skip on CI environment due to resource constraints.")
+def test_retry_strategy_works():
+    """Test that the retry strategy works."""
+    problematic_text = Path("tests/test_data/PMC11780512.txt").read_text()
+    num_threads = 10
+    with ThreadPoolExecutor(max_workers=num_threads) as executor:
+        results = list(
+            executor.map(
+                lambda _: TextGenerationAPI().find_chemicals(text=problematic_text),
+                range(1, num_threads + 1),
+            ),
+        )
+    assert len(results) == num_threads
+
+
+@pytest.mark.parametrize(
+    ("text", "invalid_response_patterns", "expected"),
+    [
+        (
+            Path("tests/test_data/invalid_chemical_response.txt").read_text(encoding="utf-8"),
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            """I need to extract chemicals from text...
+
+            thioacetamide
+            methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            """- thioacetamide
+            - methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            "thioacetamide ; methotrexate ; acetaminophen",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            False,
+        ),
+        (
+            "thioacetamide",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            False,
+        ),
+        (
+            "PCB 123",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            False,
+        ),
+        (
+            "PCB-123",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            False,
+        ),
+        (
+            "PCB-123 ; thioacetamide ; 3-(4,5-dimethylthiazol-2-yl)-2,5-diphenyltetrazolium bromide",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            False,
+        ),
+        (
+            """1. thioacetamide
+            2. methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            """* thioacetamide
+            * methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            """** thioacetamide
+            ** methotrexate""",
+            TextGenerationAPI.invalid_chemical_response_patterns,
+            True,
+        ),
+        (
+            "thioacetamide",
+            TextGenerationAPI.invalid_normalization_response_patterns,
+            False,
+        ),
+        (
+            "thioacetamide ; methotrexate ; acetaminophen",
+            TextGenerationAPI.invalid_normalization_response_patterns,
+            True,
+        ),
+    ],
+)
+def test_invalid_response(text: str, invalid_response_patterns: list[str], expected: bool):
+    """Test that the find_chemicals method handles invalid chemical responses gracefully."""
+    actual = TextGenerationAPI().is_invalid_response(text, invalid_response_patterns)
     assert actual == expected

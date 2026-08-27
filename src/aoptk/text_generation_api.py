@@ -1,6 +1,7 @@
 from __future__ import annotations
 import base64
 import os
+import typing
 from itertools import product
 from pathlib import Path
 from typing import Literal
@@ -79,6 +80,8 @@ class TextGenerationAPI(
     top_p: float = 1
     load_dotenv()
     client: OpenAI
+    max_retries: int = 3
+    timeout: int = 120
     prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
     chemical_prompt_template: str = "chemical_prompt.txt"
     relationship_text_prompt_template: str = "relationship_text_prompt.txt"
@@ -90,6 +93,9 @@ class TextGenerationAPI(
     find_relevant_publications_prompt_template: str = "find_relevant_publications_prompt.txt"
 
     specification_relationship_text_prompt: str = ""
+
+    invalid_chemical_response_patterns: typing.ClassVar[list[str]] = ["\n-", "\n*", "\n1.", "\n"]
+    invalid_normalization_response_patterns: typing.ClassVar[list[str]] = ["\n-", "\n*", "\n1.", "\n", " ; "]
 
     def __init__(
         self,
@@ -103,6 +109,8 @@ class TextGenerationAPI(
         self.client = OpenAI(
             base_url=self.url,
             api_key=self.api_key,
+            max_retries=self.max_retries,
+            timeout=self.timeout,
         )
 
     def find_relationships_in_text(
@@ -201,10 +209,19 @@ class TextGenerationAPI(
             text (str): The input text to search for chemicals.
         """
         if response := self._prompt(self._render_prompt(self.chemical_prompt_template, text=text)).lower():
-            if response == "none":
+            if self.is_invalid_response(response, self.invalid_chemical_response_patterns) or response == "none":
                 return []
             return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
         return []
+
+    def is_invalid_response(self, response: str, invalid_response_patterns: list[str]) -> bool:
+        r"""Check if the response from the model is invalid for chemical extraction.
+
+        Args:
+            response (str): The response from the model.
+            invalid_response_patterns (list[str]): List of patterns that indicate an invalid response.
+        """
+        return bool(any(pattern in response.lower() for pattern in invalid_response_patterns))
 
     def _encode_image(self, image_path: str) -> tuple[str, str]:
         """Encode the image at the given path to a base64 string and return MIME type.
@@ -222,7 +239,7 @@ class TextGenerationAPI(
             base64_image = base64.b64encode(image_file.read()).decode("utf-8")
         return base64_image, mime_type
 
-    def _process_colon_separated_response(
+    def _process_colon_separated_relationships_response(
         self,
         response: str,
         effect: Effect,
@@ -313,7 +330,7 @@ class TextGenerationAPI(
         )
 
         if response := self._prompt(content):
-            return self._process_colon_separated_response(response, effect, relationship_type, "table")
+            return self._process_colon_separated_relationships_response(response, effect, relationship_type, "table")
         return []
 
     def normalize_chemical(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical:
@@ -347,7 +364,7 @@ class TextGenerationAPI(
         )
 
         if response := self._prompt(content).lower():
-            if response == "none":
+            if self.is_invalid_response(response, self.invalid_normalization_response_patterns) or response == "none":
                 return chemical
             return Chemical(name=response)
         return chemical
@@ -444,7 +461,7 @@ class TextGenerationAPI(
 
         if response:
             relationships.extend(
-                self._process_colon_separated_response(
+                self._process_colon_separated_relationships_response(
                     response,
                     effect,
                     relationship_type,
