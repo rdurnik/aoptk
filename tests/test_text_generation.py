@@ -277,3 +277,25 @@ def test_find_relevant_publications(question: str, text: str, expected: bool):
     """Test that find_relevant_publications method finds relevant publications."""
     actual = TextGenerationAPI().find_relevant_publications(question=question, text=text)
     assert actual == expected
+
+
+@pytest.mark.openai
+@pytest.mark.parametrize(
+    ("text", "categories", "expected"),
+    [
+        (
+            "This text is about liver.",
+            ["Liver", "Heart", "Kidney"],
+            "liver",
+        ),
+        (
+            "This text is not about any organ.",
+            ["Liver", "Heart", "Kidney"],
+            None,
+        ),
+    ],
+)
+def test_categorize_text(text: str, categories: list[str], expected: str | None):
+    """Test that categorize_text method categorizes text correctly."""
+    actual = TextGenerationAPI().categorize_text(text=text, categories=categories)
+    assert actual == expected
