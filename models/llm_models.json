@@ -315,7 +315,7 @@
       "first_seen": "2026-07-28T11:41:06Z",
       "last_seen": "2026-08-26T11:41:06Z",
       "task_class": "generative",
-      "note": "Former aoptk vision default. Replaced the retired llama-4-scout-17b-16e-instruct in #149 and was itself archived on 2026-08-26, which is why the four vision tests xfailed rather than failed (see #145).",
+      "note": "Former aoptk vision default. Replaced the retired llama-4-scout-17b-16e-instruct in #149 and was itself reported archived by the provider, last seen 2026-08-26, which is why the four vision tests xfailed rather than failed (see #145).",
       "snapshot": {
         "uptime_samples_online": 0,
         "uptime_samples_total": 48,

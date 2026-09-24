@@ -7,7 +7,12 @@ from aoptk.text_generation_api import TextGenerationAPI
 # Models the e-infra endpoint has retired. Naming one again is not a style problem: the endpoint
 # answers a retired model with a bad-request error that the test suite classifies as an
 # unavailable service, so the affected tests xfail instead of failing.
-retired_models = ("llama-4-scout-17b-16e-instruct", "redhatai-scout")
+#
+# `Qwen3.5-122b` was the vision default until the status API reported it archived, last seen
+# 2026-08-26; that is how the silent-xfail trap in this comment was first observed happening. The
+# list is kept by hand rather than read from models/llm_models.json, because this is a statement
+# that a person checked, and the catalog also lists models nobody has looked at yet.
+retired_models = ("llama-4-scout-17b-16e-instruct", "redhatai-scout", "qwen3.5-122b")
 
 package_dir = Path(__file__).resolve().parent.parent / "src" / "aoptk"
 
@@ -18,9 +23,14 @@ def test_retired_model_is_not_referenced_by_the_library(retired_model: str):
 
     A retired name in `src` cannot be caught by the test suite, because a retired model makes the
     live tests xfail rather than fail. This checks what those tests structurally cannot.
+
+    Matching ignores case: the provider capitalises the first letter (`Qwen3.5-122b`) while the
+    constants here do not, and the endpoint accepts either, so a case-sensitive search would miss
+    the spelling a maintainer is most likely to paste in.
     """
+    needle = retired_model.lower()
     offenders = sorted(
-        str(path.relative_to(package_dir)) for path in package_dir.rglob("*.py") if retired_model in path.read_text()
+        str(path.relative_to(package_dir)) for path in package_dir.rglob("*.py") if needle in path.read_text().lower()
     )
     assert offenders == []
 

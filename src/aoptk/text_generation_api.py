@@ -44,15 +44,18 @@ if TYPE_CHECKING:
 # periodically, which used to mean grepping tests and examples for the retired name; both now
 # refer to these constants, so a retirement is a one-line change here.
 #
-# `DEFAULT_VISION_MODEL` is what the image and scanned-PDF tasks use, and replaced the model
-# retired in #145. There is no vision capability check in the library - the supported set is
-# whatever the four `@pytest.mark.openai` vision tests accept, so verify those before assuming a
-# new value works. Vision prompts are model-sensitive, and the endpoint reports a retired model as
-# a bad-request error that the test suite classifies as an unavailable service and xfails; a
-# retired value therefore silences those tests rather than failing them, which is why
-# `tests/test_default_models.py` checks for retired names statically instead.
+# `DEFAULT_VISION_MODEL` is what the image and scanned-PDF tasks use. There is no vision
+# capability check in the library - the supported set is whatever the four `@pytest.mark.openai`
+# vision tests accept, so verify those before changing this. Vision prompts are model-sensitive,
+# and the endpoint reports a retired model as a bad-request error that the test suite classifies
+# as an unavailable service and xfails; a retired value therefore silences those tests rather than
+# failing them. `tests/test_llm_model_catalog.py` compares these two values against
+# `models/llm_models.json` for that reason, and flags it in its output when either is archived.
 DEFAULT_MODEL = "gpt-oss-120b"
-DEFAULT_VISION_MODEL = "qwen3.5-122b"
+# The model this named was reported archived by the provider, last seen 2026-08-26; the closest
+# online model of the same family took its place. Vision capability of the replacement is not yet
+# confirmed by a passing vision test.
+DEFAULT_VISION_MODEL = "qwen3.5-int4"
 
 topics = {
     Inhibition(),
