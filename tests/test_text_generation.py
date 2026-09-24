@@ -377,4 +377,22 @@ def test_retry_strategy_works():
 def test_invalid_response(text: str, invalid_response_patterns: list[str], expected: bool):
     """Test that the find_chemicals method handles invalid chemical responses gracefully."""
     actual = TextGenerationAPI().is_invalid_response(text, invalid_response_patterns)
+@pytest.mark.parametrize(
+    ("text", "categories", "expected"),
+    [
+        (
+            "This text is about liver.",
+            ["Liver", "Heart", "Kidney"],
+            "liver",
+        ),
+        (
+            "This text is not about any organ.",
+            ["Liver", "Heart", "Kidney"],
+            None,
+        ),
+    ],
+)
+def test_categorize_text(text: str, categories: list[str], expected: str | None):
+    """Test that categorize_text method categorizes text correctly."""
+    actual = TextGenerationAPI().categorize_text(text=text, categories=categories)
     assert actual == expected

@@ -1,0 +1,14 @@
+Task:
+Categorize the provided text into exactly one category from the following list:
+{{ categories }}
+
+{{ specification_categorization_prompt }}
+
+Output requirements:
+1. Return exactly one category label. Treat all category names as fixed labels, not words. Do not modify, stem, normalize, correct, interpret, paraphrase, or transform labels in any way. Output the label exactly as provided, character-for-character.
+2. Do not include explanations, labels, punctuation, or additional text.
+3. If there is no fitting category, return exactly:
+"none"
+
+Text:
+{{ text }}
