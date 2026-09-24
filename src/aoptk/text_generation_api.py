@@ -258,6 +258,8 @@ class TextGenerationAPI(
         if not (response := completion.choices[0].message.content):
             raise LLMFailureError
         response = response.strip()
+        if not response:
+            raise LLMFailureError
         if validator is not None and not validator(response):
             raise InvalidResponseError(response)
         return response
