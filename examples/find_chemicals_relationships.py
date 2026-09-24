@@ -4,8 +4,8 @@ import pandas as pd
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.relationships.relationship import Relationship
-from aoptk.relationships.relationship_type import Causative
-from aoptk.relationships.relationship_type import Inhibitive
+from aoptk.relationships.relationship_type import Causation
+from aoptk.relationships.relationship_type import Inhibition
 from aoptk.text_generation_api import LLMFailureError
 from aoptk.text_generation_api import TextGenerationAPI
 
@@ -32,7 +32,7 @@ def write_chemicals(publication_id: str, chemicals: list[Chemical]) -> None:
 
 publications = list(Path("publications").iterdir())[:3]
 effects = [Effect("liver fibrosis"), Effect("liver cell death")]
-relationship_types = [Causative(), Inhibitive()]
+relationship_types = [Causation(), Inhibition()]
 
 completed = []
 retry = []

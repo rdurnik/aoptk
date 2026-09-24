@@ -1,0 +1,64 @@
+PMC11780512	we need to extract chemical.
+
+we need to extract chemical name.
+
+we need to produce list of chemical names, each separated by "
+PMC11780512	". no extra text.
+
+let's compile final list.
+
+list of chemicals/metabolites:
+
+- silymarin
+- silybin
+- silybin a
+- silybin b
+- isosilybin
+- silychristin a
+- silychristin b
+- silydianin
+- taxifolin
+- quercetin
+- kaempferol
+- 2,3-dehydrosilybin
+- silybin-c-2',3-bis(hydrogen succinate) disodium salt
+- gw9662
+- a-922500
+- pf-06424439
+- thapsigargin
+- dimethyl sulfoxide
+- ethanol
+- chloroform
+- methanol
+- isopropanol
+- sodium acetate-13c2, d3
+- sodium phosphate buffer
+- metaphosphoric acid
+- sodium chloride
+- 3-(4,5-dimethylthiazol-2-yl)-2,5-diphenyltetrazolium bromide
+- sodium acetate
+- acetyl‑coa
+- malonyl‑coa
+- acyl‑coa
+- free fatty acid
+- triglyceride
+- phospholipid
+- phosphatidylcholine
+- phosphatidylethanolamine
+- phosphatidylserine
+- phosphatidylinositol
+- phosphatidylglycerol
+- sphingomyelin
+- cholesteryl ester
+- low-density lipoprotein
+- very-low-density lipoprotein
+- cholesterol
+- glucose
+- glutathione
+- glutathione disulfide
+- butyryl‑coa
+- sodium acetate
+- sodium acetate-13c2, d3 (already)
+- sodium acetate (already)
+- sodium acetate-13c2, d3 (duplicate)
+- sodium acetate (duplicate)

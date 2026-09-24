@@ -2,6 +2,13 @@ import pytest
 from aoptk.chemical import Chemical
 from aoptk.normalization.normalize_chemical import NormalizeChemical
 from aoptk.normalization.pubchem_api import PubChemAPI
+from tests.service_availability import require_pubchem_service
+
+
+@pytest.fixture(autouse=True)
+def require_pubchem() -> None:
+    """Require the PubChem endpoints before running any test of this module."""
+    require_pubchem_service()
 
 
 def test_can_create():

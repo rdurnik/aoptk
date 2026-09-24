@@ -6,6 +6,7 @@ from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
 from aoptk.text_generation_api import TextGenerationAPI
+from tests.service_availability import require_llm_service
 
 # ruff: noqa: PLR2004
 # ruff: noqa: SLF001
@@ -140,11 +141,12 @@ def test_is_corrupted(text: str, expected: bool, tmp_path_factory: pytest.TempPa
 @pytest.mark.openai
 def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathFactory):
     """Test extracting full text from a corrupted PDF."""
+    require_llm_service()
     actual = (
         PymupdfParser(
             pdfs=[PDF(Path("tests/test_data/test_pdfs/PMC12416454_corrupted.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-            text_generation=TextGenerationAPI(model="redhatai-scout"),
+            text_generation=TextGenerationAPI(model="qwen3.5-122b"),
         )
         .get_publications()[0]
         .full_text
