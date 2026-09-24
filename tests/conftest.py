@@ -3,6 +3,10 @@ import pytest
 from aoptk.literature.databases.pmc import PMC
 from aoptk.literature.id import ID
 
+# Imported for its side effect: pytest collects the hook out of this module's namespace.
+from tests.service_availability import pytest_runtest_makereport  # noqa: F401
+from tests.service_availability import require_pmc_and_europepmc_services
+
 # ruff: noqa: E501
 
 
@@ -116,6 +120,8 @@ from aoptk.literature.id import ID
 )
 def provide_publications(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory):
     """Provide parameters for publication fixture, including PDFs."""
+    # The fixture downloads PDFs from NCBI, so it needs both NCBI and Europe PMC to be up.
+    require_pmc_and_europepmc_services()
     pmc = PMC(
         storage=tmp_path_factory.mktemp(f"{request.param['id']}"),
         figure_storage=tmp_path_factory.mktemp(f"{request.param['id']}_figures"),

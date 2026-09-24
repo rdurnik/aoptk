@@ -15,10 +15,17 @@ from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
 from aoptk.literature.id import PMID
 from aoptk.literature.query import Query
+from tests.service_availability import require_pmc_service
 
 # ruff: noqa: PLR2004
 
 metadata_test = json.loads(Path("tests/test_data/ncbi_metadata.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(autouse=True)
+def require_pmc() -> None:
+    """Require the NCBI PMC endpoints before running any test of this module."""
+    require_pmc_service()
 
 
 def test_can_create(tmp_path_factory: pytest.TempPathFactory):

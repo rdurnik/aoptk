@@ -13,10 +13,17 @@ from aoptk.literature.id import ID
 from aoptk.literature.id import PMCID
 from aoptk.literature.id import PMID
 from aoptk.literature.query import Query
+from tests.service_availability import require_pubmed_service
 
 # ruff: noqa: PLR2004
 
 metadata_test = json.loads(Path("tests/test_data/ncbi_metadata.json").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(autouse=True)
+def require_pubmed() -> None:
+    """Require the NCBI PubMed endpoints before running any test of this module."""
+    require_pubmed_service()
 
 
 @pytest.mark.xfail(raises=HTTPError)

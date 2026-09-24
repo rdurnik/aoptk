@@ -18,6 +18,13 @@ from aoptk.relationships.relationship_type import Causation
 from aoptk.relationships.relationship_type import Inhibition
 from aoptk.relationships.relationship_type import RelationshipType
 from aoptk.text_generation_api import TextGenerationAPI
+from tests.service_availability import require_llm_service
+
+
+@pytest.fixture(autouse=True)
+def require_llm() -> None:
+    """Require the text generation endpoint before running any test of this module."""
+    require_llm_service()
 
 
 def sort_key(r: Relationship) -> tuple[str, str, str]:
@@ -377,6 +384,9 @@ def test_retry_strategy_works():
 def test_invalid_response(text: str, invalid_response_patterns: list[str], expected: bool):
     """Test that the find_chemicals method handles invalid chemical responses gracefully."""
     actual = TextGenerationAPI().is_invalid_response(text, invalid_response_patterns)
+    assert actual == expected
+
+
 @pytest.mark.parametrize(
     ("text", "categories", "expected"),
     [
