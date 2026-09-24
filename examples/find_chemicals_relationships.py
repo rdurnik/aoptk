@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import pandas as pd
+from openai import APIError
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.relationships.relationship import Relationship
@@ -34,36 +35,21 @@ publications = list(Path("publications").iterdir())[:3]
 effects = [Effect("liver fibrosis"), Effect("liver cell death")]
 relationship_types = [Causation(), Inhibition()]
 
-completed = []
-retry = []
+# TextGenerationAPI already retries transient failures of a single request, so a publication
+# that still fails here is recorded and skipped rather than re-queued.
+api = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key)
 failed = []
-is_retry = False
 
-while publications or retry:
-    if publications:
-        publication = publications.pop()
-        is_retry = False
-    elif retry:
-        publication = retry.pop()
-        is_retry = True
-
+for publication in publications:
     with Path.open(publication) as f_in:
         text = f_in.read()
 
     publication_id = Path(publication).stem
 
-    if not Path(f"chemicals/{publication_id}.tsv").exists():
-        try:
-            chemicals = TextGenerationAPI(api_key=litellm_api_key).find_chemicals(text)
-            write_chemicals(publication_id, chemicals)
-        except LLMFailureError:
-            if is_retry:
-                failed.append(publication)
-            else:
-                retry.append(publication)
-            continue
-
     try:
+        if not Path(f"chemicals/{publication_id}.tsv").exists():
+            write_chemicals(publication_id, api.find_chemicals(text))
+
         chemicals = pd.read_csv(f"chemicals/{publication_id}.tsv", sep="\t")["name"].tolist()
         relationships = TextGenerationAPI(api_key=litellm_api_key).find_relationships_in_text(
             text=text,
@@ -72,9 +58,5 @@ while publications or retry:
             relationship_types=relationship_types,
         )
         write_relationships(publication_id, relationships)
-    except LLMFailureError:
-        if is_retry:
-            failed.append(publication)
-        else:
-            retry.append(publication)
-        continue
+    except (LLMFailureError, APIError):
+        failed.append(publication)

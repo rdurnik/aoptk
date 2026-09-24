@@ -4,6 +4,7 @@ import os
 import typing
 from itertools import product
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Literal
 import pandas as pd
 from dotenv import load_dotenv
@@ -11,6 +12,10 @@ from jinja2 import Template
 from openai import OpenAI
 from openai.types.chat import ChatCompletionContentPartParam
 from openai.types.chat import ChatCompletionUserMessageParam
+from tenacity import Retrying
+from tenacity import retry_if_exception_type
+from tenacity import stop_after_attempt
+from tenacity import wait_random_exponential
 from aoptk.chemical import Chemical
 from aoptk.effect import Effect
 from aoptk.find_chemical import FindChemical
@@ -30,6 +35,10 @@ from aoptk.relationships.relationship_type import Prevention
 from aoptk.relationships.relationship_type import Promotion
 from aoptk.relationships.relationship_type import Regulation
 from aoptk.relationships.relationship_type import RelationshipType
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from tenacity import RetryCallState
 
 # Models used when the caller does not choose one. The e-infra endpoint retires models
 # periodically, which used to mean grepping tests and examples for the retired name; both now
@@ -79,6 +88,19 @@ class LLMFailureError(Exception):
         pass
 
 
+class InvalidResponseError(Exception):
+    """Raised when the LLM answers with content rejected by a task-supplied validator.
+
+    Carries the rejected answer so the caller can still use it once the retry budget is
+    exhausted. Deliberately not a subclass of LLMFailureError: exhausting the budget on
+    rejected content still yields a (best effort) answer, unlike exhausting it on an empty one.
+    """
+
+    def __init__(self, response: str):
+        super().__init__(f"LLM response rejected by validator: {response!r}")
+        self.response = response
+
+
 class TextGenerationAPI(
     FindChemical,
     FindRelationship,
@@ -96,6 +118,14 @@ class TextGenerationAPI(
     client: OpenAI
     max_retries: int = 3
     timeout: int = 120
+    # Retrying of the answer, on top of the transport-level retrying of `max_retries`:
+    # a request that succeeds technically but yields unusable content (empty, or rejected
+    # by a task-supplied validator) is re-requested up to `prompt_attempts` times. The two
+    # layers multiply - with `max_retries=3` inside `prompt_attempts=3` a single call makes
+    # at most 3 x 3 = 9 requests - so keep both small.
+    prompt_attempts: int = 3
+    prompt_backoff_multiplier: float = 0.5
+    prompt_backoff_max: float = 30
     prompts_dir: Path = Path(__file__).resolve().parent / "prompts"
     chemical_prompt_template: str = "chemical_prompt.txt"
     relationship_text_prompt_template: str = "relationship_text_prompt.txt"
@@ -187,7 +217,45 @@ class TextGenerationAPI(
             template_content = template_file.read()
         return str(Template(template_content).render(**context))
 
-    def _prompt(self, content: str | list[ChatCompletionContentPartParam]) -> str:
+    def _prompt(
+        self,
+        content: str | list[ChatCompletionContentPartParam],
+        validator: Callable[[str], bool] | None = None,
+    ) -> str:
+        """Request a completion, retrying answers the transport accepts but we cannot use.
+
+        A completion counts as unusable when it is empty (`LLMFailureError`) or when
+        `validator` rejects it (`InvalidResponseError`). Both are retried with jittered
+        backoff. Once the budget is exhausted an empty answer keeps raising
+        `LLMFailureError`, while a merely rejected answer is returned as a best effort - the
+        caller's own validation still applies to it, so no task starts trusting it.
+
+        Args:
+            content (str | list[ChatCompletionContentPartParam]): Prompt text or content parts.
+            validator (Callable[[str], bool] | None): Rejects an answer worth re-requesting.
+        """
+        retrying = Retrying(
+            retry=retry_if_exception_type((LLMFailureError, InvalidResponseError)),
+            wait=wait_random_exponential(multiplier=self.prompt_backoff_multiplier, max=self.prompt_backoff_max),
+            stop=stop_after_attempt(self.prompt_attempts),
+            retry_error_callback=self._exhausted,
+        )
+        return retrying(self._single_prompt, content, validator)
+
+    @staticmethod
+    def _exhausted(retry_state: RetryCallState) -> str:
+        """Return the best effort answer after the retry budget ran out, or re-raise."""
+        exception = retry_state.outcome.exception() if retry_state.outcome else None
+        if isinstance(exception, InvalidResponseError):
+            return exception.response
+        raise exception if exception is not None else LLMFailureError()
+
+    def _single_prompt(
+        self,
+        content: str | list[ChatCompletionContentPartParam],
+        validator: Callable[[str], bool] | None,
+    ) -> str:
+        """Perform one completion request, rejecting empty or invalid answers."""
         messages: list[ChatCompletionUserMessageParam] = [
             {
                 "role": self.role,
@@ -201,9 +269,14 @@ class TextGenerationAPI(
             messages=messages,
         )
 
-        if response := completion.choices[0].message.content:
-            return response.strip()
-        raise LLMFailureError
+        if not (response := completion.choices[0].message.content):
+            raise LLMFailureError
+        response = response.strip()
+        if not response:
+            raise LLMFailureError
+        if validator is not None and not validator(response):
+            raise InvalidResponseError(response)
+        return response
 
     def _select_relationship_type(self, response: str, relationship_type: RelationshipType) -> str | None:
         """Select the relationship type based on the response.
@@ -221,14 +294,25 @@ class TextGenerationAPI(
     def find_chemicals(self, text: str) -> list[Chemical]:
         """Find chemicals in the given text.
 
+        A response rejected by the chemical validation rules is re-requested before it is
+        parsed, and the last attempt is used if none of them is accepted.
+
         Args:
             text (str): The input text to search for chemicals.
         """
-        if response := self._prompt(self._render_prompt(self.chemical_prompt_template, text=text)).lower():
-            if self.is_invalid_response(response, self.invalid_chemical_response_patterns) or response == "none":
-                return []
-            return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
-        return []
+        validator = self._response_validator(self.invalid_chemical_response_patterns)
+        response = self._prompt(self._render_prompt(self.chemical_prompt_template, text=text), validator).lower()
+        if response == "none" or self.is_invalid_response(response, self.invalid_chemical_response_patterns):
+            return []
+        return [Chemical(name=chem.strip().lower()) for chem in response.split(" ; ")] if response.strip() else []
+
+    def _response_validator(self, invalid_response_patterns: list[str]) -> Callable[[str], bool]:
+        """Build a `_prompt` validator that rejects answers matching the given patterns.
+
+        Args:
+            invalid_response_patterns (list[str]): Patterns that mark a response as invalid.
+        """
+        return lambda response: not self.is_invalid_response(response, invalid_response_patterns)
 
     def is_invalid_response(self, response: str, invalid_response_patterns: list[str]) -> bool:
         r"""Check if the response from the model is invalid for chemical extraction.
@@ -366,6 +450,9 @@ class TextGenerationAPI(
     def _find_matching_name(self, chemical: Chemical, chemical_list: list[Chemical]) -> Chemical | None:
         """Find a matching chemical name in the chemical list.
 
+        A response rejected by the normalization validation rules is re-requested before it
+        is used, and the last attempt is used if none of them is accepted.
+
         Args:
             chemical (Chemical): The chemical to find a match for.
             chemical_list (list[Chemical]): The list of chemicals to match against.
@@ -378,12 +465,12 @@ class TextGenerationAPI(
             chem=chemical.name,
             list_of_chemical_names="\n".join([chem.name for chem in chemical_list]),
         )
+        validator = self._response_validator(self.invalid_normalization_response_patterns)
 
-        if response := self._prompt(content).lower():
-            if self.is_invalid_response(response, self.invalid_normalization_response_patterns) or response == "none":
-                return chemical
-            return Chemical(name=response)
-        return chemical
+        response = self._prompt(content, validator).lower()
+        if response == "none" or self.is_invalid_response(response, self.invalid_normalization_response_patterns):
+            return chemical
+        return Chemical(name=response)
 
     def convert_pdf_scan(
         self,

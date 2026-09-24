@@ -82,3 +82,6 @@ examples/pdfs
 examples/chemicals
 examples/relationships
 examples/ids.txt
+
+# manual
+tmp/
