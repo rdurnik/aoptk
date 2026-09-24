@@ -54,7 +54,7 @@ while publications or retry:
 
     if not Path(f"chemicals/{publication_id}.tsv").exists():
         try:
-            chemicals = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key).find_chemicals(text)
+            chemicals = TextGenerationAPI(api_key=litellm_api_key).find_chemicals(text)
             write_chemicals(publication_id, chemicals)
         except LLMFailureError:
             if is_retry:
@@ -65,7 +65,7 @@ while publications or retry:
 
     try:
         chemicals = pd.read_csv(f"chemicals/{publication_id}.tsv", sep="\t")["name"].tolist()
-        relationships = TextGenerationAPI(model="gpt-oss-120b", api_key=litellm_api_key).find_relationships_in_text(
+        relationships = TextGenerationAPI(api_key=litellm_api_key).find_relationships_in_text(
             text=text,
             chemicals=[Chemical(name=name) for name in chemicals],
             effects=effects,

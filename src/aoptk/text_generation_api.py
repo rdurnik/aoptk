@@ -31,6 +31,20 @@ from aoptk.relationships.relationship_type import Promotion
 from aoptk.relationships.relationship_type import Regulation
 from aoptk.relationships.relationship_type import RelationshipType
 
+# Models used when the caller does not choose one. The e-infra endpoint retires models
+# periodically, which used to mean grepping tests and examples for the retired name; both now
+# refer to these constants, so a retirement is a one-line change here.
+#
+# `DEFAULT_VISION_MODEL` is what the image and scanned-PDF tasks use, and replaced the model
+# retired in #145. There is no vision capability check in the library - the supported set is
+# whatever the four `@pytest.mark.openai` vision tests accept, so verify those before assuming a
+# new value works. Vision prompts are model-sensitive, and the endpoint reports a retired model as
+# a bad-request error that the test suite classifies as an unavailable service and xfails; a
+# retired value therefore silences those tests rather than failing them, which is why
+# `tests/test_default_models.py` checks for retired names statically instead.
+DEFAULT_MODEL = "gpt-oss-120b"
+DEFAULT_VISION_MODEL = "qwen3.5-122b"
+
 topics = {
     Inhibition(),
     Causation(),
@@ -101,7 +115,7 @@ class TextGenerationAPI(
 
     def __init__(
         self,
-        model: str = "gpt-oss-120b",
+        model: str = DEFAULT_MODEL,
         url: str = "https://llm.ai.e-infra.cz/v1",
         api_key: str | None = os.environ.get("CERIT_API_KEY"),
     ):

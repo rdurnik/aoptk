@@ -5,6 +5,7 @@ from fuzzywuzzy import fuzz
 from aoptk.literature.get_publication import GetPublication
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
+from aoptk.text_generation_api import DEFAULT_VISION_MODEL
 from aoptk.text_generation_api import TextGenerationAPI
 from tests.service_availability import require_llm_service
 
@@ -146,7 +147,7 @@ def test_extract_full_text_from_corrupted_pdf(tmp_path_factory: pytest.TempPathF
         PymupdfParser(
             pdfs=[PDF(Path("tests/test_data/test_pdfs/PMC12416454_corrupted.pdf"))],
             figure_storage=tmp_path_factory.mktemp("pmc_storage_figures"),
-            text_generation=TextGenerationAPI(model="qwen3.5-122b"),
+            text_generation=TextGenerationAPI(model=DEFAULT_VISION_MODEL),
         )
         .get_publications()[0]
         .full_text
