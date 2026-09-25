@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 from aoptk.literature.pdf import PDF
 from aoptk.literature.pymupdf_parser import PymupdfParser
+from aoptk.text_generation_api import DEFAULT_VISION_MODEL
 from aoptk.text_generation_api import TextGenerationAPI
 
 litellm_config_file = os.environ.get("LITELLM_CONFIG_FILE")
@@ -11,7 +12,7 @@ if litellm_config_file:
     with Path(litellm_config_file).open() as f:
         config = yaml.safe_load(f)
     litellm_api_key = os.environ.get("LITELLM_API_KEY")
-    text_generation = TextGenerationAPI(model="qwen3.5", api_key=litellm_api_key)
+    text_generation = TextGenerationAPI(model=DEFAULT_VISION_MODEL, api_key=litellm_api_key)
 else:
     text_generation = None
 

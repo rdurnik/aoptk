@@ -1,0 +1,121 @@
+name: Refresh LLM model catalog
+
+# The CERIT-SC endpoint adds and retires models on its own schedule, and a retirement used to be
+# discovered by a test failing - or, for the vision default, by a test silently xfailing (see #145).
+# This job asks the provider's status API what it offers and opens a pull request when the answer no
+# longer matches models/llm_models.json, so the change arrives as a reviewable diff on a Monday
+# instead of as an unexplained failure later.
+
+on:
+  schedule:
+    # 03:17 UTC Monday. Off the hour on purpose; the weekday and the time are not load-bearing.
+    - cron: '17 3 * * 1'
+  # Lets a maintainer re-check after the provider announces a change, without waiting for Monday.
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    name: Refresh catalog and open a PR on drift
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v6
+
+      - name: Check the catalog against the status API
+        id: check
+        shell: bash
+        run: |
+          set -o pipefail
+          # Stashed so the refreshed file can later be compared against what was committed. Tolerates
+          # a missing catalog: --check treats that as drift, and --summary reports every model as
+          # new. A failure here would otherwise skip past the drift conditionals and land on the
+          # "nothing changed" step, reporting the opposite of what happened.
+          cp models/llm_models.json "${RUNNER_TEMP}/catalog_before.json" 2> /dev/null \
+            || echo '{"models": []}' > "${RUNNER_TEMP}/catalog_before.json"
+          # The script exits 1 when the provider's offer changed and 2 when it could not be
+          # reached. Only 0 and 1 continue here: reading a fetch failure as "no drift" is how a
+          # retirement goes unnoticed, and reading it as "drift" would open a pull request over an
+          # unchanged catalog.
+          status=0
+          scripts/update_llm_models.sh --check || status=$?
+          if [[ "${status}" == "2" ]]; then
+            echo "::error::could not refresh the model catalog"
+            exit 2
+          fi
+          echo "drift=$([[ "${status}" == "1" ]] && echo true || echo false)" >> "${GITHUB_OUTPUT}"
+
+      - name: Refresh the catalog
+        if: steps.check.outputs.drift == 'true'
+        shell: bash
+        run: scripts/update_llm_models.sh
+
+      # --summary applies the same notion of drift as --check above, so the description cannot
+      # contradict the diff attached to the pull request.
+      - name: Describe the change
+        if: steps.check.outputs.drift == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          summary="${RUNNER_TEMP}/drift_summary.md"
+          scripts/update_llm_models.sh --summary \
+            "${RUNNER_TEMP}/catalog_before.json" models/llm_models.json | tee "${summary}"
+          tee "${GITHUB_STEP_SUMMARY}" < "${summary}" > /dev/null
+          # Multi-line value, so the delimiter form is required; the marker is one this script's
+          # output can never contain.
+          {
+            echo "DRIFT_SUMMARY<<__drift_summary_eof__"
+            cat "${summary}"
+            echo "__drift_summary_eof__"
+          } >> "${GITHUB_ENV}"
+
+      # No `labels:` input here on purpose: this repository has no label suited to automated
+      # pull requests, and the action creates missing labels in the repository settings rather
+      # than failing. Add one by hand first if these should be labelled.
+      - name: Create a pull request
+        if: steps.check.outputs.drift == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          # The default token is deliberate, and its consequence is worth knowing: a pull request
+          # opened with GITHUB_TOKEN does not trigger build.yml, so this job's checks will show as
+          # not run and need "Re-run all jobs" pressed once the pull request is open. Switching to a
+          # personal-access-token secret would remove that step, at the cost of a credential that
+          # must be created and rotated; the extra click is the cheaper option while catalog
+          # refreshes stay rare.
+          commit-message: Refresh the LLM model catalog from the CERIT-SC status API
+          branch: chore/refresh-llm-model-catalog
+          branch-suffix: timestamp
+          delete-branch: true
+          base: main
+          title: Refresh the LLM model catalog
+          body: |
+            `models/llm_models.json` no longer matches what the CERIT-SC status API reports.
+
+            ${{ env.DRIFT_SUMMARY }}
+
+            Read the diff, then check the two things this job cannot decide:
+
+            1. Whether a model aoptk defaults to (`DEFAULT_MODEL`, `DEFAULT_VISION_MODEL` in
+               `src/aoptk/text_generation_api.py`) was retired. `tests/test_llm_model_catalog.py`
+               warns about that, and the warning is non-blocking by design.
+            2. Whether a new listing fits aoptk's needs better than the current default. The status
+               API exposes no capability information, so that is a judgement call, not a lookup.
+
+            Vision capability is not confirmed by this job. The four `@pytest.mark.openai` vision
+            tests xfail rather than fail against a retired model, so run them deliberately before
+            trusting image or scanned-PDF output.
+
+            Produced on a schedule by `scripts/update_llm_models.sh`; run
+            `workflow_dispatch` on this workflow to re-check without waiting for Monday.
+
+            🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+      - name: Record that nothing changed
+        if: steps.check.outputs.drift != 'true'
+        shell: bash
+        run: |
+          echo "The provider's offer still matches models/llm_models.json. No pull request opened." \
+            >> "${GITHUB_STEP_SUMMARY}"

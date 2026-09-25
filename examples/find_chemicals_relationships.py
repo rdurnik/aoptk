@@ -51,7 +51,7 @@ for publication in publications:
             write_chemicals(publication_id, api.find_chemicals(text))
 
         chemicals = pd.read_csv(f"chemicals/{publication_id}.tsv", sep="\t")["name"].tolist()
-        relationships = api.find_relationships_in_text(
+        relationships = TextGenerationAPI(api_key=litellm_api_key).find_relationships_in_text(
             text=text,
             chemicals=[Chemical(name=name) for name in chemicals],
             effects=effects,
