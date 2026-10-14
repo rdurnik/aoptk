@@ -11,7 +11,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING
-from typing import Any
 from typing import Literal
 import pymupdf
 from aoptk.literature.abstract import Abstract
@@ -32,6 +31,7 @@ from aoptk.literature.utils import convert_image_format
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pyzotero import Zotero as PyZotero
 
 try:
     from pyzotero.errors import PyZoteroError
@@ -43,16 +43,35 @@ except ImportError:  # pragma: no cover - depends on the optional dependency
 _ITEM_KEY_PATTERN = re.compile(r"^[0-9A-Z]{8}$")
 _NON_PUBLICATION_TYPES = ("attachment", "note", "annotation")
 _IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif")
+# Linked attachments are reported as "AbsoluteLink:/p/paper.pdf" or "relativeLink:paper.pdf";
+# the alternatives are spelled out so that a Windows drive letter ("C:") is never mistaken
+# for such a prefix.
+_LINKED_PATH_PREFIX = re.compile(r"^(?:[a-z]*link|linkedfile):", re.IGNORECASE)
 
 
-def _build_client(library_id: str | int, library_type: str, api_key: str | None, local: bool) -> Any:  # noqa: ANN401
-    """Create a pyzotero client, importing the optional dependency lazily."""
+def _build_client(
+    library_id: str | int,
+    library_type: str,
+    api_key: str | None,
+    local: bool,
+) -> PyZotero:
+    """Create a pyzotero client, importing the optional dependency lazily.
+
+    Kept as a separate function so that the module stays importable - and the
+    class testable - without ``pyzotero`` installed.
+
+    Args:
+        library_id (str | int): Zotero library ID.
+        library_type (str): Type of the library, "user" or "group".
+        api_key (str | None): Zotero API key; None for public libraries and the local API.
+        local (bool): Talk to the local desktop app instead of api.zotero.org.
+    """
     try:
-        from pyzotero import Zotero as PyZotero  # noqa: PLC0415
+        from pyzotero import Zotero  # noqa: PLC0415
     except ImportError as error:
         msg = "Zotero support requires the optional dependency pyzotero - install it with `pip install aoptk[zotero]`."
         raise ImportError(msg) from error
-    return PyZotero(library_id=library_id, library_type=library_type, api_key=api_key, local=local)
+    return Zotero(library_id=library_id, library_type=library_type, api_key=api_key, local=local)
 
 
 class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
@@ -87,7 +106,8 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
             api_key (str | None): Zotero API key (optional for public libraries and the local API).
             collection (str | None): Key of a collection to restrict the search to.
             local (bool): Use the local Zotero desktop API instead of api.zotero.org.
-            full_text_search (bool): Also search inside the full text of attachments.
+            full_text_search (bool): Also search inside the full text of attachments. Set this
+                instead of ``Query.full_text_subset``, which Zotero does not support.
         """
         if not query:
             query = Query(search_term="")
@@ -100,6 +120,7 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
                 raise ValueError(msg)
             library_id = 0
         self.full_text_search = full_text_search
+        self.local = local
         self.search_term, self._search_kwargs = self.build_search_term(query)
         self.storage = Path(storage)
         self.figure_storage = Path(figure_storage)
@@ -108,9 +129,22 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         self.collection = collection
         self._client = _build_client(library_id, library_type, api_key, local)
         self._items: list[dict] | None = None
+        self._child_cache: dict[str, list[dict]] = {}
+        self._fulltext_unsupported = False
 
     def build_search_term(self, query: Query) -> tuple[str, dict]:
-        """Convert a Query to the Zotero search term and search parameters."""
+        """Convert a Query to the Zotero search term and search parameters.
+
+        Zotero knows neither full-text subsets, preprints, licences nor date
+        ranges, so queries that ask for them are rejected rather than silently
+        returning the wrong set of items.
+
+        Args:
+            query (Query): Query to convert.
+
+        Returns:
+            tuple[str, dict]: The search term and the keyword arguments for the pyzotero search.
+        """
         for name in ("full_text_subset", "only_preprint", "exclude_preprint", "licensing", "date"):
             if getattr(query, name):
                 msg = f"The '{name}' filter is not available in Zotero."
@@ -152,10 +186,14 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         """Retrieve abstracts and write them to storage."""
         abstracts = []
         for item in self._resolve(ids):
-            if text := item["data"].get("abstractNote"):
+            try:
+                if not (text := item["data"].get("abstractNote")):
+                    continue
                 abstract = Abstract(_get_publication_id(item), text)
                 (self.storage / _file_name(abstract.id, "txt")).write_text(text, encoding="utf-8")
                 abstracts.append(abstract)
+            except _ZOTERO_ERRORS:
+                continue
         return abstracts
 
     def get_pdfs(self, ids: list[ID]) -> list[PDF]:
@@ -173,11 +211,12 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
                 continue
         return pdfs
 
-    def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:  # type: ignore[override]
+    def get_publications(self, ids: list[ID], download_figures_enabled: bool = True) -> list[Publication]:
         """Retrieve publications including full text.
 
-        The full text comes from Zotero's full-text index of the PDF attachment. If it is not available
-        (for example on the local API), the text is extracted from the PDF attachment itself.
+        The full text is Zotero's index of the PDF attachment where it has one, and the text
+        extracted from the attachment itself otherwise - an attachment that was never
+        indexed, or that is not a PDF Zotero could index, still yields its text this way.
         Tables and figure descriptions are not available from Zotero and stay empty.
 
         Args:
@@ -196,6 +235,12 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         return publications
 
     def _get_publication(self, item: dict, *, download_figures_enabled: bool) -> Publication | None:
+        """Build a Publication for an item, or None when no full text can be obtained.
+
+        Args:
+            item (dict): The Zotero item to convert.
+            download_figures_enabled (bool): Whether to copy image attachments to the figure storage.
+        """
         publication_id = _get_publication_id(item)
         abstract = Abstract(publication_id, item["data"].get("abstractNote", ""))
         pdf_attachment = self._find_attachment(item, _is_pdf)
@@ -206,12 +251,21 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         return Publication(publication_id, abstract, full_text, [], figures, [])
 
     def _get_full_text(self, attachment: dict) -> str:
-        try:
-            content = self._client.fulltext_item(attachment["key"]).get("content", "")
-            if content:
-                return content
-        except _ZOTERO_ERRORS:
-            pass
+        """Return the text of an attachment, from Zotero's index or from the file itself.
+
+        Args:
+            attachment (dict): The attachment item to read.
+        """
+        if not self._fulltext_unsupported:
+            try:
+                if content := self._client.fulltext_item(attachment["key"]).get("content", ""):
+                    return content
+            except _ZOTERO_ERRORS:
+                # An endpoint that does not serve the index at all - the local API may be
+                # one, depending on the Zotero version - will not start serving it
+                # halfway through a library, so stop asking. Remote failures may merely
+                # be transient, so those keep being retried per item.
+                self._fulltext_unsupported = self.local
         pdf_bytes = self._read_attachment(attachment)
         if not pdf_bytes:
             return ""
@@ -219,10 +273,17 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
             return "\n".join(page.get_text() for page in document)
 
     def _get_figures(self, item: dict, publication_id: ID) -> list[Path]:
+        """Copy the image attachments of an item to the figure storage as PNG.
+
+        Args:
+            item (dict): The Zotero item whose attachments to copy.
+            publication_id (ID): Identifier the files are named after.
+        """
         figures = []
         for index, attachment in enumerate(self._children(item)):
-            filename = attachment["data"].get("filename", "")
-            if attachment["data"].get("itemType") != "attachment" or not filename.lower().endswith(_IMAGE_EXTENSIONS):
+            data = attachment["data"]
+            filename = data.get("filename", "")
+            if data.get("itemType") != "attachment" or not filename.lower().endswith(_IMAGE_EXTENSIONS):
                 continue
             content = self._read_attachment(attachment)
             if content is None:
@@ -233,9 +294,25 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         return convert_image_format(figures, self.unified_image_format)
 
     def _children(self, item: dict) -> list[dict]:
-        return self._client.children(item["key"])
+        """Return the child items of an item, fetched at most once per item.
+
+        Args:
+            item (dict): The Zotero item to list the children of.
+        """
+        if item["key"] not in self._child_cache:
+            self._child_cache[item["key"]] = self._client.children(item["key"])
+        return self._child_cache[item["key"]]
 
     def _find_attachment(self, item: dict, predicate: Callable[[dict], bool]) -> dict | None:
+        """Return the first child attachment whose data matches a predicate.
+
+        Args:
+            item (dict): The Zotero item to search the attachments of.
+            predicate (Callable[[dict], bool]): Receives the attachment data.
+
+        Returns:
+            dict | None: The matching attachment, or None if there is none.
+        """
         for child in self._children(item):
             data = child["data"]
             if data.get("itemType") == "attachment" and predicate(data):
@@ -243,14 +320,27 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         return None
 
     def _read_attachment(self, attachment: dict) -> bytes | None:
+        """Read the content of an attachment, from the local disk for linked files.
+
+        Args:
+            attachment (dict): The attachment item to read.
+
+        Returns:
+            bytes | None: The content, or None when a linked file is not readable.
+        """
         data = attachment["data"]
-        if data.get("linkMode") == "linked_file" and data.get("path"):
-            linked = Path(data["path"])
-            return linked.read_bytes() if linked.is_file() else None
+        if data.get("linkMode") == "linked_file":
+            linked = _linked_file_path(data)
+            return linked.read_bytes() if linked is not None and linked.is_file() else None
         return self._client.file(attachment["key"])
 
     def _get_scoped_items(self) -> list[dict]:
-        """Fetch (once) the top-level items of the library or collection matching the query."""
+        """Fetch (once) the top-level items of the library or collection matching the query.
+
+        Returns:
+            list[dict]: The items the query and the configured collection are about; child
+                items are never part of this list because they are attachments, not publications.
+        """
         if self._items is None:
             if self.collection:
                 items = self._client.everything(
@@ -266,11 +356,24 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
         return self._items
 
     def _resolve(self, ids: list[ID]) -> list[dict]:
-        """Map requested IDs to Zotero items, skipping IDs that cannot be found."""
+        """Map requested IDs to Zotero items, skipping the ones that cannot be found.
+
+        Args:
+            ids (list[ID]): Identifiers as handed out by :meth:`get_ids`.
+
+        Returns:
+            list[dict]: The items belonging to the requested identifiers.
+        """
+        index: dict[str, dict] = {}
+        for item in self._get_scoped_items():
+            # setdefault, so that the first item claiming an identifier wins - the
+            # same item a linear search over the scoped items would have returned.
+            for candidate in _identifier_candidates(item):
+                index.setdefault(candidate, item)
         resolved = []
         for requested in ids:
-            found = next((item for item in self._get_scoped_items() if _matches(item, requested)), None)
-            if found is None and _ITEM_KEY_PATTERN.match(str(requested)):
+            found = index.get(str(requested))
+            if found is None and _ITEM_KEY_PATTERN.fullmatch(str(requested)):
                 try:
                     found = self._client.item(str(requested))
                 except _ZOTERO_ERRORS:
@@ -281,30 +384,95 @@ class Zotero(GetID, GetMetadata, GetAbstract, GetPDF, GetPublication):
 
 
 def _file_name(publication_id: ID, extension: str, suffix: str = "") -> str:
-    """Build a file name from an ID; DOIs contain path separators that must be replaced."""
+    """Build a file name from an ID; DOIs contain path separators that must be replaced.
+
+    Args:
+        publication_id (ID): Identifier the file is named after.
+        extension (str): File extension, with or without a leading dot.
+        suffix (str): Extra infix, used to keep several figures of one item apart.
+    """
     extension = extension.lstrip(".")
     return f"{re.sub(r'[^A-Za-z0-9._-]', '_', str(publication_id))}{suffix}.{extension}"
 
 
 def _is_pdf(data: dict) -> bool:
+    """Return whether attachment data describes a PDF.
+
+    Args:
+        data (dict): The data of an attachment item.
+    """
     return data.get("contentType") == "application/pdf" or data.get("filename", "").lower().endswith(".pdf")
 
 
-def _matches(item: dict, requested: ID) -> bool:
+def _identifier_candidates(item: dict) -> list[str]:
+    """Return every identifier an item can be addressed by.
+
+    Args:
+        item (dict): The Zotero item to inspect.
+    """
     data = item["data"]
     extra = data.get("extra", "")
-    candidates = (data.get("DOI"), _extract_identifier(extra, "PMID"), _extract_identifier(extra, "PMCID"), item["key"])
-    return str(requested) in [c for c in candidates if c]
+    candidates = [data.get("DOI"), _extract_identifier(extra, "PMID"), _extract_identifier(extra, "PMCID")]
+    if key := item.get("key") or data.get("key"):
+        candidates.append(key)
+    return [candidate for candidate in candidates if candidate]
+
+
+def _linked_file_path(data: dict) -> Path | None:
+    """Turn Zotero's linked-file reference into a filesystem path.
+
+    Linked attachments are not stored inside the library; the API reports where the file
+    lives as a scheme-like value such as ``AbsoluteLink:/home/me/paper.pdf``, or as a path
+    relative to the directory kept in ``parentDir`` (``linkedFile:../papers/paper.pdf``).
+    The prefix has to go before the value can be used as a path.
+
+    Args:
+        data (dict): The data of an attachment item.
+
+    Returns:
+        Path | None: The referenced location, or None if there is no usable reference.
+    """
+    raw = data.get("path")
+    if not raw:
+        return None
+    path = Path(_LINKED_PATH_PREFIX.sub("", str(raw).strip(), count=1))
+    # Path("") would silently mean "the current directory", which is never the intent.
+    if not path.parts:
+        return None
+    if path.is_absolute():
+        return path
+    parent = data.get("parentDir")
+    if not parent:
+        return path
+    # parentDir is itself reported in the prefixed form, so strip it the same way.
+    return Path(_LINKED_PATH_PREFIX.sub("", str(parent).strip(), count=1)) / path
 
 
 def _extract_identifier(extra: str, label: str) -> str | None:
-    """Extract an identifier such as 'PMID: 123' from Zotero's free-text 'extra' field."""
+    """Extract an identifier such as 'PMID: 123' from Zotero's free-text 'extra' field.
+
+    Zotero has no dedicated PMID or PMCID field; its importers write them into 'extra'.
+
+    Args:
+        extra (str): The contents of the item's 'extra' field.
+        label (str): Identifier to look for, e.g. 'PMID'.
+
+    Returns:
+        str | None: The identifier, or None if the field does not mention it.
+    """
     match = re.search(rf"^\s*{label}\s*:\s*(\S+)", extra or "", flags=re.IGNORECASE | re.MULTILINE)
     return match.group(1) if match else None
 
 
 def _get_publication_id(item: dict) -> ID:
-    """Return the DOI, PMID, PMCID or Zotero key (in this order) of an item."""
+    """Return the DOI, PMID, PMCID or Zotero key (in this order) of an item.
+
+    Preferring the bibliographic identifiers over the Zotero key keeps the results
+    interchangeable with the other databases of the package.
+
+    Args:
+        item (dict): The Zotero item to get the identifier of.
+    """
     data = item["data"]
     extra = data.get("extra", "")
     publication_id = (
@@ -321,6 +489,14 @@ def _get_publication_id(item: dict) -> ID:
 
 
 def _get_year(date: str) -> str | None:
+    """Return the year contained in a Zotero date, which is free text.
+
+    Args:
+        date (str): The item's 'date' field, e.g. '2025-03-14' or 'March 2025'.
+
+    Returns:
+        str | None: Four digits, or None if the field carries no year.
+    """
     match = re.search(r"\d{4}", date or "")
     return match.group(0) if match else None
 

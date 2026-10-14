@@ -40,7 +40,7 @@ jobs:
           uv lock
           uv sync --frozen --extra dev --extra publishing --extra zotero
       - name: Run unit tests
-        run: uv run python -m pytest -m "not openai" -v
+        run: uv run python -m pytest -m "not openai and not zotero_local" -v
       - name: Run OpenAI unit tests
         if: matrix.python-version == '3.12' && matrix.os == 'ubuntu-latest'
         run: uv run python -m pytest -m "openai" -v

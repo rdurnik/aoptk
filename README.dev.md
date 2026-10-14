@@ -34,6 +34,31 @@ uvx tox
 Testing with `tox` allows for keeping the testing environment separate from your development environment.
 The development environment will typically accumulate (old) packages during development that interfere with testing; this problem is avoided by testing with `tox`.
 
+### Tests that need an external service
+
+Most tests run offline. Some talk to a service that aoptk does not control - NCBI, Europe PMC, the LLM gateway, AOP-Wiki, PubChem, or Zotero - and those are dealt with by `tests/service_availability.py`: if the service is down, the test is reported as an expected failure rather than a failure, because it says nothing about aoptk.
+
+Tests that need credentials simply skip when the environment does not provide them. For Zotero:
+
+```shell
+# needs ZOTERO_LIBRARY_ID and ZOTERO_API_KEY of a library you may read
+uv run pytest tests/test_zotero.py -v
+
+# additionally needs the Zotero desktop app running with its local API enabled
+# (Settings -> Advanced), and reads the library the app is signed in to
+AOPKT_TEST_ZOTERO_LOCAL=1 uv run pytest tests/test_zotero.py -v
+```
+
+The local-API tests carry the `zotero_local` marker, which CI deselects so that no job depends on a desktop app on the runner:
+
+```shell
+uv run pytest -m "not openai and not zotero_local" -v
+```
+
+Without `AOPKT_TEST_ZOTERO_LOCAL=1` they skip anyway; the marker keeps them out of the run entirely.
+
+Everything the Zotero backend does is covered offline by `tests/test_zotero_mocked.py`, which drives a fixture library and runs with or without `pyzotero` installed. To exercise the real import path, sync with the extra: `uv sync --frozen --extra dev --extra zotero`.
+
 ### Test coverage
 
 In addition to just running the tests to see if they pass, they can be used for coverage statistics, i.e. to determine how much of the package's code is actually executed during tests.

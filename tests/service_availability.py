@@ -101,6 +101,13 @@ llm_models_endpoint = os.getenv("AOPKT_LLM_MODELS_URL", "https://llm.ai.e-infra.
 pubchem_endpoints = ("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/thioacetamide/cids/JSON",)
 # AOP-Wiki knowledge base endpoint used by AOPWiki.
 aop_wiki_endpoints = ("https://aopwiki.org/aops/38.json",)
+# Zotero's remote API. The root answers with a status page and needs no credentials, so the
+# probe says whether the service is up without proving anything about a particular library -
+# which is why the tests that use one additionally require ZOTERO_LIBRARY_ID and ZOTERO_API_KEY.
+zotero_endpoints = ("https://api.zotero.org/",)
+# The Zotero desktop app's local API. Only reachable while Zotero is running with the local
+# API enabled (Settings -> Advanced), and it then serves the signed-in user's library as user 0.
+zotero_local_endpoints = ("http://127.0.0.1:23119/api/users/0/items/top?limit=1",)
 
 
 @pytest.hookimpl(wrapper=True)
@@ -156,6 +163,35 @@ def require_pubchem_service() -> None:
 def require_aop_wiki_service() -> None:
     """Xfail the calling test unless the AOP-Wiki service answers."""
     xfail_if_unavailable(*aop_wiki_endpoints)
+
+
+def require_zotero_service() -> None:
+    """Xfail the calling test unless api.zotero.org answers."""
+    xfail_if_unavailable(*zotero_endpoints)
+
+
+def require_zotero_library() -> None:
+    """Skip the calling test unless this environment names a Zotero library to read.
+
+    Which library to read, and with which key, is a matter of the developer's account, so an
+    environment without those variables simply has nothing to assert. Unlike an outage this is
+    not an expected failure, hence a skip rather than an xfail.
+    """
+    missing = [name for name in ("ZOTERO_LIBRARY_ID", "ZOTERO_API_KEY") if not os.getenv(name)]
+    if missing:
+        pytest.skip(f"no Zotero library configured: set {', '.join(missing)}")
+
+
+def require_zotero_local_service() -> None:
+    """Skip the calling test unless the local Zotero desktop API answers.
+
+    Unlike the other services, this one runs on the developer's own machine and cannot be
+    started by CI, so it is opted into with ``AOPKT_TEST_ZOTERO_LOCAL=1``; without that, and
+    with Zotero closed, a connection refusal would otherwise be reported on every run.
+    """
+    if not os.getenv("AOPKT_TEST_ZOTERO_LOCAL"):
+        pytest.skip("local Zotero tests are opt-in: set AOPKT_TEST_ZOTERO_LOCAL=1")
+    xfail_if_unavailable(*zotero_local_endpoints)
 
 
 def xfail_if_unavailable(*endpoints: str) -> None:

@@ -1,6 +1,8 @@
 # ruff: noqa: ANN001, ANN002, ANN003, ANN202, ARG001, ARG002, D101, D102, D103, PLR2004, SLF001
 import builtins
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 import pymupdf
 import pytest
 from aoptk.literature.databases import zotero as zotero_module
@@ -42,17 +44,19 @@ def _pdf_bytes(text: str) -> bytes:
 
 
 class FakeClient:
-    def __init__(self):
+    def __init__(self, items=None):
+        self.items = ITEMS if items is None else items
         self.calls = []
         self.fulltext_fails = False
+        self.linked_path = None
 
     def top(self, **kwargs):
         self.calls.append(("top", kwargs))
-        return ITEMS
+        return self.items
 
     def collection_items_top(self, collection, **kwargs):
         self.calls.append(("collection", collection, kwargs))
-        return ITEMS
+        return self.items
 
     def everything(self, query):
         return query
@@ -61,20 +65,36 @@ class FakeClient:
         raise OSError
 
     def children(self, key):
+        self.calls.append(("children", key))
         if key == "AAAAAAAA":
             return [
                 {"key": "PDFKEY01", "data": {"itemType": "attachment", "contentType": "application/pdf"}},
                 {"key": "IMGKEY01", "data": {"itemType": "attachment", "filename": "fig.png"}},
             ]
+        if key == "LINKED01":
+            return [
+                {
+                    "key": "LINKPDF1",
+                    "data": {
+                        "itemType": "attachment",
+                        "linkMode": "linked_file",
+                        "path": f"AbsoluteLink:{self.linked_path}",
+                        "filename": "paper.pdf",
+                    },
+                },
+            ]
+        if key == "SECOND0002":
+            return [{"key": "PDFKEY02", "data": {"itemType": "attachment", "contentType": "application/pdf"}}]
         return []
 
     def fulltext_item(self, key):
+        self.calls.append(("fulltext", key))
         if self.fulltext_fails:
             raise OSError
         return {"content": "indexed text"}
 
     def file(self, key):
-        return _pdf_bytes("pdf text") if key == "PDFKEY01" else b""
+        return _pdf_bytes("pdf text") if key in ("PDFKEY01", "PDFKEY02", "LINKPDF1") else b""
 
 
 @pytest.fixture
@@ -82,6 +102,19 @@ def fake(monkeypatch):
     client = FakeClient()
     monkeypatch.setattr(zotero_module, "_build_client", lambda *_: client)
     return client
+
+
+@pytest.fixture
+def make_zotero(monkeypatch):
+    """Build a Zotero database backed by a FakeClient serving the given items."""
+
+    def _make(tmp_path, items=None, **kwargs):
+        client = FakeClient(items)
+        monkeypatch.setattr(zotero_module, "_build_client", lambda *_: client)
+        kwargs.setdefault("library_id", 1)
+        return Zotero(tmp_path / "s", tmp_path / "f", Query("cadmium"), **kwargs), client
+
+    return _make
 
 
 @pytest.fixture
@@ -179,3 +212,76 @@ def test_publications_fallback_to_pdf(zotero, fake):
     fake.fulltext_fails = True
     publication = zotero.get_publications([ID("40785269")], download_figures_enabled=False)[0]
     assert "pdf text" in publication.full_text
+
+
+def test_publications_skip_items_without_full_text(make_zotero, tmp_path):
+    """An item without a PDF attachment contributes no publication, not an empty one."""
+    zotero, _ = make_zotero(tmp_path, items=[{"key": "NOCHILD0", "data": {"itemType": "journalArticle"}}])
+    assert zotero.get_publications(zotero.get_ids()) == []
+
+
+SECOND_ITEM = {"key": "SECOND0002", "data": {"itemType": "journalArticle", "title": "Second"}}
+SECOND_IDS = [ID("40785269"), ID("SECOND0002")]
+
+
+def _fulltext_calls(fake):
+    return [call[1] for call in fake.calls if call[0] == "fulltext"]
+
+
+def test_fulltext_asked_once_per_library_locally(make_zotero, tmp_path):
+    """A local API without a full-text index should not be asked again for every item."""
+    zotero, fake = make_zotero(tmp_path, items=[*ITEMS, SECOND_ITEM], local=True)
+    fake.fulltext_fails = True
+    assert len(zotero.get_publications(SECOND_IDS, download_figures_enabled=False)) == 2
+    assert _fulltext_calls(fake) == ["PDFKEY01"]
+
+
+def test_fulltext_asked_again_for_remote_libraries(make_zotero, tmp_path):
+    """A remote failure can be transient, so every item keeps its own chance at the index."""
+    zotero, fake = make_zotero(tmp_path, items=[*ITEMS, SECOND_ITEM])
+    fake.fulltext_fails = True
+    assert len(zotero.get_publications(SECOND_IDS, download_figures_enabled=False)) == 2
+    assert _fulltext_calls(fake) == ["PDFKEY01", "PDFKEY02"]
+
+
+def test_children_fetched_once_per_item(make_zotero, tmp_path):
+    """Metadata, PDFs and the publication of one item must share a single children() call."""
+    zotero, fake = make_zotero(tmp_path)
+    ids = [ID("40785269")]
+    zotero.get_publications_metadata(ids)
+    zotero.get_pdfs(ids)
+    zotero.get_publications(ids, download_figures_enabled=False)
+    assert [call for call in fake.calls if call[0] == "children"] == [("children", "AAAAAAAA")]
+
+
+def test_linked_file_pdf_is_read_from_disk(make_zotero, tmp_path):
+    """Linked attachments live outside the library and are reported with an AbsoluteLink prefix."""
+    source = tmp_path / "outside.pdf"
+    source.write_bytes(_pdf_bytes("linked text"))
+    item = {"key": "LINKED01", "data": {"itemType": "journalArticle", "title": "Linked", "DOI": "10.1/linked"}}
+    zotero, fake = make_zotero(tmp_path, items=[item])
+    fake.linked_path = source
+    pdfs = zotero.get_pdfs([ID("10.1/linked")])
+    assert len(pdfs) == 1
+    assert Path(pdfs[0].path).read_bytes().startswith(b"%PDF")
+
+
+def test_linked_file_missing_on_disk_is_skipped(make_zotero, tmp_path):
+    """A linked file the user moved away must not abort the whole download."""
+    item = {"key": "LINKED01", "data": {"itemType": "journalArticle", "title": "Linked", "DOI": "10.1/linked"}}
+    zotero, fake = make_zotero(tmp_path, items=[item])
+    fake.linked_path = tmp_path / "gone.pdf"
+    assert zotero.get_pdfs([ID("10.1/linked")]) == []
+
+
+def test_build_client_passes_credentials(monkeypatch):
+    """The library coordinates, its type, the key and the endpoint reach pyzotero."""
+    recorded = {}
+
+    class Stub:
+        def __init__(self, **kwargs):
+            recorded.update(kwargs)
+
+    monkeypatch.setitem(sys.modules, "pyzotero", SimpleNamespace(Zotero=Stub))
+    zotero_module._build_client("42", "group", "secret", False)
+    assert recorded == {"library_id": "42", "library_type": "group", "api_key": "secret", "local": False}

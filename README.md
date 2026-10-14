@@ -2,7 +2,7 @@
 ## AOP-toolkit (aoptk)  
 AOP-toolkit (aoptk) is a Python package for mining and analyzing toxicological and biomedical literature. Originally developed to support the construction of Adverse Outcome Pathways (AOPs), it provides general-purpose tools for retrieving, processing, and analyzing scientific publications.
 
-The toolkit enables users to collect literature from databases such as PubMed Central and Europe PMC, extract information from full-text articles, analyze unstructured text and images using large language models, and normalize chemical names across publications to improve data consistency and interoperability.
+The toolkit enables users to collect literature from databases such as PubMed Central, Europe PMC or your own Zotero library, extract information from full-text articles, analyze unstructured text and images using large language models, and normalize chemical names across publications to improve data consistency and interoperability.
 
 ## How to use aoptk
 
@@ -56,7 +56,13 @@ zotero = Zotero(Path("storage"), Path("figures"), Query("cadmium"), local=True)
 publications = zotero.get_publications(zotero.get_ids())
 ```
 
-IDs are the DOI, PMID or PMCID of an item (in this order), falling back to the Zotero item key. The `full_text_subset`, preprint, licensing and date filters of `Query` are not available and raise `NotImplementedError`. Tables and figure descriptions are not available from Zotero.
+`library_id` and `api_key` are not read from the environment, so different parts of a workflow can use different libraries; `examples/download_from_zotero.py` shows one way to wire them up. The API key needs the "library access" permission, and a read-only key is enough. Pass `full_text_search=True` to search the text of the attached files rather than only titles, creators and years.
+
+IDs are the DOI, PMID or PMCID of an item (in this order), falling back to the Zotero item key, which keeps them interchangeable with the other databases. Zotero is a bibliography database, so it has limits the others do not:
+
+- `tables` and `figure_descriptions` of a `Publication` stay empty - Zotero has no full-text XML. Figure images attached to an item are copied to the figure storage, and text can still be obtained from the PDF via `PymupdfParser`.
+- The `full_text_subset`, `only_preprint`, `exclude_preprint`, `licensing` and `date` filters of `Query` have no Zotero equivalent and raise `NotImplementedError` instead of silently being ignored. Use the `full_text_search` argument for full-text search.
+- The local API needs Zotero to be running with the local API enabled (Settings → Advanced) and only serves the library the app is signed in to; group libraries work with the remote API only.
 
 ## Documentation
 
